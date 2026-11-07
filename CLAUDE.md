@@ -25,7 +25,7 @@ A local page for reading a script to camera. `README.md` is the user manual. `SK
 1. People focus on expression. Warn only about problems that cannot be fixed later: clipping, very low level, skipped words.
 2. The prompter runs on a clock. Never drive it from voice or recognition.
 3. Sound and picture stay in one MediaRecorder, on one clock.
-4. A take goes to disk when it stops. Removing a take moves it to `takes/.trash/`, and nothing deletes it.
+4. A take goes to disk when it stops. Deleting a take moves it to the Mac Trash, or to `takes/.trash/` where there is none (Docker). The app never erases a file, and take numbers are never reused.
 5. Overlays (grid, outline, eye line) exist only in the page and never enter the recorded stream.
 6. Nothing leaves the machine. The server refuses requests whose Host is not localhost, and compose publishes the port to 127.0.0.1 only.
 7. Do not pass the script to the transcription model, or it will hear the script and miss skipped words.

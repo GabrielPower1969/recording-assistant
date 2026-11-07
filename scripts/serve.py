@@ -28,6 +28,28 @@ import analyze  # noqa: E402
 SAFE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 SAFE_FILE = re.compile(r"^[A-Za-z0-9_-]{1,64}\.(mkv|webm|mp4)$")
 EXT = {"video/x-matroska": "mkv", "video/webm": "webm", "video/mp4": "mp4"}
+# The Mac Trash, so a deleted take can be put back. Inside a container there is none, and takes go to takes/.trash.
+SYSTEM_TRASH = Path.home() / ".Trash"
+ON_MAC = sys.platform == "darwin" and not os.environ.get("RA_CONTAINER")
+
+
+def gb(paths):
+    return round(sum(p.stat().st_size for p in paths if p.is_file()) / 1e9, 2)
+
+
+def to_system_trash(path: Path):
+    """Move a file to the Mac Trash under a free name. Returns False when there is no usable Trash."""
+    if not ON_MAC or not SYSTEM_TRASH.is_dir() or not os.access(SYSTEM_TRASH, os.W_OK):
+        return False
+    dest, n = SYSTEM_TRASH / path.name, 1
+    while dest.exists():
+        n += 1
+        dest = SYSTEM_TRASH / f"{path.stem} {n}{path.suffix}"
+    try:
+        shutil.move(path, dest)
+    except OSError:
+        return False
+    return True
 
 
 class Session:
@@ -80,6 +102,9 @@ class Session:
         pos = self.root / "position.json"
         return {"lines": self.lines(), "takes": takes, "picks": self.picks(), "whisper": bool(self.whisper),
                 "free_gb": round(shutil.disk_usage(self.root).free / 1e9, 1),
+                "root": str(self.root), "takes_gb": gb(self.takes.iterdir()), "mac": ON_MAC,
+                "old_trash": {"count": sum(1 for f in self.trash.iterdir() if SAFE_FILE.match(f.name)),
+                              "gb": gb(self.trash.iterdir())},
                 "position": json.loads(pos.read_text("utf-8")) if pos.exists() else None}
 
     def note_devices(self, mic, cam):
@@ -100,7 +125,8 @@ class Session:
 
     def next_name(self, line_id, ext):
         with self.lock:
-            nums = [int(m.group(1)) for f in list(self.takes.iterdir()) + list(self.trash.iterdir())
+            # Device notes outlive their takes, so a deleted take's number is never reused.
+            nums = [int(m.group(1)) for f in list(self.takes.iterdir()) + list(self.trash.iterdir()) + list(self.reports.iterdir())
                     if (m := re.match(re.escape(line_id) + r"_(\d+)\.", f.name))]
             n = max(nums, default=0) + 1
             name = f"{line_id}_{n}.{ext}"
@@ -231,11 +257,25 @@ class Handler(BaseHTTPRequestHandler):
         if u.path == "/api/trash":
             name = body.get("name", "")
             if SAFE_FILE.match(name) and (s.takes / name).is_file():
-                shutil.move(s.takes / name, s.trash / name)  # kept on disk, never deleted
+                # The Mac Trash first, so it can be put back from Finder; elsewhere a folder in the session.
+                where = "trash" if to_system_trash(s.takes / name) else "folder"
+                if where == "folder":
+                    shutil.move(s.takes / name, s.trash / name)
                 (s.reports / (Path(name).stem + ".json")).unlink(missing_ok=True)
                 line_id = Path(name).stem.rsplit("_", 1)[0]
                 if s.picks().get(line_id) == name:
                     s.set_pick(line_id, None)
+                return self._json({"ok": True, "where": where})
+        if u.path == "/api/empty-old-trash" and ON_MAC:
+            moved = sum(to_system_trash(f) for f in list(s.trash.iterdir()) if SAFE_FILE.match(f.name))
+            return self._json({"ok": True, "moved": moved})
+        if u.path == "/api/reveal" and ON_MAC:
+            name = body.get("name")
+            if name is None:
+                subprocess.run(["open", str(s.takes)], check=False)
+                return self._json({"ok": True})
+            if SAFE_FILE.match(name) and (s.takes / name).is_file():
+                subprocess.run(["open", "-R", str(s.takes / name)], check=False)
                 return self._json({"ok": True})
         self._json({"error": "bad request"}, 400)
 

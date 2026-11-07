@@ -90,6 +90,8 @@
   #devices select { width:100%; padding:5px 7px; font-size:12.5px; min-width:0; }
   #peak { font-size:12px; color:var(--mut); }
   #takes h2 { font-size:13px; color:var(--mut); font-weight:500; margin:14px 0 8px; }
+  #store { font-size:12px; color:var(--mut); line-height:1.5; margin-top:8px; word-break:break-all; }
+  #store button { padding:2px 8px; font-size:12px; margin:3px 6px 0 0; }
   .take { background:var(--card2); border-radius:10px; padding:9px; margin-bottom:8px; border:1px solid transparent; }
   .take.picked { border-color:var(--ok); }
   .take .hd { display:flex; align-items:center; gap:6px; font-size:13px; }
@@ -328,7 +330,7 @@ function setSize(size) {
 }
 function renderSize() { document.querySelectorAll('#sizeMode button').forEach(b => { b.classList.toggle('on', b.dataset.z === S.size); b.disabled = S.recording; }); }
 async function api(path, opts) { const r = await fetch(path, opts); if (!r.ok) throw new Error(`${path}: ${r.status}`); return r.json(); }
-async function refresh() { const d = await api('/api/state'); S.lines = d.lines; S.allLines = d.lines; S.lines = viewLines(); S.takes = d.takes; S.picks = d.picks; S.whisper = d.whisper; S.position = d.position; S.freeGb = d.free_gb; if (d.free_gb < 5) setSt(`硬盘只剩 ${d.free_gb} GB，录不了几遍了，先清理空间。`, true); }
+async function refresh() { const d = await api('/api/state'); S.lines = d.lines; S.allLines = d.lines; S.lines = viewLines(); S.takes = d.takes; S.picks = d.picks; S.whisper = d.whisper; S.position = d.position; S.store = d; S.freeGb = d.free_gb; if (d.free_gb < 5) setSt(`硬盘只剩 ${d.free_gb} GB，录不了几遍了，先清理空间。`, true); }
 
 async function listDevices() {
   const all = await navigator.mediaDevices.enumerateDevices();
@@ -564,11 +566,14 @@ function renderTakes(force) {
   const box = $('takes');
   const playing = [...box.querySelectorAll('video')].some(v => !v.paused);
   if (playing && !force) return; // a report arriving must not reload a take someone is watching
-  box.innerHTML = `<h2>这一段已录 ${list.length} 遍</h2>` + list.slice().reverse().map(t => `
+  const st = S.store || {}, old = st.old_trash || {};
+  const store = `<div id="store">存在 ${esc(st.root || '')}/takes<br>这个会话共 ${st.takes_gb ?? '?'} GB · 硬盘还剩 ${st.free_gb ?? '?'} GB<br>
+    ${st.mac ? '<button data-reveal="">打开文件夹</button>' : ''}${st.mac && old.count ? `<button data-old="1">之前移走的 ${old.count} 遍（${old.gb} GB）移到废纸篓</button>` : ''}</div>`;
+  box.innerHTML = `<h2>这一段已录 ${list.length} 遍</h2>` + store + list.slice().reverse().map(t => `
     <div class="take ${S.picks[L.id] === t.name ? 'picked' : ''}">
       <div class="hd"><span>第 ${t.name.match(/_(\d+)\./)[1]} 遍${t.report?.duration ? ` · ${t.report.duration} 秒` : ''}</span>
         <button data-pick="${esc(t.name)}">${S.picks[L.id] === t.name ? '✓ 已选' : '选这遍'}</button>
-        <button data-trash="${esc(t.name)}" aria-label="移到回收文件夹">移走</button></div>
+        <button data-trash="${esc(t.name)}" aria-label="删除这遍">删除</button>${S.store?.mac ? `<button data-reveal="${esc(t.name)}" aria-label="在 Finder 中显示">定位</button>` : ''}</div>
       <video controls preload="metadata" src="/take/${esc(t.name)}"></video>
       <ul>${reportHtml(t)}</ul>
     </div>`).join('');
@@ -657,7 +662,15 @@ $('takes').addEventListener('click', async e => {
     else { renderLine(); setSt('最后一段也选好了，可以按 V 回顾'); }
     return;
   }
-  if (trash) { await api('/api/trash', { method: 'POST', body: JSON.stringify({ name: trash }) }); await refresh(); renderLine(); }
+  const reveal = e.target.dataset.reveal, old = e.target.dataset.old;
+  if (reveal != null) { await api('/api/reveal', { method: 'POST', body: JSON.stringify(reveal ? { name: reveal } : {}) }); return; }
+  if (old) { const r = await api('/api/empty-old-trash', { method: 'POST', body: '{}' }); await refresh(); renderLine(); setSt(`${r.moved} 遍已移到废纸篓，需要时可以从废纸篓放回`); return; }
+  if (trash) {
+    const n = trash.match(/_(\d+)\./)[1];
+    if (S.picks[L.id] === trash && !confirm(`第 ${n} 遍是这一段选中的。删除后，这一段就没有选中的遍数了。确定删除吗？`)) return;
+    const r = await api('/api/trash', { method: 'POST', body: JSON.stringify({ name: trash }) }); await refresh(); renderLine();
+    setSt(r.where === 'trash' ? `第 ${n} 遍已移到废纸篓，需要时可以从废纸篓放回` : `第 ${n} 遍已移到会话的 takes/.trash 文件夹`);
+  }
 });
 $('strip').addEventListener('click', e => { if (e.target.dataset.i) go(+e.target.dataset.i); });
 $('rec').onclick = () => S.recording ? stopRec() : startRec();

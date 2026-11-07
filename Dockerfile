@@ -1,6 +1,7 @@
 FROM python:3.12-slim
 RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
+ENV RA_CONTAINER=1
 COPY scripts ./scripts
 COPY assets ./assets
 COPY examples ./examples

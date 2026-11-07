@@ -83,6 +83,12 @@ Marks in `t`: `*word*` for stress, ` / ` for a pause, ` // ` for a longer pause,
 
 Optional fields: `zh` (translation), `p` (pronunciation note), `names` (names the transcript may mishear), `target` (original length in seconds), `ref` (a clip in `ref/`), `parts` (show the segment line by line), `lang: "zh"` (Chinese segment), `covers` and `anySize` (long and medium segment views). [SKILL.md](SKILL.md) describes them all.
 
+## Where takes are stored
+
+Each take is saved in `<session>/takes/`. The recording page shows this folder, the size of the session and the free disk space. On a Mac, **打开文件夹** opens the folder and **定位** shows one take in Finder.
+
+**删除** (delete) moves a take to the Mac Trash, so you can put it back from Finder. In Docker there is no Trash, so it goes to `takes/.trash/`. Deleting the picked take asks first. The app never erases a file.
+
 ## Export
 
 ```bash
@@ -131,4 +137,5 @@ Clone this repository to `.claude/skills/recording-coach`. Claude reads [SKILL.m
 - **构图：** 按 G 开关构图线，线不进录像。
 - **听写检查：** 只支持 Apple Silicon 的 Mac 原生运行，Docker 版没有。
 - **导出：** `python3 scripts/export.py sessions/<名字> out/<名字>`。
+- **存放和删除：** 录制页右侧显示存放文件夹和占用空间。“删除”在 Mac 上是移到废纸篓，可以放回。
 - **备份：** `scripts/backup.sh <目标目录>`。

@@ -1,0 +1,16 @@
+services:
+  coach:
+    build: .
+    user: ${RA_UID:-1000}:${RA_GID:-1000}
+    ports:
+      - "127.0.0.1:${RA_PORT:-8765}:8765"
+    volumes:
+      - ./sessions:/data
+    environment:
+      - SESSION=${SESSION:-demo}
+    # A new session starts from the demo script; replace /data/<session>/lines.json with your own.
+    command: >
+      sh -c 'mkdir -p "/data/$$SESSION" &&
+      { [ -f "/data/$$SESSION/lines.json" ] || cp examples/demo/lines.json "/data/$$SESSION/lines.json"; } &&
+      exec python scripts/serve.py "/data/$$SESSION" --host 0.0.0.0 --no-whisper'
+    restart: unless-stopped

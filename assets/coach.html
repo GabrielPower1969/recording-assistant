@@ -1,0 +1,1023 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>录音教练</title>
+<style>
+  :root { color-scheme:dark; --bg:#0b1220; --card:#141d2e; --card2:#1b2740; --fg:#f2f5fa; --mut:#93a1b8; --line:#2a3854; --acc:#39a0ff; --gold:#ffcf4a; --ok:#4fdc8f; --bad:#ff6470; }
+  * { box-sizing:border-box; }
+  html, body { height:100%; }
+  body { margin:0; background:var(--bg); color:var(--fg); font-family:-apple-system,"PingFang SC","Noto Sans SC",sans-serif; }
+  button, select { font:inherit; font-size:14px; color:var(--fg); background:var(--card2); border:1px solid var(--line); border-radius:9px; padding:8px 12px; cursor:pointer; }
+  button:hover:not(:disabled) { border-color:var(--acc); }
+  button:focus-visible, select:focus-visible { outline:2px solid var(--acc); outline-offset:1px; }
+  button:disabled { opacity:.45; cursor:default; }
+  kbd { background:#2b3854; border-radius:5px; padding:1px 6px; font-size:12px; font-family:inherit; }
+  .hide { display:none !important; }
+
+  /* setup */
+  #setup { max-width:760px; margin:0 auto; padding:40px 20px; }
+  #setup h1 { font-size:28px; margin:0 0 8px; }
+  #setup p { color:var(--mut); line-height:1.7; margin:0 0 18px; }
+  .field { display:flex; gap:12px; align-items:center; margin:10px 0; }
+  .field label { width:64px; color:var(--mut); flex:none; }
+  .field select { flex:1; min-width:0; }
+  ol.tips { background:var(--card); border-radius:14px; padding:16px 18px 16px 38px; line-height:1.9; margin:18px 0; }
+  #start { background:var(--acc); border-color:var(--acc); color:#04121f; font-weight:700; font-size:16px; padding:12px 26px; }
+  #err { color:var(--bad); margin-top:12px; line-height:1.6; }
+
+  /* studio */
+  #studio { display:grid; grid-template-columns:minmax(0,1fr) 340px; grid-template-rows:auto minmax(220px,1fr) auto; min-height:100vh; height:100vh; }
+  #strip { grid-column:1 / 3; display:flex; gap:1px; padding:10px 14px 8px; flex-wrap:nowrap; }
+  #strip i { flex:1; min-width:0; height:8px; border-radius:2px; background:var(--line); cursor:pointer; }
+  #strip i.has { background:#5b7396; } #strip i.pick { background:var(--ok); } #strip i.cur { outline:2px solid var(--fg); outline-offset:1px; }
+  #main { padding:6px 34px 12px; overflow:auto; display:flex; flex-direction:column; min-width:0; }
+  #num { color:var(--mut); font-size:13px; letter-spacing:.5px; }
+  #text { font-size:clamp(30px,3.7vw,54px); line-height:1.25; font-weight:650; margin:8px 0 12px; letter-spacing:-.3px; }
+  #text { line-height:1.75; }
+  #text b { color:var(--gold); font-weight:750; }
+  #text .pz { color:var(--acc); font-weight:400; margin:0 .14em; opacity:.95; }
+  .lk { position:relative; }
+  .lk::after { content:''; position:absolute; left:-.16em; right:-.16em; bottom:-.04em; height:.24em; border:solid #6fdc9c; border-width:0 0 max(2px,.09em); border-radius:0 0 50% 50% / 0 0 100% 100%; pointer-events:none; }
+  .w.read + .lk::after { opacity:.3; }
+  #text rt { font-size:max(13px,.34em); font-weight:500; color:#8fd0ff; letter-spacing:0; }
+  #num { order:-2; } #coach { order:-1; margin:8px 0 6px; }
+  #text.parts { font-weight:600; letter-spacing:0; line-height:1.55; }
+  .part { margin-bottom:.42em; }
+  .part small { display:block; font-size:14px; font-weight:400; line-height:1.4; color:var(--mut); margin-top:1px; }
+  .row .tx { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  #rvNow { font-size:18px !important; }
+  #legend { order:-1; font-size:14px; line-height:1.6; color:#c6d2e4; background:var(--card); border-radius:8px; padding:7px 11px; margin:2px 0 8px; }
+  /* teleprompter while recording */
+  #main.live { overflow:hidden; scroll-behavior:auto; }
+  #main.live #coach, #main.live #legend, #main.live #tools, #main.live #zh, #main.live .part small { display:none; }
+  #main.live #text { font-size:clamp(38px,3.6vw,54px) !important; line-height:1.7; flex:1; min-height:0; overflow:hidden; margin:6px 0; }
+  #main.live #text .pad { height:45vh; }
+  #main.live.still #text { overflow:auto; font-size:clamp(24px,2.1vw,32px) !important; line-height:1.5; }
+  #main.live.still .w.read, #main.live.still .w.now { opacity:1; text-decoration:none; }
+  .w { transition:color .12s, opacity .12s; }
+  #main.live .w.read { opacity:.32; }
+  #main.live .w { cursor:pointer; }
+  #legend b { color:var(--gold); } #legend i { color:var(--acc); font-style:normal; }
+  #zh { color:var(--mut); font-size:17px; margin-bottom:12px; }
+  #coach { display:grid; grid-template-columns:auto 1fr; gap:6px 12px; font-size:15px; line-height:1.55; }
+  #coach dt { color:var(--mut); white-space:nowrap; } #coach dd { margin:0; }
+  #tools { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+  #timer { margin-top:14px; }
+  #bar { height:8px; background:var(--card2); border-radius:4px; overflow:hidden; position:relative; }
+  #bar i { display:block; height:100%; width:0; background:var(--acc); }
+  #time { font-size:13px; color:var(--mut); margin-top:5px; font-variant-numeric:tabular-nums; }
+
+  #side { background:var(--card); padding:12px; overflow:auto; min-height:0; border-left:1px solid var(--line); }
+  #camWrap { position:relative; border-radius:10px; overflow:hidden; background:#000; aspect-ratio:16/9; }
+  /* Framing guide, drawn on the preview only: it never reaches the recording. Eyes on the golden line, 38.2% from the top. */
+  .guide { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:1; }
+  .guide * { vector-effect:non-scaling-stroke; }
+  .gOut { stroke:#fff; stroke-width:1.6px; opacity:.8; filter:drop-shadow(0 0 1.5px #000) drop-shadow(0 0 1.5px #000); }
+  .gEye { stroke:var(--gold); stroke-width:1.6px; stroke-dasharray:7 5; filter:drop-shadow(0 0 1.5px #000); }
+  .noguide .guide, .noguide #camWrap::after, .noguide #pmCamWrap::after, .tall .guide { display:none; } /* the outline is drawn for a wide frame */
+  #guideTip { font-size:12px; color:var(--mut); margin-top:5px; }
+  .noguide #guideTip, .tall #guideTip { visibility:hidden; height:0; margin:0; }
+  #cam { width:100%; height:100%; object-fit:cover; display:block; transform:scaleX(-1); }
+  #camWrap::after, #pmCamWrap::after { content:""; position:absolute; inset:0; pointer-events:none; background:
+    linear-gradient(transparent 33.1%,#fff5 33.1% 33.5%,transparent 33.5%), linear-gradient(90deg,transparent 33.1%,#fff5 33.1% 33.4%,transparent 33.4% 66.6%,#fff5 66.6% 66.9%,transparent 66.9%); }
+  #meter { height:10px; background:var(--card2); border-radius:5px; overflow:hidden; margin:9px 0 3px; position:relative; }
+  #meter i { display:block; height:100%; width:0; background:linear-gradient(90deg,var(--ok) 0 90%,var(--gold) 90% 95%,var(--bad) 95%); background-size:calc(340px - 24px) 100%; }
+  #meter b { position:absolute; left:75%; top:0; bottom:0; width:2px; background:#fff9; }
+  #devices { display:grid; gap:6px; margin-top:9px; }
+  #devices label { display:grid; grid-template-columns:44px minmax(0,1fr); align-items:center; gap:6px; font-size:12.5px; color:var(--mut); }
+  #devices select { width:100%; padding:5px 7px; font-size:12.5px; min-width:0; }
+  #peak { font-size:12px; color:var(--mut); }
+  #takes h2 { font-size:13px; color:var(--mut); font-weight:500; margin:14px 0 8px; }
+  .take { background:var(--card2); border-radius:10px; padding:9px; margin-bottom:8px; border:1px solid transparent; }
+  .take.picked { border-color:var(--ok); }
+  .take .hd { display:flex; align-items:center; gap:6px; font-size:13px; }
+  .take .hd span { flex:1; }
+  .take button { padding:3px 8px; font-size:12px; }
+  .take video { width:100%; border-radius:6px; margin-top:7px; display:block; background:#000; }
+  .take ul { list-style:none; margin:7px 0 0; padding:0; font-size:12.5px; line-height:1.5; }
+  .take li.bad { color:#ffb0b6; } .take li.good { color:#9ee8bd; } .take li.wait { color:var(--mut); }
+
+  #foot { grid-column:1 / 3; display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:10px 16px; border-top:1px solid var(--line); background:var(--bg); }
+  #rec { background:var(--bad); border-color:var(--bad); color:#fff; font-weight:700; min-width:170px; font-size:15px; padding:10px 16px; }
+  #rec.on { background:#fff; color:#b00; border-color:#fff; }
+  #foot button { white-space:nowrap; flex:none; } .seg { flex:none; white-space:nowrap; }
+  #togglePm { margin-left:auto; }
+  /* A message gets its own full line: squeezed into the button row it stood one character wide and pushed the whole page away. */
+  #st { order:9; flex:1 1 100%; color:var(--mut); font-size:14px; line-height:1.4; } #st:empty { display:none; }
+  #st.warn { color:var(--bad); font-weight:600; }
+  #next { background:var(--acc); border-color:var(--acc); color:#04121f; font-weight:700; }
+  .seg { display:inline-flex; align-items:center; gap:4px; font-size:13px; color:var(--mut); }
+  .seg button { padding:5px 10px; } .seg button.on { background:var(--acc); border-color:var(--acc); color:#04121f; font-weight:700; }
+  #cancel { border-color:var(--bad); color:#ffb0b6; }
+  .layer { position:fixed; inset:0; background:var(--bg); z-index:5; }
+  #held { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; text-align:center; padding:20px; }
+  #held h2 { margin:0; font-size:28px; } #held p { margin:0; color:var(--mut); line-height:1.7; }
+  #held #resume { background:var(--acc); border-color:var(--acc); color:#04121f; font-weight:700; font-size:16px; padding:12px 26px; }
+  #rv { display:grid; grid-template-columns:minmax(0,1fr) 440px; grid-template-rows:auto minmax(0,1fr); }
+  #rvTop { grid-column:1 / 3; display:flex; gap:10px; align-items:center; padding:12px 16px; border-bottom:1px solid var(--line); flex-wrap:wrap; }
+  #rvTop strong { font-size:17px; margin-right:6px; } #rvSum { color:var(--mut); font-size:14px; flex:1; min-width:180px; }
+  #rvStage { padding:16px; min-width:0; overflow:auto; }
+  #rvVideo { width:100%; max-height:66vh; background:#000; border-radius:10px; display:block; }
+  #rvNow { font-size:22px; font-weight:600; margin-top:12px; line-height:1.35; } #rvNowSub { color:var(--mut); margin-top:4px; font-size:14px; }
+  #rvList { overflow:auto; border-left:1px solid var(--line); min-height:0; }
+  .row { display:grid; grid-template-columns:34px minmax(0,1fr) auto; gap:8px; align-items:center; width:100%; text-align:left; padding:9px 12px; background:none; border:0; border-bottom:1px solid var(--line); border-radius:0; }
+  .row:hover { background:var(--card); } .row.cur { background:var(--card2); }
+  .row .n { color:var(--mut); font-size:12px; } .row .tx { font-size:14px; line-height:1.35; }
+  .row .tag { font-size:11.5px; border-radius:6px; padding:2px 6px; white-space:nowrap; background:var(--card2); color:var(--mut); }
+  .row .tag.ok { color:#9ee8bd; } .row .tag.warn { color:#ffcf8a; }
+  @media (max-width:900px) { #rv { grid-template-columns:1fr; grid-template-rows:auto auto minmax(0,1fr); } #rvTop { grid-column:1; } #rvList { border-left:0; } }
+  /* teleprompter screen: black, big, flippable for the glass */
+  #pm { position:fixed; inset:0; background:#000; color:#fff; z-index:7; cursor:none; }
+  #pmFlip { position:absolute; inset:0; display:flex; flex-direction:column; }
+  #pmFlip[data-flip="x"] { transform:scaleX(-1); } #pmFlip[data-flip="y"] { transform:scaleY(-1); }
+  #pmTop { display:flex; justify-content:space-between; gap:3vw; padding:10px 4vw 8px; height:24vh; flex:none; }
+  #pm.nocam #pmTop { height:auto; min-height:90px; }
+  #pmInfo { flex:1; min-width:0; overflow:hidden; display:flex; flex-direction:column; font-size:clamp(15px,1.7vw,24px); line-height:1.45; color:#aeb9ca; }
+  #pmNum { display:block; color:#8b97aa; font-size:.8em; }
+  #pmRec { display:block; color:#ff6470; font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap; min-height:1.45em; }
+  #pmTone { min-height:0; overflow:hidden; flex:0 1 auto; }
+  #pmLevel { flex:none; position:relative; height:clamp(10px,1.5vh,18px); margin-top:8px; background:#1d2636; border-radius:9px; overflow:hidden; }
+  #pmLevel i { display:block; height:100%; width:0; background:var(--ok); }
+  #pmLevel b { position:absolute; left:75%; top:0; bottom:0; width:4px; margin-left:-2px; background:#fff; } /* same comfort mark as the main meter */
+  #pmCamWrap { position:relative; height:100%; aspect-ratio:16/9; flex:none; border-radius:8px; overflow:hidden; background:#111; }
+  #pmCam { width:100%; height:100%; display:block; object-fit:cover; transform:scaleX(-1); } /* like a mirror */
+  #pm.nocam #pmCamWrap { display:none; }
+  #pm.rec #pmCamWrap { outline:3px solid #ff6470; }
+  #pmBox { flex:1; min-height:0; overflow:hidden; position:relative; }
+  #pmText { position:relative; padding:0 6vw; font-weight:600; line-height:1.5; will-change:transform; }
+  #pmText p { margin:0 0 .35em; }
+  #pmText b { color:var(--gold); font-weight:750; }
+  #pmText .pz { color:var(--acc); font-weight:400; margin:0 .14em; }
+  #pmText rt { font-size:.36em; font-weight:500; color:#8fd0ff; }
+  #pmText .w.read { opacity:.3; }
+  #pm.still #pmText .w.read { opacity:1; }
+  #pm.still #pmMark { display:none; }
+  #pm.still #pmText p { display:inline; } /* the whole segment on one screen: run the lines together */
+  #pmMark { position:absolute; left:1.2vw; width:0; height:0; border-style:solid; border-width:.9vw 0 .9vw 1.8vw; border-color:transparent transparent transparent var(--gold); transform:translateY(-50%); }
+  #pmFoot { padding:6px 4vw 12px; font-size:15px; line-height:1.5; color:#8b97aa; min-height:36px; }
+  #pmFoot.warn { color:#ff8a93; font-weight:600; font-size:20px; }
+  #pmCount { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:26vw; font-weight:800; background:#000a; pointer-events:none; }
+  #togglePm.on { background:var(--acc); border-color:var(--acc); color:#04121f; font-weight:700; }
+  #count { z-index:6; position:fixed; inset:0; display:flex; align-items:center; justify-content:center; font-size:220px; font-weight:800; color:#fff; background:#0008; pointer-events:none; }
+  @media (max-width:900px) { #studio { grid-template-columns:1fr; grid-template-rows:auto auto auto auto; height:auto; } #strip,#foot { grid-column:1; } #side { border-left:0; } #foot { flex-wrap:wrap; } }
+</style>
+</head>
+<body>
+<section id="setup">
+  <h1>录音教练</h1>
+  <p>一段一段连着读，同时录声音和画面，存在这台电脑上，不上传。每录完一遍，机器检查音量、留白、语速和有没有读漏。语气好不好，你自己听。</p>
+  <div class="field"><label for="micSel">麦克风</label><select id="micSel"></select></div>
+  <div class="field"><label for="camSel">摄像头</label><select id="camSel"></select></div>
+  <ol class="tips">
+    <li>关掉会议软件，摄像头放到和眼睛一样高，看镜头说话。</li>
+    <li>麦克风离嘴一拳左右。说话时最响到白线附近最好，差一点也没关系，后期会统一音量。</li>
+    <li>按空格后有倒数（三秒或两秒，录制页可选），倒数结束开口，说完按空格。</li>
+    <li>读错了按 <kbd>Esc</kbd> 取消，马上再来。一段可以录好几遍，点“选这遍”（<kbd>P</kbd> 选最新一遍）就进入下一句。</li>
+    <li>要走开就点“暂存离开”。想看之前录的，按 <kbd>V</kbd> 回顾。</li>
+    <li>用提词器：按 <kbd>T</kbd>。iPad 随航或外接屏，稿子自动开到那块屏；镜像屏就铺满这块屏。<kbd>M</kbd> 换翻转方向。</li>
+  </ol>
+  <button id="start">打开摄像头和麦克风</button>
+  <div id="err" role="alert"></div>
+</section>
+
+<section id="studio" class="hide">
+  <div id="strip" aria-label="全部段落的进度"></div>
+  <main id="main">
+    <div id="num"></div>
+    <div id="text"></div>
+    <div id="legend"><b>金色字</b> 读重一点（只有半个词是金色，重音就在那个音节）　<i>｜</i> 换口气，停一下　<i>｜｜</i> 停久一点　<span style="color:#8fd0ff">上方小字</span> 这个词的读音　<span style="color:#6fdc9c">‿</span> 连读，前后两个词连起来说</div>
+    <div id="zh"></div>
+    <dl id="coach"></dl>
+    <div id="tools">
+      <button id="playRef">听中文原声 <kbd>R</kbd></button>
+      <button id="say">听标准发音 <kbd>S</kbd></button>
+    </div>
+    <audio id="ref" preload="none"></audio>
+    <div id="timer"><div id="bar"><i></i></div><div id="time"></div></div>
+  </main>
+  <aside id="side">
+    <div id="camWrap" class="guided"><video id="cam" autoplay muted playsinline></video><svg class="guide" viewBox="0 0 1600 900" aria-hidden="true"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><g class="gOut"><ellipse cx="800" cy="344" rx="152" ry="207"/><path d="M714 515 C716 560 716 590 690 610 C640 648 520 650 440 712 C390 750 372 820 366 900 M886 515 C884 560 884 590 910 610 C960 648 1080 650 1160 712 C1210 750 1228 820 1234 900"/></g><line class="gEye" x1="0" y1="344" x2="1600" y2="344"/></g></svg></div>
+    <div id="guideTip">眼睛放在金线上，头在轮廓里动就好　<kbd>G</kbd> 开关</div>
+    <div id="devices">
+      <label>麦克风<select id="micNow"></select></label>
+      <label>摄像头<select id="camNow"></select></label>
+    </div>
+    <div id="fmt" style="color:var(--mut);font-size:12px;margin-top:6px"></div>
+    <div id="meter"><i></i><b></b></div>
+    <div id="peak">最响到白线附近最好，差一点也没关系</div>
+    <div id="takes"></div>
+  </aside>
+  <footer id="foot">
+    <button id="prev">← 上一段</button>
+    <button id="rec">● 开始录 <kbd>空格</kbd></button>
+    <button id="cancel" class="hide">取消这遍 <kbd>Esc</kbd></button>
+    <span class="seg" id="cd" role="group" aria-label="倒数秒数">倒数 <button data-c="3">3 2 1</button><button data-c="2">2 1</button></span>
+    <span class="seg" id="sizeMode" role="group" aria-label="每段长度"><button data-z="long">长段</button><button data-z="mid">中段</button></span>
+    <span class="seg" id="scrollMode" role="group" aria-label="提词方式"><button data-s="1">滚动</button><button data-s="0">不滚动</button></span>
+    <span class="seg" id="speedBox" role="group" aria-label="滚动速度">速度 <button id="slower" aria-label="慢一点">−</button><span id="speedNow" style="min-width:38px;text-align:center"></span><button id="faster" aria-label="快一点">+</button></span>
+    <span id="st" role="status"></span>
+    <button id="togglePm" title="有第二块屏（随航、外接）就开到那块屏上；只有一块屏（镜像）就铺满这块屏">提词器 <kbd>T</kbd></button>
+    <button id="review">回顾 <kbd>V</kbd></button>
+    <button id="hold">暂存离开</button>
+    <button id="next">跳过 →</button>
+  </footer>
+</section>
+
+<section id="held" class="layer hide">
+  <h2>已暂存</h2>
+  <p id="heldSum"></p>
+  <button id="resume">继续录</button>
+  <div id="heldErr" role="alert" style="color:var(--bad)"></div>
+</section>
+
+<section id="rv" class="layer hide" aria-label="回顾">
+  <div id="rvTop">
+    <strong>回顾</strong><span id="rvSum"></span>
+    <span class="seg" id="rvFilter" role="group" aria-label="筛选"><button data-f="all">全部</button><button data-f="picked">已选</button><button data-f="todo">没选的</button></span>
+    <button id="rvPlayAll">从头连播已选</button>
+    <button id="rvBack">回去录这段</button>
+    <button id="rvClose">关闭 <kbd>Esc</kbd></button>
+  </div>
+  <div id="rvStage">
+    <video id="rvVideo" controls playsinline></video>
+    <div id="rvNow"></div><div id="rvNowSub"></div>
+  </div>
+  <div id="rvList"></div>
+</section>
+<div id="count" class="hide" aria-hidden="true"></div>
+
+<section id="pm" class="hide" aria-label="提词器">
+  <div id="pmFlip">
+    <div id="pmTop"><div id="pmInfo"><span id="pmNum"></span><span id="pmRec"></span><div id="pmTone"></div><div id="pmLevel" aria-hidden="true"><i></i><b></b></div></div><div id="pmCamWrap" class="guided"><video id="pmCam" autoplay muted playsinline></video><svg class="guide" viewBox="0 0 1600 900" aria-hidden="true"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><g class="gOut"><ellipse cx="800" cy="344" rx="152" ry="207"/><path d="M714 515 C716 560 716 590 690 610 C640 648 520 650 440 712 C390 750 372 820 366 900 M886 515 C884 560 884 590 910 610 C960 648 1080 650 1160 712 C1210 750 1228 820 1234 900"/></g><line class="gEye" x1="0" y1="344" x2="1600" y2="344"/></g></svg></div></div>
+    <div id="pmBox"><div id="pmText"></div><i id="pmMark"></i></div>
+    <div id="pmFoot"></div>
+    <div id="pmCount" class="hide"></div>
+  </div>
+</section>
+
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const STOP_GRACE = 600;
+// Generous quality a browser recorder allows; it is not mathematically lossless. 1080p30 gets 50 Mbps, capped at 200.
+const videoBps = () => { const s = S.stream.getVideoTracks()[0].getSettings(); return Math.min(200e6, Math.max(50e6, Math.round(s.width * s.height * (s.frameRate || 30) * .8))); };
+// One recorder, one stream: sound and picture share a clock. Lossless audio first; AAC or Opus only as a fallback.
+const MIMES = ['video/x-matroska;codecs=avc1,pcm', 'video/webm;codecs=vp9,pcm', 'video/webm;codecs=vp8,pcm',
+               'video/mp4;codecs=avc1,mp4a.40.2', 'video/webm;codecs=vp9,opus'];
+const S = { lines: [], takes: {}, picks: {}, idx: 0, stream: null, rec: null, recording: false, counting: false, t0: 0, peak: -99, mime: '', uploading: 0, count: 3, lead: 3, ctx: null, meter: 0, run: 0, rv: { open: false, filter: 'all', i: 0, all: false } };
+S.scroll = true; S.speed = 1; S.size = 'long'; S.allLines = [];
+try {
+  if (localStorage.getItem('coach-size') === 'mid') S.size = 'mid';
+  const c = +localStorage.getItem('coach-count'); if (c === 2 || c === 3) S.count = c;
+  if (localStorage.getItem('coach-scroll') === '0') S.scroll = false;
+  const v = +localStorage.getItem('coach-speed'); if (v >= .5 && v <= 2) S.speed = v;
+} catch {}
+const remember = (k, v) => { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch {} };
+const recall = k => { try { return localStorage.getItem(k); } catch { return null; } };
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const line = () => S.lines[S.idx];
+const plain = t => t.replace(/\{([^|}]+)\|[^}]*\}/g, '$1').replace(/\*/g, '').replace(/\s*\/+\s*/g, ' ').trim();
+// Reading marks written in the script: *stress*, / pause, // longer pause, {word|how it sounds}.
+// Linked speech is worked out from spelling, so a new script gets it with no work. The script and the machine checks never see the arcs.
+const LK_WEAK = new Set(['the', 'be', 'he', 'she', 'we', 'me', 'ye']);
+const LK_HEARD_VOWEL = /^(uni|use|usual|one$|once$|eu|ewe)/, LK_SILENT_H = /^(hour|honest|hono|heir)/;
+const lkWord = w => w.replace(/\{([^|}]*)\|[^}]*\}/g, '$1').replace(/\*/g, '').replace(/^[^A-Za-z]+|['’]$/g, '');
+function lkLast(w) { // the consonant heard at the end, or '' for a vowel
+  const x = w.toLowerCase().replace(/[’]/g, "'");
+  if (/^[A-Z]$/.test(w)) return /[FLMNRSX]/.test(w) ? w.toLowerCase() : '';
+  if (LK_WEAK.has(x) || /(ee|oe|ie|ye|igh|eigh|ugh)$/.test(x) && !/(enough|rough|tough|laugh)$/.test(x) || /(oh|ah|uh)$/.test(x) || /[aiouyw]$/.test(x)) return '';
+  return (x.endsWith('e') ? x.slice(0, -1) : x).slice(-1);
+}
+function lkLinks(a, b) {
+  if (/[.,!?:;]$/.test(a) || /^\/+$/.test(a) || /^\/+$/.test(b)) return false; // a pause: nothing to link across
+  const A = lkWord(a), B = lkWord(b);
+  if (!/[A-Za-z]$/.test(A) || !B) return false;
+  if (/^[A-Z]$/.test(A) && /^[A-Z]$/.test(B)) return false; // letters read one by one: A I, U C
+  const end = lkLast(A); if (!end) return false;
+  const y = B.toLowerCase();
+  if (/^[A-Z]$/.test(B)) return /[AEFHILMNORSX]/.test(B);
+  if (/^[td]$/.test(end) && /^your?$/.test(y)) return true; // would you, want you
+  if (/^[aeiou]/.test(y) ? !LK_HEARD_VOWEL.test(y) : LK_SILENT_H.test(y)) return true; // set it, an event
+  return !/[csgh]/.test(end) && y[0] === end && !/^(th|sh|ch|ph)/.test(y); // one sound said once: some months
+}
+const linked = t => (t.match(/\S*\{[^}]*\}\S*|\S+/g) || []).reduce((out, w, i, all) => out + (i ? (lkLinks(all[i - 1], w) ? '\u203f' : ' ') : '') + w, '');
+const marked = t => esc(linked(t)).replace(/\u203f/g, '<span class="lk">\u00a0</span>') // pauses first: the tags added below contain slashes of their own
+  .replace(/\s*\/\/\s*/g, ' <span class="pz" aria-label="停久一点">｜｜</span> ')
+  .replace(/(^|[^<])\s*\/\s*(?=[^>]|$)/g, '$1 <span class="pz" aria-label="停一下">｜</span> ')
+  .replace(/\{([^|}]+)\|([^}]*)\}/g, '<ruby>$1<rt>$2</rt></ruby>')
+  .replace(/\*([^*]+)\*/g, '<b>$1</b>');
+
+const viewLines = () => { const v = S.allLines.filter(l => l.anySize || (l.size || 'mid') === S.size); return v.length ? v : S.allLines; };
+// A line is done if it was picked, or if the other segment length already covers it.
+function isDone(l) {
+  if (S.picks[l.id]) return true;
+  if (l.covers) return l.covers.every(c => S.picks[c]);
+  return S.allLines.some(g => g.covers?.includes(l.id) && S.picks[g.id]);
+}
+function setSize(size) {
+  if (S.recording || size === S.size) return;
+  const cur = line();
+  S.size = size; S.lines = viewLines();
+  try { localStorage.setItem('coach-size', size); } catch {}
+  // Stay on the same topic: the new view's segment that contains or starts with the current one.
+  let i = S.lines.findIndex(l => l.covers?.includes(cur.id));
+  if (i < 0 && cur.covers) i = S.lines.findIndex(l => l.id === cur.covers[0]);
+  go(Math.max(0, i));
+}
+function renderSize() { document.querySelectorAll('#sizeMode button').forEach(b => { b.classList.toggle('on', b.dataset.z === S.size); b.disabled = S.recording; }); }
+async function api(path, opts) { const r = await fetch(path, opts); if (!r.ok) throw new Error(`${path}: ${r.status}`); return r.json(); }
+async function refresh() { const d = await api('/api/state'); S.lines = d.lines; S.allLines = d.lines; S.lines = viewLines(); S.takes = d.takes; S.picks = d.picks; S.whisper = d.whisper; S.position = d.position; S.freeGb = d.free_gb; if (d.free_gb < 5) setSt(`硬盘只剩 ${d.free_gb} GB，录不了几遍了，先清理空间。`, true); }
+
+async function listDevices() {
+  const all = await navigator.mediaDevices.enumerateDevices();
+  const fill = (sel, kind, pref, key) => {
+    const devs = all.filter(d => d.kind === kind);
+    sel.innerHTML = devs.map(d => `<option value="${esc(d.deviceId)}">${esc(d.label || kind)}</option>`).join('');
+    const hit = devs.find(d => d.deviceId === recall(key)) || devs.find(d => pref.test(d.label)); if (hit) sel.value = hit.deviceId;
+  };
+  fill($('micSel'), 'audioinput', /MV7|Shure/i, 'coach-mic');
+  fill($('camSel'), 'videoinput', /FaceTime|Built-in|Logitech|Brio/i, 'coach-cam');
+  syncDevices(all);
+}
+// The devices in use stay visible all the time, named by the live tracks rather than by the last choice.
+function syncDevices(all) {
+  for (const [now, from, track] of [['micNow', 'micSel', S.stream?.getAudioTracks()[0]], ['camNow', 'camSel', S.stream?.getVideoTracks()[0]]]) {
+    $(now).innerHTML = $(from).innerHTML;
+    const id = track?.getSettings().deviceId;
+    if (id && [...$(from).options].some(o => o.value === id)) { $(from).value = id; }
+    $(now).value = $(from).value;
+    $(now).disabled = S.recording;
+  }
+}
+async function switchDevice() {
+  if (S.recording) return;
+  $('micSel').value = $('micNow').value; $('camSel').value = $('camNow').value;
+  try { await openDevices(); syncDevices(); setSt(`现在用：${S.stream.getAudioTracks()[0].label} · ${S.stream.getVideoTracks()[0].label}`); }
+  catch (e) { setSt(`切换失败：${e.name || e.message}`, true); }
+}
+function watchTracks() {
+  S.stream.getTracks().forEach(t => { t.onended = () => { if (S.stream?.getTracks().includes(t)) setSt(`${t.kind === 'audio' ? '麦克风' : '摄像头'}断开了：${t.label}。插好后在右边重新选择。`, true); }; });
+}
+async function openDevices() {
+  if (S.stream) S.stream.getTracks().forEach(t => t.stop());
+  S.stream = await navigator.mediaDevices.getUserMedia({
+    audio: { deviceId: $('micSel').value ? { exact: $('micSel').value } : undefined, echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1, sampleRate: 48000 },
+    video: { deviceId: $('camSel').value ? { exact: $('camSel').value } : undefined, width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30 } },
+  });
+  await bestMode();
+  remember('coach-mic', S.stream.getAudioTracks()[0].getSettings().deviceId);
+  remember('coach-cam', S.stream.getVideoTracks()[0].getSettings().deviceId);
+  $('cam').srcObject = S.stream; window.coachStream = S.stream; watchTracks();
+  noteDevices();
+  S.ctx?.close();
+  const ctx = S.ctx = new AudioContext({ sampleRate: 48000 }); if (ctx.state === 'suspended') { ctx.resume().catch(() => {}); for (const ev of ['pointerdown', 'keydown']) addEventListener(ev, () => ctx.state !== 'closed' && ctx.resume().catch(() => {}), { once: true }); }
+  const meterId = ++S.meter;
+  const an = ctx.createAnalyser(); an.fftSize = 2048; ctx.createMediaStreamSource(S.stream).connect(an);
+  const buf = new Float32Array(an.fftSize);
+  // A second window reads this directly, so its bar keeps moving when the main window is covered and stops drawing.
+  window.coachLevel = () => {
+    if (meterId !== S.meter) return null;
+    an.getFloatTimeDomainData(buf); let p = 0; for (const v of buf) p = Math.max(p, Math.abs(v));
+    return 20 * Math.log10(p || 1e-6);
+  };
+  const tick = () => {
+    if (meterId !== S.meter) return;
+    const db = window.coachLevel();
+    followTick(performance.now());
+    document.querySelector('#meter i').style.width = Math.max(0, Math.min(100, (db + 60) / 60 * 100)) + '%';
+    if (S.recording) { S.peak = Math.max(S.peak, db); const sec = (performance.now() - S.t0) / 1000 - S.lead; drawTimer(Math.max(0, sec)); }
+    requestAnimationFrame(tick);
+  };
+  tick();
+  S.mime = MIMES.find(m => MediaRecorder.isTypeSupported(m)) || '';
+  renderFmt();
+}
+// What is actually being recorded. The frame size comes from the stream, so a camera turned by hand still reads as landscape unless its own software sends a tall picture.
+function specNow() {
+  const t = S.stream?.getVideoTracks()[0]; if (!t) return '';
+  const s = t.getSettings(), w = $('cam').videoWidth || s.width, h = $('cam').videoHeight || s.height;
+  if (!w || !h) return '';
+  const long = Math.max(w, h), short = Math.min(w, h);
+  const name = long >= 7000 ? '8K' : long >= 3800 ? '4K' : `${short}P`;
+  return `${name} ${w === h ? '方形' : w > h ? '横屏' : '竖屏'} · ${w}×${h} · ${Math.round(s.frameRate || 0)}fps`;
+}
+function renderFmt() {
+  if (!S.stream) return;
+  const a = S.stream.getAudioTracks()[0].getSettings();
+  $('fmt').textContent = `${specNow()} · ${a.sampleRate || '?'} Hz · ${/pcm/.test(S.mime) ? '无损声音' : '压缩声音'} · 画面目标 ${Math.round(videoBps() / 1e6)} Mbps`;
+  document.body.classList.toggle('tall', /竖屏/.test(specNow()));
+  pmSync();
+}
+$('cam').addEventListener('resize', renderFmt); // the camera's software can change the shape at any time
+
+// Take the camera's best mode without asking: highest resolution up to 4K, then its highest frame rate up to 60.
+async function bestMode() {
+  const t = S.stream.getVideoTracks()[0], c = t.getCapabilities?.() || {};
+  if (!c.width) return;
+  const width = Math.min(3840, c.width.max), height = Math.min(2160, c.height.max), frameRate = Math.min(60, c.frameRate?.max || 30);
+  await t.applyConstraints({ width: { ideal: width }, height: { ideal: height }, frameRate: { ideal: frameRate } }).catch(() => {});
+}
+const deviceQuery = () => `mic=${encodeURIComponent(S.stream.getAudioTracks()[0].label)}&cam=${encodeURIComponent(S.stream.getVideoTracks()[0].label)}`;
+async function noteDevices() {
+  const r = await api('/api/devices', { method: 'POST', body: JSON.stringify({ mic: S.stream.getAudioTracks()[0].label, cam: S.stream.getVideoTracks()[0].label }) }).catch(() => null);
+  S.calibrated = r?.calibrated;
+}
+function drawTimer(sec) {
+  const tgt = line().target || 0;
+  document.querySelector('#bar i').style.width = tgt ? Math.min(100, sec / tgt * 100) + '%' : '0';
+  $('time').textContent = `${sec.toFixed(1)} 秒` + (tgt ? ` · 中文这段 ${tgt.toFixed(1)} 秒，差不多就行` : '');
+}
+function setSt(msg, warn) { $('st').textContent = msg; $('st').className = warn ? 'warn' : ''; pmSync(); }
+
+function renderStrip() {
+  $('strip').innerHTML = S.lines.map((l, i) => `<i data-i="${i}" title="${esc(l.id)}" class="${isDone(l) ? 'pick' : (S.takes[l.id] || []).length ? 'has' : ''}${i === S.idx ? ' cur' : ''}"></i>`).join('');
+}
+function renderLine() {
+  const L = line();
+  const done = S.lines.filter(isDone).length;
+  $('num').textContent = `第 ${S.idx + 1} / ${S.lines.length} 段 · ${L.chapter || ''} · 已选定 ${done} 段`;
+  if (L.parts) {
+    const n = plain(L.t).split(/\s+/).length;
+    $('text').className = 'parts';
+    $('text').style.fontSize = (n > 120 ? 20 : n > 55 ? 24 : n > 35 ? 28 : 33) + 'px';
+    $('text').innerHTML = L.parts.map(p => `<div class="part">${marked(p.t)}<small>${esc(p.zh)}</small></div>`).join('');
+  } else { $('text').className = ''; $('text').style.fontSize = ''; $('text').innerHTML = marked(L.t); }
+  $('legend').classList.toggle('hide', !!L.clap);
+  $('zh').textContent = L.parts ? '' : (L.zh || '');
+  F.words = buildWords($('text'));
+  const rows = [['语气', L.m], ['画面', L.d], ['难词', L.p]].filter(r => r[1]);
+  $('coach').innerHTML = rows.map(r => `<dt>${r[0]}</dt><dd>${esc(r[1])}</dd>`).join('');
+  $('playRef').disabled = !L.ref; $('ref').src = L.ref ? `/ref/${L.ref}` : '';
+  $('say').disabled = L.clap;
+  $('prev').disabled = S.idx === 0;
+  $('next').textContent = S.idx === S.lines.length - 1 ? '已是最后一段' : '跳过 →';
+  $('next').disabled = S.idx === S.lines.length - 1;
+  drawTimer(0); renderStrip(); renderTakes(true);
+  renderCount(); renderScroll(); renderSize(); pmSync();
+}
+/* ---- teleprompter: progress follows the voice ---- */
+const F = { words: [], pos: 0, active: false, last: 0, rate: 1 };
+const CJK = /[\u4e00-\u9fff]/, CJK_TOKEN = /[\u4e00-\u9fff][，。！？：、；]*|[^\u4e00-\u9fff]+/g;
+const ZH_CHARS_PER_SEC = 3.9; // measured on one speaker's Mandarin talk, pauses included: 1427 characters in 369.2 s
+const syllables = w => Math.max(1, (w.toLowerCase().match(/[aeiouy]+/g) || []).length);
+// Wrap every spoken word in spans; a word split by a stress mark stays one word. Letters read singly (A I) count as one.
+function buildWords(box) {
+  let list = [];
+  const walker = document.createTreeWalker(box, NodeFilter.SHOW_TEXT, { acceptNode: n => n.parentElement.closest('small,rt,.pz,.pad') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
+  const nodes = []; while (walker.nextNode()) nodes.push(walker.currentNode);
+  let open = null;
+  for (const node of nodes) {
+    const frag = document.createDocumentFragment();
+    for (const piece of node.textContent.split(/(\s+)/)) {
+      if (!piece) continue;
+      if (/^\s+$/.test(piece)) { frag.append(piece); open = null; continue; }
+      // Chinese has no spaces, so each character is its own unit, with its punctuation attached.
+      for (const tok of piece.match(CJK_TOKEN)) {
+        const span = document.createElement('span'); span.className = 'w'; span.textContent = tok; frag.append(span);
+        if (CJK.test(tok)) { list.push({ spans: [span], text: tok }); open = null; continue; }
+        if (open) { open.spans.push(span); open.text += tok; }
+        else { open = { spans: [span], text: tok }; list.push(open); }
+      }
+    }
+    node.replaceWith(frag);
+  }
+  const merged = [];
+  for (const w of list) {
+    const prev = merged.at(-1);
+    if (prev && /^[A-Z][.,!?:]?$/.test(w.text) && /^[A-Z]+$/.test(prev.text)) { prev.spans.push(...w.spans); prev.text += w.text; }
+    else merged.push(w);
+  }
+  list = merged.map(w => ({ ...w, weight: syllables(w.text) + (/[.,!?:，。！？：]$/.test(w.text) ? 1.5 : 0) }));
+  list.forEach((w, i) => w.spans.forEach(s => { s.dataset.w = i; }));
+  return list;
+}
+function paintWords() {
+  const cur = Math.min(F.words.length - 1, Math.floor(F.pos));
+  F.words.forEach((w, i) => w.spans.forEach(s => { s.classList.toggle('read', i < cur); s.classList.toggle('now', i === cur); }));
+  const el = F.words[cur]?.spans[0], box = $('text');
+  if (el) { const target = el.offsetTop - box.offsetTop - box.clientHeight * .22; box.scrollTop += (target - box.scrollTop) * .08; }
+}
+// The prompter runs on the clock alone. It never listens: recognition is too unreliable to hold the text back.
+function baseRate() {
+  if (line()?.lang === 'zh') return F.words.reduce((n, w) => n + w.weight, 0) / (F.words.length / ZH_CHARS_PER_SEC);
+  const wpm = Object.values(S.takes).flat().map(t => t.report?.wpm).filter(Boolean).sort((a, b) => a - b);
+  const mid = wpm.length ? wpm[wpm.length >> 1] : 120; // this reader's pace, pauses included
+  const total = F.words.reduce((n, w) => n + w.weight, 0);
+  return total / (F.words.length / (mid / 60)); // weight units per second
+}
+function followStart() {
+  F.pos = 0; F.active = false; F.rate = baseRate();
+  $('main').classList.add('live'); $('main').classList.toggle('still', !S.scroll);
+  const box = $('text'); box.scrollTop = 0;
+  if (S.scroll && !box.querySelector('.pad')) box.insertAdjacentHTML('beforeend', '<div class="pad"></div>');
+  paintWords();
+}
+function followStop() {
+  F.active = false; F.pos = 0;
+  $('main').classList.remove('live', 'still'); $('text').querySelector('.pad')?.remove(); $('text').scrollTop = 0;
+  F.words.forEach(w => w.spans.forEach(s => s.classList.remove('read', 'now')));
+}
+function followTick(now) {
+  const dt = Math.min(.1, (now - F.last) / 1000); F.last = now;
+  if (!F.active || !S.scroll) return;
+  const w = F.words[Math.floor(F.pos)];
+  if (w) F.pos = Math.min(F.words.length - .01, F.pos + dt * F.rate * S.speed / w.weight);
+  paintWords();
+}
+function nudge(d) { F.pos = Math.max(0, Math.min(F.words.length - .01, Math.floor(F.pos) + d)); paintWords(); pmSend({ k: 'nudge', d }); }
+function setSpeed(d) {
+  S.speed = Math.max(.5, Math.min(2, Math.round((S.speed + d) * 10) / 10));
+  try { localStorage.setItem('coach-speed', S.speed); } catch {}
+  renderScroll(); pmSync();
+}
+function setScroll(on) {
+  S.scroll = on;
+  try { localStorage.setItem('coach-scroll', on ? '1' : '0'); } catch {}
+  if (S.recording) { // takes effect at once, mid-take too
+    $('main').classList.toggle('still', !on);
+    const box = $('text');
+    if (on && !box.querySelector('.pad')) box.insertAdjacentHTML('beforeend', '<div class="pad"></div>');
+    if (!on) { box.querySelector('.pad')?.remove(); box.scrollTop = 0; }
+  }
+  renderScroll(); pmSync();
+}
+function renderScroll() {
+  document.querySelectorAll('#scrollMode button').forEach(b => b.classList.toggle('on', (b.dataset.s === '1') === S.scroll));
+  $('speedNow').textContent = `${Math.round(S.speed * 100)}%`;
+  $('speedBox').classList.toggle('hide', !S.scroll);
+}
+function renderCount() {
+  renderSize();
+  $('micNow').disabled = $('camNow').disabled = S.recording;
+  document.querySelectorAll('#cd button').forEach(b => { b.classList.toggle('on', +b.dataset.c === S.count); b.disabled = S.recording; });
+}
+function reportHtml(t) {
+  const r = t.report;
+  if (!r) return '<li class="wait">检查中…</li>';
+  return [...(r.notes || []).map(n => `<li class="bad">${esc(n)}</li>`), ...(r.good || []).map(n => `<li class="good">${esc(n)}</li>`),
+    r.heard ? `<li class="wait">机器听到：${esc(r.heard)}</li>` : ''].join('');
+}
+function renderTakes(force) {
+  const L = line(), list = S.takes[L.id] || [];
+  const box = $('takes');
+  const playing = [...box.querySelectorAll('video')].some(v => !v.paused);
+  if (playing && !force) return; // a report arriving must not reload a take someone is watching
+  box.innerHTML = `<h2>这一段已录 ${list.length} 遍</h2>` + list.slice().reverse().map(t => `
+    <div class="take ${S.picks[L.id] === t.name ? 'picked' : ''}">
+      <div class="hd"><span>第 ${t.name.match(/_(\d+)\./)[1]} 遍${t.report?.duration ? ` · ${t.report.duration} 秒` : ''}</span>
+        <button data-pick="${esc(t.name)}">${S.picks[L.id] === t.name ? '✓ 已选' : '选这遍'}</button>
+        <button data-trash="${esc(t.name)}" aria-label="移到回收文件夹">移走</button></div>
+      <video controls preload="metadata" src="/take/${esc(t.name)}"></video>
+      <ul>${reportHtml(t)}</ul>
+    </div>`).join('');
+}
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+async function startRec() {
+  if (S.recording || S.counting) return;
+  S.counting = true; window.speechSynthesis?.cancel(); $('ref').pause();
+  document.querySelectorAll('#takes video').forEach(v => v.pause());
+  const run = ++S.run; S.lead = S.count;
+  const chunks = [];
+  const rec = new MediaRecorder(S.stream, { ...(S.mime ? { mimeType: S.mime } : {}), videoBitsPerSecond: videoBps(), audioBitsPerSecond: 320e3 });
+  rec.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+  const lineId = line().id, devices = deviceQuery();
+  rec.onstop = () => { if (!rec.cancelled) upload(new Blob(chunks, { type: rec.mimeType }), lineId, rec.mimeType, devices); };
+  // Rolling starts during the countdown, so the first word always has quiet room in front of it.
+  rec.start(1000); S.rec = rec; S.recording = true; S.peak = -99; S.t0 = performance.now();
+  $('rec').textContent = '■ 停止 （空格）'; $('rec').classList.add('on'); $('cancel').classList.remove('hide'); renderCount(); setSt('录制中');
+  followStart();
+  const box = $('count'); box.classList.remove('hide');
+  for (let i = S.lead; i > 0; i--) { box.textContent = i; S.countNow = i; pmSync(); await sleep(1000); if (run !== S.run || !S.recording) return; }
+  box.classList.add('hide'); S.counting = false; S.countNow = 0; F.active = true;
+  setSt(S.scroll ? '请说 · ↑↓ 调速度' : '请说');
+}
+function endRecUi() {
+  followStop();
+  S.recording = false; S.counting = false; S.countNow = 0;
+  $('count').classList.add('hide'); $('cancel').classList.add('hide');
+  $('rec').disabled = false; $('rec').textContent = '● 开始录 （空格）'; $('rec').classList.remove('on'); renderCount(); pmSync();
+}
+function cancelRec() {
+  if (!S.recording) return;
+  S.run++; S.rec.cancelled = true; S.rec.stop(); endRecUi();
+  setSt('已取消，这一遍没有保存');
+}
+async function stopRec() {
+  if (!S.recording || S.counting) return;
+  const rec = S.rec;
+  $('rec').disabled = true; setSt('收尾中，再静一下');
+  await sleep(STOP_GRACE); // keep the room tone after the last word
+  if (rec !== S.rec || rec.state === 'inactive') return; // cancelled during the wait
+  rec.stop(); endRecUi();
+}
+async function upload(blob, id, mime, devices, attempt = 1) {
+  S.uploading++; setSt('正在存到硬盘…');
+  try {
+    const type = mime.split(';')[0];
+    const r = await fetch(`/api/take?id=${encodeURIComponent(id)}&${devices}`, { method: 'PUT', headers: { 'Content-Type': type }, body: blob });
+    if (!r.ok) throw new Error(r.status);
+    S.uploading--; setSt('已存好，机器正在检查');
+    await refresh(); renderLine();
+  } catch (e) {
+    S.uploading--;
+    if (attempt < 4) { await sleep(1500 * attempt); return upload(blob, id, mime, devices, attempt + 1); }
+    setSt('这一遍没存上。服务是否还开着？不要刷新页面，先开服务再重录。', true);
+  }
+}
+async function pollReports() {
+  const pending = Object.values(S.takes).flat().some(t => !t.report);
+  if (pending && !S.recording) { await refresh().catch(() => {}); renderTakes(); renderStrip(); if (!Object.values(S.takes).flat().some(t => !t.report)) { const note = (S.takes[line().id] || []).at(-1)?.report?.notes?.[0]; setSt(note || '检查完成', !!note); } }
+}
+function go(i) {
+  if (S.recording || i < 0 || i >= S.lines.length) return;
+  S.idx = i; renderLine();
+  api('/api/position', { method: 'POST', body: JSON.stringify({ id: line().id }) }).catch(() => {});
+}
+function playRef() { if (!line().ref) return; $('ref').currentTime = 0; $('ref').play(); }
+function say() {
+  const L = line(); if (L.clap || L.lang === 'zh' || !window.speechSynthesis) return;
+  const u = new SpeechSynthesisUtterance(plain(L.t)); u.lang = 'en-GB'; u.rate = .95;
+  const v = speechSynthesis.getVoices().find(v => /^en[-_]NZ/i.test(v.lang)) || speechSynthesis.getVoices().find(v => /^en[-_](GB|AU)/i.test(v.lang));
+  if (v) u.voice = v; speechSynthesis.cancel(); speechSynthesis.speak(u);
+}
+
+$('text').addEventListener('click', e => { const i = e.target.dataset?.w; if (S.recording && i != null) { F.pos = +i; paintWords(); } });
+$('takes').addEventListener('click', async e => {
+  const pick = e.target.dataset.pick, trash = e.target.dataset.trash, L = line();
+  if (pick) {
+    const choosing = S.picks[L.id] !== pick;
+    await api('/api/pick', { method: 'POST', body: JSON.stringify({ id: L.id, name: choosing ? pick : null }) });
+    await refresh();
+    if (!choosing) return renderLine();
+    // Choosing a take finishes this line, so it moves straight on.
+    if (S.idx < S.lines.length - 1) { go(S.idx + 1); setSt(`上一段已选第 ${pick.match(/_(\d+)\./)[1]} 遍`); }
+    else { renderLine(); setSt('最后一段也选好了，可以按 V 回顾'); }
+    return;
+  }
+  if (trash) { await api('/api/trash', { method: 'POST', body: JSON.stringify({ name: trash }) }); await refresh(); renderLine(); }
+});
+$('strip').addEventListener('click', e => { if (e.target.dataset.i) go(+e.target.dataset.i); });
+$('rec').onclick = () => S.recording ? stopRec() : startRec();
+$('cancel').onclick = cancelRec;
+$('sizeMode').addEventListener('click', e => { if (e.target.dataset.z) { setSize(e.target.dataset.z); e.target.blur(); } });
+$('scrollMode').addEventListener('click', e => { if (e.target.dataset.s) { setScroll(e.target.dataset.s === '1'); e.target.blur(); } });
+$('slower').onclick = e => { setSpeed(-.1); e.target.blur(); }; $('faster').onclick = e => { setSpeed(.1); e.target.blur(); };
+$('micNow').onchange = $('camNow').onchange = switchDevice;
+navigator.mediaDevices.addEventListener('devicechange', () => listDevices().catch(() => {}));
+$('cd').addEventListener('click', e => { const c = +e.target.dataset.c; if (!c || S.recording) return; S.count = c; renderCount(); e.target.blur(); try { localStorage.setItem('coach-count', c); } catch {} });
+async function hold() {
+  if (S.recording) { if (S.counting) cancelRec(); else await stopRec(); }
+  const waitUpload = async () => { for (let i = 0; i < 40 && S.uploading; i++) await sleep(250); };
+  await sleep(50); await waitUpload();
+  S.stream?.getTracks().forEach(t => t.stop()); S.stream = null; S.meter++; S.ctx?.close(); S.ctx = null;
+  await refresh().catch(() => {});
+  remember('coach-active', null); // left on purpose: the next visit asks before opening the camera
+  const total = Object.values(S.takes).flat().length, done = S.lines.filter(isDone).length;
+  $('heldSum').innerHTML = `摄像头和麦克风已关。已选定 ${done} / ${S.lines.length} 段，共 ${total} 遍，都存在硬盘上。<br>下次打开这个地址，会回到第 ${S.idx + 1} 段。`;
+  $('held').classList.remove('hide');
+}
+$('hold').onclick = hold;
+$('resume').onclick = async () => {
+  $('heldErr').textContent = '';
+  try { await openDevices(); syncDevices(); remember('coach-active', '1'); $('held').classList.add('hide'); renderLine(); setSt('接着录'); }
+  catch (e) { $('heldErr').textContent = `打不开设备：${e.name || e.message}`; }
+};
+
+/* ---- review ---- */
+const pickedTake = id => { const n = S.picks[id]; return (S.takes[id] || []).find(t => t.name === n); };
+const lastTake = id => (S.takes[id] || []).at(-1);
+function rvRows() {
+  const f = S.rv.filter;
+  return S.lines.map((l, i) => ({ l, i })).filter(({ l }) => f === 'all' || (f === 'picked' ? S.picks[l.id] : !S.picks[l.id]));
+}
+function renderReview() {
+  const done = S.lines.filter(l => S.picks[l.id]).length, some = S.lines.filter(l => !S.picks[l.id] && (S.takes[l.id] || []).length).length;
+  $('rvSum').textContent = `已选 ${done} · 录了没选 ${some} · 没录 ${S.lines.length - done - some}`;
+  document.querySelectorAll('#rvFilter button').forEach(b => b.classList.toggle('on', b.dataset.f === S.rv.filter));
+  $('rvPlayAll').disabled = !done;
+  $('rvList').innerHTML = rvRows().map(({ l, i }) => {
+    const n = (S.takes[l.id] || []).length, p = pickedTake(l.id);
+    const bad = p?.report?.notes?.length;
+    const tag = p ? (bad ? `<span class="tag warn">已选 · ${bad} 条提示</span>` : '<span class="tag ok">已选</span>') : n ? `<span class="tag">录了 ${n} 遍</span>` : '<span class="tag">没录</span>';
+    return `<button class="row ${i === S.rv.i ? 'cur' : ''}" data-i="${i}"><span class="n">${i + 1}</span><span class="tx">${esc(plain(l.t))}</span>${tag}</button>`;
+  }).join('');
+}
+function rvShow(i, autoplay) {
+  S.rv.i = i; remember('coach-review', i);
+  const L = S.lines[i], t = pickedTake(L.id) || lastTake(L.id), v = $('rvVideo');
+  $('rvNow').textContent = plain(L.t);
+  $('rvNowSub').textContent = t ? `第 ${t.name.match(/_(\d+)\./)[1]} 遍${S.picks[L.id] === t.name ? '（已选）' : '（最新一遍，没选）'}${t.report?.duration ? ` · ${t.report.duration} 秒` : ''}` : '这段还没录';
+  renderReview();
+  document.querySelector('#rvList .cur')?.scrollIntoView({ block: 'nearest' });
+  S.rv.stopAt = null;
+  if (!t) { v.removeAttribute('src'); v.load(); return; }
+  v.src = `/take/${t.name}`;
+  const r = t.report || {};
+  v.onloadedmetadata = () => {
+    // Skip the countdown and the quiet tail, so playback runs line to line.
+    if (r.head != null) v.currentTime = Math.max(0, r.head - .1);
+    S.rv.stopAt = r.tail != null ? r.duration - r.tail + .12 : null;
+    if (autoplay) v.play().catch(() => {});
+  };
+}
+function rvNext() {
+  const j = S.lines.findIndex((l, i) => i > S.rv.i && S.picks[l.id]);
+  if (j < 0) { S.rv.all = false; $('rvPlayAll').textContent = '从头连播已选'; return; }
+  rvShow(j, true);
+}
+(function rvWatch() {
+  const v = $('rvVideo');
+  if (S.rv.open && S.rv.stopAt && !v.paused && v.currentTime >= S.rv.stopAt) { v.pause(); if (S.rv.all) rvNext(); }
+  requestAnimationFrame(rvWatch);
+})();
+$('rvVideo').addEventListener('ended', () => { if (S.rv.all) rvNext(); });
+function openReview() {
+  if (S.recording) return;
+  document.querySelectorAll('#takes video').forEach(v => v.pause());
+  S.rv.open = true; S.rv.all = false; $('rvPlayAll').textContent = '从头连播已选';
+  if (PM.here) $('pm').classList.add('hide'); // review needs the normal page
+  $('rv').classList.remove('hide'); rvShow(S.idx);
+}
+function closeReview() { remember('coach-review', null); S.rv.open = false; S.rv.all = false; $('rvVideo').pause(); $('rv').classList.add('hide'); if (PM.here) { $('pm').classList.remove('hide'); pmLayout(); } renderLine(); }
+$('review').onclick = openReview; $('rvClose').onclick = closeReview;
+$('rvBack').onclick = () => { const i = S.rv.i; closeReview(); go(i); };
+$('rvList').addEventListener('click', e => { const r = e.target.closest('.row'); if (r) { S.rv.all = false; $('rvPlayAll').textContent = '从头连播已选'; rvShow(+r.dataset.i, true); } });
+$('rvFilter').addEventListener('click', e => { if (e.target.dataset.f) { S.rv.filter = e.target.dataset.f; renderReview(); } });
+$('rvPlayAll').onclick = () => {
+  if (S.rv.all) { S.rv.all = false; $('rvVideo').pause(); $('rvPlayAll').textContent = '从头连播已选'; return; }
+  const j = S.lines.findIndex(l => !l.clap && S.picks[l.id]); if (j < 0) return;
+  S.rv.all = true; $('rvPlayAll').textContent = '停止连播'; rvShow(j, true);
+};
+$('prev').onclick = () => go(S.idx - 1); $('next').onclick = () => go(S.idx + 1);
+$('playRef').onclick = playRef; $('say').onclick = say;
+addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && (e.key === 'r' || e.key === 'R') && (S.recording || S.uploading)) { // a reload would lose the take
+    e.preventDefault(); setSt('正在录或正在存，现在不能刷新。', true); return;
+  }
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  handleKey(e);
+});
+function handleKey(e) {
+  if (S.rv.open) { if (e.key === 'Escape') closeReview(); return; }
+  if (e.target.matches?.("select") || $('studio').classList.contains('hide') || !$('held').classList.contains('hide')) return;
+  if (e.key === 'Escape' || e.key === 'Backspace') { cancelRec(); return; }
+  if (e.key === 'v' || e.key === 'V') { openReview(); return; }
+  if (e.key === 't' || e.key === 'T') { togglePrompter(); return; }
+  if (e.key === 'l' || e.key === 'L') { setScroll(!S.scroll); return; }
+  if (e.key === 'g' || e.key === 'G') { toggleGuide(); return; }
+  if (PM_KEYS.has(e.key.toLowerCase())) { if (PM.here) pmKey(e.key); else pmSend({ k: 'pmKey', key: e.key }); return; }
+  if (e.code === 'Space') { e.preventDefault(); e.target.blur?.(); S.recording ? stopRec() : startRec(); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); setSpeed(.1); }
+  else if (e.key === 'ArrowDown') { e.preventDefault(); setSpeed(-.1); }
+  else if (e.key === 'ArrowRight') { if (S.recording) nudge(1); else go(S.idx + 1); }
+  else if (e.key === 'ArrowLeft') { if (S.recording) nudge(-1); else go(S.idx - 1); }
+  else if (e.key === 'r' || e.key === 'R') playRef();
+  else if (e.key === 's' || e.key === 'S') say();
+  else if (e.key === 'p' || e.key === 'P') { const last = (S.takes[line().id] || []).at(-1); if (last) $('takes').querySelector(`[data-pick="${last.name}"]`)?.click(); }
+}
+addEventListener('beforeunload', e => { if (S.recording || S.uploading) { e.preventDefault(); e.returnValue = ''; } });
+
+/* ---- teleprompter screen: its own window on a second display, or this window when there is only one ---- */
+const PM_WINDOW = new URLSearchParams(location.search).has('prompter');
+const READ_LINE = .08; // near the top of the text area, just under the self view, so no part of the glass stays empty
+// The glass swaps near and far: a tablet lying flat with its top toward the glass needs a top-bottom flip.
+// A left-right flip there reads upside down (tested on a real rig); it suits a tablet turned around.
+const FLIPS = ['y', 'x', 'none'], FLIP_NAME = { x: '左右翻转', y: '上下翻转', none: '不翻转' };
+const PM_KEYS = new Set(['m', '+', '=', '-', '_', 'f', 'c']);
+const PM = { cam: recall('coach-pm-cam') !== '0', here: false, html: null, words: [], tops: [], starts: [], lineOf: [], pos: 0, cur: -1, y: 0, peek: 0, last: 0, rec: false, active: false, rate: 1, speed: 1, scroll: true, t0: 0, flip: FLIPS.includes(recall('coach-pm-flip2')) ? recall('coach-pm-flip2') : 'y', size: Math.min(12, Math.max(2.5, +recall('coach-pm-size') || 5.5)) };
+const pmCh = new BroadcastChannel('coach-prompter');
+document.body.classList.toggle('noguide', recall('coach-guide') === '0');
+function toggleGuide() { // the setting is shared through storage, so both windows follow
+  const off = !document.body.classList.contains('noguide');
+  document.body.classList.toggle('noguide', off); remember('coach-guide', off ? '0' : '1'); pmCh.postMessage({ k: 'guide', off });
+}
+function pmSend(m) { if (PM.here) pmHandle(m); pmCh.postMessage(m); }
+const pmHtml = L => L.parts ? L.parts.map(p => `<p>${marked(p.t)}</p>`).join(' ') : marked(L.t);
+// One idempotent message carries the whole state, so either side can reload and catch up.
+function pmSync() {
+  if (PM_WINDOW || !S.lines.length || !F.words.length) return;
+  const L = line();
+  pmSend({ k: 'state', spec: specNow(), tone: [L.m, L.d].filter(Boolean).join('　'), html: pmHtml(L), num: `第 ${S.idx + 1} / ${S.lines.length} 段 · ${L.chapter || ''}`, rec: S.recording, count: S.countNow || 0, active: F.active, rate: baseRate(), speed: S.speed, scroll: S.scroll, pos: F.pos,
+    sec: S.recording ? (performance.now() - S.t0) / 1000 - S.lead : 0, status: $('st').textContent, warn: $('st').className === 'warn',
+    devices: S.stream ? `${S.stream.getAudioTracks()[0]?.label} · ${S.stream.getVideoTracks()[0]?.label}` : '' });
+}
+function pmHandle(m) {
+  if (m.k === 'state') pmApply(m);
+  else if (m.k === 'nudge') { PM.pos = Math.max(0, Math.min(PM.words.length - .01, Math.floor(PM.pos) + m.d)); }
+  else if (m.k === 'wheel') pmWheel(m.d);
+  else if (m.k === 'guide') document.body.classList.toggle('noguide', m.off);
+  else if (m.k === 'pmKey') pmKey(m.key);
+  else if (m.k === 'close' && PM_WINDOW) window.close();
+}
+// The self view shows the stream being recorded; a second window borrows it from the main page, opening no second capture.
+function pmAttachCam() {
+  let st = null;
+  try { st = PM_WINDOW ? window.opener?.coachStream : S.stream; } catch {}
+  if (st && $('pmCam').srcObject !== st) { $('pmCam').srcObject = st; $('pmCam').play().catch(() => {}); }
+}
+function pmApply(m) {
+  const fresh = m.html !== PM.html;
+  if (fresh) {
+    PM.html = m.html;
+    $('pmText').innerHTML = `<div id="pmPad1"></div><div id="pmBody">${m.html}</div><div id="pmPad2"></div>`;
+    PM.words = buildWords($('pmBody')); PM.cur = -1; PM.peek = 0;
+  }
+  const starting = m.rec && !PM.rec; // m.pos is 0 at a real start and the live spot if this window joined late
+  const layoutChanged = fresh || PM.scroll !== m.scroll;
+  Object.assign(PM, { rec: m.rec, active: m.active, rate: m.rate, speed: m.speed, scroll: m.scroll, t0: performance.now() - m.sec * 1000 });
+  if (fresh || !m.rec) PM.pos = 0;
+  if (starting) { PM.pos = m.pos; PM.peek = 0; }
+  document.body.classList.toggle('tall', /竖屏/.test(m.spec || ''));
+  $('pmNum').textContent = m.num + (m.spec ? '　｜　' + m.spec : ''); $('pmTone').textContent = m.tone || '';
+  $('pm').classList.toggle('rec', m.rec);
+  pmAttachCam();
+  $('pmCount').textContent = m.count || ''; $('pmCount').classList.toggle('hide', !m.count);
+  const foot = $('pmFoot');
+  const help = `触控板上下翻看　G 构图线　空格 开始 / 停止　Esc 取消　P 选最新一遍　←→ 换段　↑↓ 速度　M 翻转（${FLIP_NAME[PM.flip]}）　C ${PM.cam ? '关' : '开'}画面　L ${PM.scroll ? '改不滚动' : '改滚动'}　+ − 字号　F 全屏　T 关提词器`;
+  foot.className = m.warn ? 'warn' : '';
+  foot.textContent = m.warn ? m.status : m.rec ? '' : `${m.status ? m.status + '　' : ''}${help}${m.devices ? '　｜ ' + m.devices : ''}`;
+  if (layoutChanged) pmLayout();
+}
+function pmLayout() {
+  const box = $('pmBox'), body = $('pmBody');
+  $('pmFlip').dataset.flip = PM.flip;
+  $('pm').classList.toggle('nocam', !PM.cam);
+  if (!body || $('pm').classList.contains('hide')) return;
+  const still = !PM.scroll, h = box.clientHeight, text = $('pmText');
+  $('pm').classList.toggle('still', still);
+  const read = still ? 0 : Math.round(h * READ_LINE);
+  $('pmPad1').style.height = read + 'px'; $('pmPad2').style.height = still ? '0' : h + 'px';
+  let size = PM.size; text.style.fontSize = size + 'vw';
+  if (still) while (size > 1.6 && body.offsetHeight > h - 12) { size -= .2; text.style.fontSize = size + 'vw'; } // the whole segment fits on one screen
+  const px = parseFloat(getComputedStyle(text).fontSize);
+  PM.tops = PM.words.map(w => w.spans[0].offsetTop);
+  PM.starts = []; PM.lineOf = [];
+  PM.tops.forEach((t, i) => { if (!PM.starts.length || t - PM.tops[PM.starts.at(-1)] > px * .7) PM.starts.push(i); PM.lineOf[i] = PM.starts.length - 1; });
+  PM.lineH = px * 1.5; PM.read = read;
+  $('pmMark').style.top = read + PM.lineH * .55 + 'px';
+  pmWheel(0); PM.y = pmTarget() + PM.peek; PM.cur = -1;
+}
+// The text moves continuously, so the eye stays on one spot instead of following line jumps.
+function pmTarget() {
+  if (!PM.scroll || !PM.words.length) return 0;
+  const i = Math.min(PM.words.length - 1, Math.floor(PM.pos)), l = PM.lineOf[i], s = PM.starts[l], nx = PM.starts[l + 1];
+  const end = nx ?? PM.words.length, top = PM.tops[s], next = nx != null ? PM.tops[nx] : top + PM.lineH;
+  return top + (PM.pos - s) / (end - s) * (next - top) - PM.read;
+}
+// Which word sits at a scroll height: pmTarget turned around.
+function pmPosAt(y) {
+  const at = y + PM.read; let l = 0;
+  while (l + 1 < PM.starts.length && PM.tops[PM.starts[l + 1]] <= at) l++;
+  const s = PM.starts[l], nx = PM.starts[l + 1], end = nx ?? PM.words.length, top = PM.tops[s], next = nx != null ? PM.tops[nx] : top + PM.lineH;
+  return Math.max(0, Math.min(PM.words.length - .01, s + Math.max(0, Math.min(1, (at - top) / (next - top))) * (end - s)));
+}
+// Trackpad or wheel. Before a take it only looks around, and the take still starts from the top.
+// During a take it moves the reading spot and the clock carries on from there. Up and down are as the reader sees them, whatever the flip.
+function pmWheel(d) {
+  if (!PM.words.length || !$('pmBody')) return;
+  if (PM.rec && PM.scroll) { if (d) PM.pos = pmPosAt(pmTarget() + d); return; }
+  const base = pmTarget(), bodyH = $('pmBody').offsetHeight, top = PM.read || 0;
+  const most = PM.scroll ? top + bodyH - (PM.lineH || 0) * 2 : Math.max(0, bodyH - $('pmBox').clientHeight);
+  PM.peek = Math.max(-base, Math.min(Math.max(0, most) - base, PM.peek + d));
+}
+addEventListener('wheel', e => {
+  if (e.ctrlKey) return; // a pinch
+  const d = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? innerHeight : 1);
+  if (PM_WINDOW || PM.here) { e.preventDefault(); pmWheel(d); }
+  else if (S.pmRemote && e.target.closest?.('#main')) pmCh.postMessage({ k: 'wheel', d }); // the pointer usually stays on the Mac
+}, { passive: false });
+function pmFrame(now) {
+  requestAnimationFrame(pmFrame);
+  const dt = Math.min(.5, (now - PM.last) / 1000); PM.last = now;
+  if ($('pm').classList.contains('hide') || !PM.words.length) return;
+  if (PM.active && PM.scroll) {
+    const w = PM.words[Math.floor(PM.pos)];
+    if (w) PM.pos = Math.min(PM.words.length - .01, PM.pos + dt * PM.rate * PM.speed / w.weight);
+  }
+  let level = null;
+  try { level = PM_WINDOW ? window.opener?.coachLevel?.() : window.coachLevel?.(); } catch {}
+  const pct = level == null ? 0 : Math.max(0, Math.min(100, (level + 60) / 60 * 100));
+  PM.level = pct > (PM.level || 0) ? pct : (PM.level || 0) + (pct - (PM.level || 0)) * Math.min(1, dt * 6); // up at once, down gently, so the eye can follow
+  const fill = document.querySelector('#pmLevel i');
+  fill.style.width = PM.level + '%'; fill.style.background = PM.level >= 95 ? 'var(--bad)' : PM.level >= 90 ? 'var(--gold)' : 'var(--ok)';
+  const cur = Math.floor(PM.pos);
+  if (cur !== PM.cur) { PM.cur = cur; PM.words.forEach((w, i) => w.spans.forEach(s => s.classList.toggle('read', PM.rec && i < cur))); }
+  PM.y += (pmTarget() + PM.peek - PM.y) * Math.min(1, dt * 12);
+  $('pmText').style.transform = `translate3d(0,${(-PM.y).toFixed(2)}px,0)`;
+  $('pmRec').textContent = PM.rec ? `● REC ${PM.active ? ((now - PM.t0) / 1000).toFixed(0) + ' 秒' : ''}` : '';
+}
+function pmKey(key) {
+  const k = key.toLowerCase();
+  if (k === 'm') { PM.flip = FLIPS[(FLIPS.indexOf(PM.flip) + 1) % FLIPS.length]; remember('coach-pm-flip2', PM.flip); }
+  else if (k === 'c') { PM.cam = !PM.cam; remember('coach-pm-cam', PM.cam ? '1' : '0'); }
+  else if (k === '+' || k === '=') PM.size = Math.min(12, +(PM.size + .5).toFixed(1));
+  else if (k === '-' || k === '_') PM.size = Math.max(2.5, +(PM.size - .5).toFixed(1));
+  else if (k === 'f') return pmFull();
+  remember('coach-pm-size', PM.size);
+  pmLayout(); if (PM_WINDOW) pmCh.postMessage({ k: 'hello' }); else pmSync();
+}
+async function pmFull(on = !document.fullscreenElement) {
+  try {
+    if (on) { await document.documentElement.requestFullscreen(); await navigator.keyboard?.lock?.(['Escape']); } // Esc keeps meaning "cancel this take"
+    else { navigator.keyboard?.unlock?.(); await document.exitFullscreen(); }
+  } catch { /* no click yet: the F key or a click does it */ }
+}
+const PM_ALONE_MSG = '只有一块屏幕，提词器铺满这块屏。要用 iPad 随航：先在控制中心连上，再按 T。';
+function pmHere(on) {
+  PM.here = on; $('pm').classList.toggle('hide', !on); remember('coach-pm', on ? 'here' : null);
+  renderPmBtn();
+  if (on) { pmFull(true); pmSync(); pmLayout(); } else {
+    if (document.fullscreenElement) pmFull(false);
+    if ($('st').textContent === PM_ALONE_MSG) setSt(''); // it described the prompter, which is gone now
+  }
+}
+function renderPmBtn() { $('togglePm').classList.toggle('on', PM.here || !!S.pmRemote); }
+// Pick by itself: a second screen gets its own window, one screen gets this window.
+async function togglePrompter() {
+  if (PM.here) return pmHere(false);
+  if (!recall('coach-pm-used')) { remember('coach-pm-used', '1'); if (!S.scroll) setScroll(true); } // a whole segment on one glass is too small to read
+  if (S.pmRemote) { pmCh.postMessage({ k: 'close' }); S.pmRemote = false; remember('coach-pm', null); return renderPmBtn(); }
+  let spot = null, extended = !!window.screen.isExtended;
+  try {
+    const d = await window.getScreenDetails();
+    const others = d.screens.filter(s => s.left !== d.currentScreen.left || s.top !== d.currentScreen.top);
+    spot = others.find(s => /sidecar|ipad/i.test(s.label)) || others[0] || null;
+    extended = !!spot;
+  } catch {}
+  if (!extended) { pmHere(true); setSt(PM_ALONE_MSG); return; }
+  const place = spot ? `,left=${spot.availLeft},top=${spot.availTop},width=${spot.availWidth},height=${spot.availHeight}` : ',width=1100,height=800';
+  const w = window.open('/?prompter=1', 'coach-prompter', 'popup' + place);
+  if (!w) return setSt('Chrome 挡住了提词器窗口：再按一次 T；还不行就在地址栏右侧允许弹窗。', true);
+  S.pmRemote = true; remember('coach-pm', 'screen'); renderPmBtn();
+  setSt(spot ? `提词器开到了：${spot.label || '第二块屏'}。用鼠标点它一下，或者按 F，就全屏。` : '把提词器窗口拖到 iPad 上，用鼠标点它一下就全屏。');
+}
+$('togglePm').onclick = e => { e.currentTarget.blur(); togglePrompter(); };
+addEventListener('resize', () => pmLayout());
+pmCh.onmessage = ({ data: m }) => {
+  if (PM_WINDOW) {
+    if (m.k === 'ping') return pmCh.postMessage({ k: 'hello' });
+    return pmHandle(m);
+  }
+  if (m.k === 'hello') { S.pmRemote = true; renderPmBtn(); pmSync(); }
+  else if (m.k === 'bye') { S.pmRemote = false; if (recall('coach-pm') === 'screen') remember('coach-pm', null); renderPmBtn(); }
+  else if (m.k === 'key') handleKey({ key: m.key, code: m.code, target: {}, preventDefault() {} });
+};
+requestAnimationFrame(pmFrame);
+
+async function enterStudio() {
+  await openDevices(); syncDevices();
+  await refresh();
+  remember('coach-active', '1');
+  $('setup').classList.add('hide'); $('studio').classList.remove('hide');
+  // Come back to the position saved on the server, in either segment length.
+  let saved = S.lines.findIndex(l => l.id === S.position);
+  if (saved < 0) saved = S.lines.findIndex(l => l.covers?.includes(S.position));
+  if (saved < 0) { const g = S.allLines.find(l => l.id === S.position); if (g?.covers) saved = S.lines.findIndex(l => l.id === g.covers[0]); }
+  S.idx = saved >= 0 ? saved : Math.max(0, S.lines.findIndex(l => !isDone(l)));
+  renderLine();
+  setInterval(pollReports, 1500);
+  if (recall('coach-pm') === 'here') pmHere(true);
+  else pmCh.postMessage({ k: 'ping' }); // a prompter window survives this page's reload and says hello back
+  const rv = recall('coach-review');
+  if (rv != null && S.lines[+rv]) { openReview(); rvShow(+rv); }
+}
+$('start').onclick = async () => {
+  $('err').textContent = '';
+  try {
+    if (!$('micSel').value) { const t = await navigator.mediaDevices.getUserMedia({ audio: true, video: true }); t.getTracks().forEach(x => x.stop()); await listDevices(); }
+    await enterStudio();
+  } catch (e) {
+    $('err').textContent = `打不开设备：${e.name || e.message}。请用 Chrome 打开 localhost 这个地址，并允许摄像头和麦克风。`;
+  }
+};
+if (PM_WINDOW) {
+  document.title = '提词器';
+  document.body.classList.add('pmWindow');
+  $('setup').classList.add('hide'); $('pm').classList.remove('hide');
+  $('pmFlip').dataset.flip = PM.flip;
+  $('pm').addEventListener('click', () => pmFull());
+  addEventListener('keydown', e => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (PM_KEYS.has(e.key.toLowerCase())) return pmKey(e.key);
+    e.preventDefault();
+    pmCh.postMessage({ k: 'key', key: e.key, code: e.code });
+  }, true);
+  addEventListener('pagehide', () => pmCh.postMessage({ k: 'bye' }));
+  pmCh.postMessage({ k: 'hello' });
+} else {
+  // A reload puts everything back without asking: same devices, same segment, same settings.
+  (async () => {
+    const wasOn = recall('coach-active') === '1';
+    if (wasOn) $('setup').classList.add('hide');
+    try {
+      await listDevices();
+      if (wasOn) await enterStudio();
+    } catch { remember('coach-active', null); $('setup').classList.remove('hide'); }
+  })();
+}
+</script>
+</body>
+</html>

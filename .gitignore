@@ -1,0 +1,8 @@
+sessions/*
+!sessions/.gitkeep
+backups/
+__pycache__/
+*.pyc
+.DS_Store
+.venv/
+.env

@@ -1,0 +1,8 @@
+[
+ {"id": "hello", "chapter": "Opening", "m": "Relaxed, like greeting a friend", "d": "Look into the lens. Smile before you speak.", "p": "",
+  "t": "Hi, / I'm *Sam*. // This is a short *test* / of the recording assistant.", "zh": "大家好，我是 Sam。这是录音助手的一段测试。", "size": "long", "order": 1},
+ {"id": "why", "chapter": "Why it helps", "m": "Calm and sure", "d": "You are explaining this to one person across the table.", "p": "Thorough: THUH-ruh",
+  "t": "You focus on *how* you say it. // The software handles {thorough|THUH-ruh} checks, / levels, / and exports.", "zh": "你只管怎么说，检查、音量和导出交给软件。", "size": "long", "order": 2},
+ {"id": "hello_zh", "chapter": "中文示例", "lang": "zh", "m": "亲切，不用端着", "d": "看着镜头，像跟朋友打招呼。", "p": "",
+  "t": "大家好， / 这是一段*中文*测试。 // 你只管表达， / 其他交给软件。", "size": "long", "order": 3}
+]

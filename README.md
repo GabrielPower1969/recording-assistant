@@ -117,6 +117,10 @@ To restore, unpack the tar in the project folder and run `docker compose up -d`.
 
 Clone this repository to `.claude/skills/recording-coach`. Claude reads [SKILL.md](SKILL.md). [CLAUDE.md](CLAUDE.md) is the map for working on the code.
 
+## License
+
+[MIT](LICENSE)
+
 ## 中文速览
 
 **录音助手：** 对着镜头按稿子逐段读，其他交给软件。本地网页提供提词器，声音和画面用同一个时钟录制，每遍立刻存盘并自动检查，最后导出选中的遍数。所有数据都留在本机，不上传。

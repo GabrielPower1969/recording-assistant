@@ -86,9 +86,27 @@ Optional fields: `zh` (translation), `p` (pronunciation note), `names` (names th
 
 ## Lighting
 
-The **打光** (lighting) panel measures your face in the preview a few times a second: brightness (aim for 45–70%), the difference between the two sides of the face, whether the background is brighter than the face, and how today compares with your baseline. The face is found by skin colour and outlined on the preview only. The first take you pick becomes the session's baseline, or press **以现在为准** to set it. Each take stores its own measurement. These targets are working values, not a standard.
+The **打光** (lighting) panel reads your face the way a camera operator would. It finds the face with [MediaPipe Face Landmarker](https://ai.google.dev/edge/mediapipe/solutions/vision/face_landmarker) (Google, Apache-2.0, 478 face points, run in your browser), then measures:
+
+| Check | How | Working target |
+|---|---|---|
+| Exposure | Median skin brightness on the forehead and cheeks | 45–70% |
+| Key-to-fill ratio | One cheek against the other, in stops | up to 2:1 |
+| Clipping | Pixels at 97% or more inside the face outline | under 1% |
+| Background | Wall beside the head against the face | no more than half a stop brighter |
+| Skin hue | Angle on a vectorscope against the skin-tone line (about 123°) | within 10° |
+| Framing | Eye line, face size and position against the guide | eyes on the gold line |
+| Consistency | Exposure and hue against the session baseline | within a quarter stop and 5° |
+
+The first take you pick becomes the baseline, or press **以现在为准**. Each take stores its own measurement. The targets are common working values, not a standard. Only clipping and a very dark face cannot be fixed later.
 
 The most common reason takes look different from day to day is automatic exposure and white balance in the camera. Set both to manual in the camera's own software.
+
+The model (about 23 MB) downloads once on first start into `assets/vendor/`, checked against pinned SHA-256 hashes. Without it the lighting check is off and recording still works. To fetch it by hand: `python3 scripts/fetch_vision.py`.
+
+## Turning the camera off
+
+**关摄像头** on the preview or in the bottom bar saves the current take and turns the camera and microphone off. After 10 minutes with no input the page does this by itself, never during a take.
 
 ## Where takes are stored
 

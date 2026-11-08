@@ -87,9 +87,10 @@
   #lightRows dt { color:var(--mut); white-space:nowrap; display:flex; align-items:center; gap:6px; } #lightRows dd { margin:0; line-height:1.4; }
   #lightRows dd small { display:block; color:var(--mut); font-size:12px; }
   #lightFoot { display:flex; align-items:center; gap:8px; margin-top:8px; font-size:12px; color:var(--mut); } #lightFoot button { font-size:12px; padding:4px 8px; flex:none; }
-  #faceBox { position:absolute; z-index:1; border:1.5px dashed #fff9; border-radius:8px; pointer-events:none; display:none; }
-  #faceBox.ok { border-color:#4fdc8fcc; } #faceBox.warn { border-color:#ffcf4acc; } #faceBox.bad { border-color:#ff6470cc; }
-  .noguide #faceBox { display:none !important; }
+  #faceSvg { position:absolute; inset:0; width:100%; height:100%; z-index:1; pointer-events:none; }
+  #faceSvg polygon { fill:none; stroke:#fff9; stroke-width:1.5px; stroke-dasharray:5 4; vector-effect:non-scaling-stroke; }
+  #faceSvg polygon.ok { stroke:#4fdc8fcc; } #faceSvg polygon.warn { stroke:#ffcf4acc; } #faceSvg polygon.bad { stroke:#ff6470cc; }
+  #faceSvg circle { fill:#ffffffaa; } .noguide #faceSvg { display:none; }
   #levelRow { display:flex; align-items:center; gap:8px; color:var(--mut); }
   #levelRow #meter { flex:1; margin:0; }
   .sec { border-top:1px solid var(--line); padding-top:8px; }
@@ -203,7 +204,7 @@
 </style>
 </head>
 <body>
-<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="i-rec" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></symbol><symbol id="i-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></symbol><symbol id="i-prev" viewBox="0 0 24 24"><path d="M19 20 9 12l10-8z"/><path d="M5 19V5"/></symbol><symbol id="i-next" viewBox="0 0 24 24"><path d="m5 4 10 8-10 8z"/><path d="M19 5v14"/></symbol><symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol><symbol id="i-prompter" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4M7 8h10M7 12h6"/></symbol><symbol id="i-review" viewBox="0 0 24 24"><path d="M3 5h12M3 10h12M3 15h7"/><path d="m15 13 6 3.5-6 3.5z"/></symbol><symbol id="i-pause" viewBox="0 0 24 24"><path d="M9 4H6v16h3zM18 4h-3v16h3z"/></symbol><symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></symbol><symbol id="i-full" viewBox="0 0 24 24"><path d="M8 3H3v5M21 8V3h-5M16 21h5v-5M3 16v5h5"/></symbol><symbol id="i-exitfull" viewBox="0 0 24 24"><path d="M3 8h5V3M16 3v5h5M21 16h-5v5M8 21v-5H3"/></symbol><symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v4"/></symbol><symbol id="i-cam" viewBox="0 0 24 24"><path d="m23 7-7 5 7 5z"/><rect x="1" y="5" width="15" height="14" rx="2"/></symbol><symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol><symbol id="i-disk" viewBox="0 0 24 24"><path d="M22 12H2M5.5 5.1 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.8 4H7.2a2 2 0 0 0-1.7 1.1zM6 16h.01M10 16h.01"/></symbol><symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></symbol><symbol id="i-find" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol><symbol id="i-film" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M7 3v18M17 3v18M2 8h5M2 16h5M17 8h5M17 16h5"/></symbol><symbol id="i-devices" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></symbol></svg>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="i-rec" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></symbol><symbol id="i-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></symbol><symbol id="i-prev" viewBox="0 0 24 24"><path d="M19 20 9 12l10-8z"/><path d="M5 19V5"/></symbol><symbol id="i-next" viewBox="0 0 24 24"><path d="m5 4 10 8-10 8z"/><path d="M19 5v14"/></symbol><symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol><symbol id="i-prompter" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4M7 8h10M7 12h6"/></symbol><symbol id="i-review" viewBox="0 0 24 24"><path d="M3 5h12M3 10h12M3 15h7"/><path d="m15 13 6 3.5-6 3.5z"/></symbol><symbol id="i-camoff" viewBox="0 0 24 24"><path d="m2 2 20 20M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m5 0h4a2 2 0 0 1 2 2v3.3l1 1L22 7v10"/></symbol><symbol id="i-pause" viewBox="0 0 24 24"><path d="M9 4H6v16h3zM18 4h-3v16h3z"/></symbol><symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></symbol><symbol id="i-full" viewBox="0 0 24 24"><path d="M8 3H3v5M21 8V3h-5M16 21h5v-5M3 16v5h5"/></symbol><symbol id="i-exitfull" viewBox="0 0 24 24"><path d="M3 8h5V3M16 3v5h5M21 16h-5v5M8 21v-5H3"/></symbol><symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v4"/></symbol><symbol id="i-cam" viewBox="0 0 24 24"><path d="m23 7-7 5 7 5z"/><rect x="1" y="5" width="15" height="14" rx="2"/></symbol><symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol><symbol id="i-disk" viewBox="0 0 24 24"><path d="M22 12H2M5.5 5.1 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.8 4H7.2a2 2 0 0 0-1.7 1.1zM6 16h.01M10 16h.01"/></symbol><symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></symbol><symbol id="i-find" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol><symbol id="i-film" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M7 3v18M17 3v18M2 8h5M2 16h5M17 8h5M17 16h5"/></symbol><symbol id="i-devices" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></symbol></svg>
 <section id="setup">
   <h1>录音教练</h1>
   <p>一段一段连着读，同时录声音和画面，存在这台电脑上，不上传。每录完一遍，机器检查音量、留白、语速和有没有读漏。语气好不好，你自己听。</p>
@@ -238,8 +239,8 @@
   </main>
   <aside id="side">
     <div id="camStage">
-      <div id="camWrap" class="guided"><video id="cam" autoplay muted playsinline></video><i id="faceBox"></i><svg class="guide" viewBox="0 0 1600 900" aria-hidden="true"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><g class="gOut"><ellipse cx="800" cy="344" rx="152" ry="207"/><path d="M714 515 C716 560 716 590 690 610 C640 648 520 650 440 712 C390 750 372 820 366 900 M886 515 C884 560 884 590 910 610 C960 648 1080 650 1160 712 C1210 750 1228 820 1234 900"/></g><line class="gEye" x1="0" y1="344" x2="1600" y2="344"/></g></svg></div>
-      <div id="camTools"><button id="guideBtn" title="构图线：眼睛放在金线上，头在轮廓里动就好（G）" aria-label="构图线"><svg class="ic"><use href="#i-grid"/></svg></button><button id="fullBtn" title="全屏预览，录之前对构图（Esc 退出）" aria-label="全屏预览"><svg class="ic"><use href="#i-full"/></svg></button></div>
+      <div id="camWrap" class="guided"><video id="cam" autoplay muted playsinline></video><svg id="faceSvg" viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true"></svg><svg class="guide" viewBox="0 0 1600 900" aria-hidden="true"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><g class="gOut"><ellipse cx="800" cy="344" rx="152" ry="207"/><path d="M714 515 C716 560 716 590 690 610 C640 648 520 650 440 712 C390 750 372 820 366 900 M886 515 C884 560 884 590 910 610 C960 648 1080 650 1160 712 C1210 750 1228 820 1234 900"/></g><line class="gEye" x1="0" y1="344" x2="1600" y2="344"/></g></svg></div>
+      <div id="camTools"><button id="camOffBtn" title="关摄像头和麦克风（离开时用）" aria-label="关摄像头"><svg class="ic"><use href="#i-camoff"/></svg></button><button id="guideBtn" title="构图线：眼睛放在金线上，头在轮廓里动就好（G）" aria-label="构图线"><svg class="ic"><use href="#i-grid"/></svg></button><button id="fullBtn" title="全屏预览，录之前对构图（Esc 退出）" aria-label="全屏预览"><svg class="ic"><use href="#i-full"/></svg></button></div>
       <div id="fsHud"><svg class="ic"><use href="#i-mic"/></svg><div id="fsLevel"><i></i><b></b></div><span id="fsSpec"></span><span id="fsLight"></span><span style="color:var(--mut)">眼睛放金线上 · G 构图线 · Esc 退出</span></div>
     </div>
     <div id="levelRow" title="说话时最响到白线附近最好，差一点也没关系"><svg class="ic"><use href="#i-mic"/></svg><div id="meter"><i></i><b></b></div></div>
@@ -273,16 +274,16 @@
     <div class="grp r">
       <div class="ctl"><button id="togglePm" class="round" title="有第二块屏（随航、外接）就开到那块屏上；只有一块屏（镜像）就铺满这块屏" aria-label="提词器"><svg class="ic"><use href="#i-prompter"/></svg></button><small>提词器 <kbd>T</kbd></small></div>
       <div class="ctl"><button id="review" class="round" aria-label="回顾"><svg class="ic"><use href="#i-review"/></svg></button><small>回顾 <kbd>V</kbd></small></div>
-      <div class="ctl"><button id="hold" class="round" title="存好当前这遍，关掉摄像头和麦克风" aria-label="暂存离开"><svg class="ic"><use href="#i-pause"/></svg></button><small>暂存离开</small></div>
+      <div class="ctl"><button id="hold" class="round" title="离开时用：存好当前这遍，关掉摄像头和麦克风。10 分钟没操作也会自动关" aria-label="关摄像头"><svg class="ic"><use href="#i-camoff"/></svg></button><small>关摄像头</small></div>
     </div>
     <span id="st" role="status"></span>
   </footer>
 </section>
 
 <section id="held" class="layer hide">
-  <h2>已暂存</h2>
+  <h2>摄像头和麦克风已关</h2>
   <p id="heldSum"></p>
-  <button id="resume">继续录</button>
+  <button id="resume">打开摄像头，接着录</button>
   <div id="heldErr" role="alert" style="color:var(--bad)"></div>
 </section>
 
@@ -623,80 +624,108 @@ function reportHtml(t) {
   const r = t.report;
   if (!r) return '<li class="wait">检查中…</li>';
   const l = t.light, b = S.store?.light_base;
-  const lit = l ? `<li class="wait">打光：脸 ${l.face}%${Math.abs(l.side) > .5 ? ` · ${l.side > 0 ? '左' : '右'}脸暗 ${Math.abs(l.side).toFixed(1)} 档` : ''}${b ? ` · 比基准${Math.abs(stops(l.face * 2.55, b.face * 2.55)) <= .25 ? '一致' : (stops(l.face * 2.55, b.face * 2.55) > 0 ? '亮 ' : '暗 ') + Math.abs(stops(l.face * 2.55, b.face * 2.55)).toFixed(1) + ' 档'}` : ''}</li>` : '';
+  const lit = l ? `<li class="wait">打光：脸 ${l.face}%${Math.abs(l.side) > 1 ? ` · ${l.side > 0 ? '左' : '右'}脸暗 ${Math.abs(l.side).toFixed(1)} 档` : ''}${b ? ` · 比基准${Math.abs(stops(l.face * 2.55, b.face * 2.55)) <= .25 ? '一致' : (stops(l.face * 2.55, b.face * 2.55) > 0 ? '亮 ' : '暗 ') + Math.abs(stops(l.face * 2.55, b.face * 2.55)).toFixed(1) + ' 档'}` : ''}</li>` : '';
   return [...(r.notes || []).map(n => `<li class="bad">${esc(n)}</li>`), ...(r.good || []).map(n => `<li class="good">${esc(n)}</li>`), lit,
     r.heard ? `<li class="wait">机器听到：${esc(r.heard)}</li>` : ''].join('');
 }
-/* ---- face lighting: measured from the preview a few times a second; it never touches the recording ---- */
-const LW = 160, LH = 90, LC = 5, lightCanvas = Object.assign(document.createElement('canvas'), { width: LW, height: LH });
+/* ---- face lighting: a face mesh (MediaPipe Face Landmarker, run in this browser) finds the skin; nothing leaves the page ---- */
+// Measured the way a camera operator reads a face: skin exposure on the forehead and cheeks, the key-to-fill ratio
+// between the cheeks, clipped highlights inside the face outline, the face against the wall behind it, and skin hue
+// against the vectorscope skin-tone line (about 123°). Targets are common working values, not a standard.
+const VISION = { lm: null, state: 'loading', why: '' };
+(async () => {
+  try {
+    const { FilesetResolver, FaceLandmarker } = await import('/vendor/vision_bundle.mjs');
+    const files = await FilesetResolver.forVisionTasks('/vendor/wasm');
+    const make = delegate => FaceLandmarker.createFromOptions(files, { baseOptions: { modelAssetPath: '/vendor/face_landmarker.task', delegate }, runningMode: 'IMAGE', numFaces: 1 });
+    VISION.lm = await make('GPU').catch(() => make('CPU'));
+    VISION.state = 'ready';
+  } catch (e) { VISION.state = 'off'; VISION.why = String(e?.message || e); }
+  renderLight();
+})();
+const FACE_OVAL = [10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136, 172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109];
+const PATCH = { forehead: [151, 108, 337], cheekA: [50, 101, 118], cheekB: [280, 330, 347], chin: [199, 175] };
+const SKIN_LINE = 123; // degrees on a vectorscope; every skin tone sits near it under neutral light
+const LW = 640, lightCanvas = document.createElement('canvas');
 const lightCtx = lightCanvas.getContext('2d', { willReadFrequently: true });
 const lin = y => Math.pow(Math.max(1, y) / 255, 2.2); // back to linear light, so differences read as camera stops
 const stops = (a, b) => Math.log2(lin(a) / lin(b));
 const median = a => { if (!a.length) return NaN; const s = Float32Array.from(a).sort(); return s[s.length >> 1]; };
-function measureLight(video) {
-  if (!(video.videoWidth || video.naturalWidth)) return null;
-  lightCtx.drawImage(video, 0, 0, LW, LH);
-  const px = lightCtx.getImageData(0, 0, LW, LH).data, n = LW * LH, Y = new Float32Array(n), skin = new Uint8Array(n);
-  for (let i = 0; i < n; i++) {
-    const r = px[i * 4], g = px[i * 4 + 1], b = px[i * 4 + 2], y = .299 * r + .587 * g + .114 * b;
-    const cb = 128 - .168736 * r - .331264 * g + .5 * b, cr = 128 + .5 * r - .418688 * g - .081312 * b;
-    Y[i] = y; skin[i] = cr >= 138 && cr <= 173 && cb >= 77 && cb <= 127 && y >= 35 ? 1 : 0; // a beige wall sits just under Cr 138
-  }
-  // The largest patch of skin-coloured cells is taken as the face.
-  const gw = LW / LC, gh = LH / LC, cell = new Uint8Array(gw * gh), seen = new Uint8Array(gw * gh);
-  for (let cy = 0; cy < gh; cy++) for (let cx = 0; cx < gw; cx++) {
-    let c = 0; for (let y = 0; y < LC; y++) for (let x = 0; x < LC; x++) c += skin[(cy * LC + y) * LW + cx * LC + x];
-    cell[cy * gw + cx] = c * 2 >= LC * LC ? 1 : 0;
-  }
-  let best = [];
-  for (let i = 0; i < gw * gh; i++) {
-    if (!cell[i] || seen[i]) continue;
-    const comp = [], st = [i]; seen[i] = 1;
-    while (st.length) {
-      const j = st.pop(), x = j % gw, y = (j / gw) | 0; comp.push(j);
-      for (const k of [x > 0 ? j - 1 : -1, x < gw - 1 ? j + 1 : -1, y > 0 ? j - gw : -1, y < gh - 1 ? j + gw : -1]) if (k >= 0 && cell[k] && !seen[k]) { seen[k] = 1; st.push(k); }
-    }
-    if (comp.length > best.length) best = comp;
-  }
-  if (best.length < 6) return { none: true };
-  let x0 = gw, x1 = 0, y0 = gh, y1 = 0;
-  for (const j of best) { const x = j % gw, y = (j / gw) | 0; x0 = Math.min(x0, x); x1 = Math.max(x1, x + 1); y0 = Math.min(y0, y); y1 = Math.max(y1, y + 1); }
-  x0 *= LC; x1 *= LC; y1 = Math.min(y1 * LC, y0 * LC + Math.round((x1 - x0) * 1.35)); y0 *= LC; // the neck is not the face
-  const inBest = new Uint8Array(gw * gh); best.forEach(j => { inBest[j] = 1; });
-  const face = [], left = [], right = [], bg = [], rs = [], bs = [], mid = (x0 + x1) / 2; let clip = 0, boxN = 0;
-  for (let y = 0; y < LH; y++) for (let x = 0; x < LW; x++) {
-    const i = y * LW + x, inBox = x >= x0 && x < x1 && y >= y0 && y < y1;
-    if (inBox) { boxN++; if (Y[i] >= 250) clip++; } else if (y < LH * .85) bg.push(Y[i]);
-    if (inBox && skin[i] && inBest[((y / LC) | 0) * gw + ((x / LC) | 0)]) { face.push(Y[i]); (x < mid ? left : right).push(Y[i]); rs.push(px[i * 4]); bs.push(px[i * 4 + 2]); }
-  }
-  const f = median(face);
-  // side: the picture's left (the speaker's right cheek) against its right, in stops
-  return { face: Math.round(f / 2.55), side: +stops(median(left), median(right)).toFixed(2), clip: +(clip / boxN * 100).toFixed(1),
-    bg: +stops(f, median(bg)).toFixed(2), rb: +(median(rs) / Math.max(1, median(bs))).toFixed(3), box: [x0 / LW, y0 / LH, x1 / LW, y1 / LH] };
+function inPoly(x, y, P) { let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) if ((P[i][1] > y) !== (P[j][1] > y) && x < (P[j][0] - P[i][0]) * (y - P[i][1]) / (P[j][1] - P[i][1]) + P[i][0]) c = !c; return c; }
+function measureLight(src) {
+  const w = src.videoWidth || src.naturalWidth, h = src.videoHeight || src.naturalHeight;
+  if (!w || VISION.state !== 'ready') return null;
+  const W = LW, H = Math.round(LW * h / w); lightCanvas.width = W; lightCanvas.height = H;
+  lightCtx.drawImage(src, 0, 0, W, H);
+  const lm = VISION.lm.detect(lightCanvas).faceLandmarks?.[0];
+  if (!lm) return { none: true };
+  const px = lightCtx.getImageData(0, 0, W, H).data, P = i => [lm[i].x * W, lm[i].y * H];
+  const luma = i => .2126 * px[i] + .7152 * px[i + 1] + .0722 * px[i + 2];
+  const faceW = Math.hypot(P(234)[0] - P(454)[0], P(234)[1] - P(454)[1]), r = Math.max(2, faceW * .06);
+  const sample = ids => { const out = { y: [], cb: [], cr: [], x: 0 };
+    for (const id of ids) { const [cx, cy] = P(id); out.x += cx / ids.length;
+      for (let y = Math.max(0, cy - r | 0); y <= Math.min(H - 1, cy + r); y++) for (let x = Math.max(0, cx - r | 0); x <= Math.min(W - 1, cx + r); x++) {
+        if ((x - cx) ** 2 + (y - cy) ** 2 > r * r) continue;
+        const i = (y * W + x) * 4, R = px[i], G = px[i + 1], B = px[i + 2];
+        out.y.push(luma(i)); out.cb.push(-.1146 * R - .3854 * G + .5 * B); out.cr.push(.5 * R - .4542 * G - .0458 * B);
+      } }
+    return out; };
+  const fh = sample(PATCH.forehead), ca = sample(PATCH.cheekA), cb = sample(PATCH.cheekB), ch = sample(PATCH.chin);
+  const all = [...fh.y, ...ca.y, ...cb.y, ...ch.y], skin = median(all);
+  const [L, R] = ca.x < cb.x ? [ca, cb] : [cb, ca]; // the picture's left is the speaker's right cheek
+  // Clipping and background: inside the face outline, and beside the head down to the chin.
+  const oval = FACE_OVAL.map(P), xs = oval.map(p => p[0]), ys = oval.map(p => p[1]);
+  const x0 = Math.max(0, Math.min(...xs) | 0), x1 = Math.min(W - 1, Math.max(...xs) | 0), y0 = Math.max(0, Math.min(...ys) | 0), y1 = Math.min(H - 1, Math.max(...ys) | 0);
+  let clip = 0, n = 0;
+  for (let y = y0; y <= y1; y += 2) for (let x = x0; x <= x1; x += 2) if (inPoly(x, y, oval)) { n++; if (luma((y * W + x) * 4) >= 247) clip++; }
+  const bg = [], pad = (x1 - x0) * .25;
+  for (let y = 0; y < y1; y += 4) for (let x = 0; x < W; x += 4) if (x < x0 - pad || x > x1 + pad) bg.push(luma((y * W + x) * 4));
+  const keep = a => a.filter((_, i) => all[i] < 247); // clipped skin has lost its colour
+  const cbs = [...fh.cb, ...ca.cb, ...cb.cb, ...ch.cb], crs = [...fh.cr, ...ca.cr, ...cb.cr, ...ch.cr];
+  const mcb = median(keep(cbs)), mcr = median(keep(crs));
+  const eye = (lm[33].y + lm[263].y) / 2, chin = lm[152].y;
+  return { face: Math.round(skin / 2.55), side: +stops(median(L.y), median(R.y)).toFixed(2), clip: +(clip / Math.max(1, n) * 100).toFixed(1),
+    bg: +stops(skin, median(bg)).toFixed(2), hue: +(Math.atan2(mcr, mcb) * 180 / Math.PI).toFixed(1), sat: +(Math.hypot(mcb, mcr) / 1.28).toFixed(1),
+    eye: +eye.toFixed(3), size: +((chin - eye) / .23).toFixed(2), x: +(1 - lm[1].x).toFixed(3), // x as seen in the mirrored preview
+    oval: FACE_OVAL.map(i => [1 - lm[i].x, lm[i].y]), dots: [...PATCH.forehead, ...PATCH.cheekA, ...PATCH.cheekB, ...PATCH.chin].map(i => [1 - lm[i].x, lm[i].y]) };
 }
-// Targets are working values for a talking head, not a standard: face 45-70% of full brightness, cheeks within half a stop,
-// face no darker than the wall behind it. Only clipping and a very dark face cannot be fixed later.
+// ok / warn / bad per row. Only clipping and a very dark face cannot be fixed later; the rest is advice.
 function lightRows(m, base) {
   if (!m) return null;
   if (m.none) return { level: 'warn', sum: '画面里没找到脸', rows: [] };
-  const rows = [], f = m.face, d = Math.abs(m.side).toFixed(1);
-  rows.push(['亮度', `${f}%`, m.clip > 2 ? 'bad' : f < 35 ? 'bad' : f < 45 || f > 70 ? 'warn' : 'ok',
-    m.clip > 2 ? '脸上有一块过曝了，后期救不回来：灯调暗或离远一点' : f < 35 ? '脸太暗，画面会有噪点：加灯或面向窗户' : f < 45 ? '略暗：灯近一点或调亮一点' : f > 70 ? '略亮：灯调暗一点或离远一点' : '']);
-  rows.push(['左右', Math.abs(m.side) <= .5 ? '均匀' : `${m.side > 0 ? '左' : '右'}脸暗 ${d} 档`, Math.abs(m.side) <= .5 ? 'ok' : Math.abs(m.side) <= 1 ? 'warn' : 'bad',
-    Math.abs(m.side) <= .5 ? '' : `从你的${m.side > 0 ? '左' : '右'}边补一点光，或把主灯往中间挪`]);
-  rows.push(['背景', m.bg >= -.3 ? '脸不比背景暗' : `背景比脸亮 ${Math.abs(m.bg).toFixed(1)} 档`, m.bg >= -.3 ? 'ok' : 'warn',
-    m.bg >= -.3 ? '' : '摄像头会按亮背景压暗你的脸：给脸加光，或调暗背景']);
+  const rows = [], f = m.face, sd = Math.abs(m.side), dh = m.hue - SKIN_LINE;
+  rows.push(['亮度', `${f}%`, m.clip >= 1 || f < 35 || f > 80 ? 'bad' : f < 45 || f > 70 ? 'warn' : 'ok',
+    m.clip >= 1 ? `脸上有 ${m.clip}% 过曝（多在额头、鼻梁），后期救不回来：灯调暗、离远一点，或用柔光` : f < 35 ? '脸太暗，画面会有噪点：加灯或面向窗户' : f < 45 ? '略暗：灯近一点或调亮一点' : f > 80 ? '太亮：灯调暗或离远一点' : f > 70 ? '略亮：灯调暗一点' : '']);
+  rows.push(['左右', sd <= 1 ? (sd <= .4 ? '均匀' : `光比 ${Math.pow(2, sd).toFixed(1)}:1，自然`) : `${m.side > 0 ? '左' : '右'}脸暗，光比 ${Math.pow(2, sd).toFixed(1)}:1`, sd <= 1 ? 'ok' : sd <= 1.6 ? 'warn' : 'bad',
+    sd <= 1 ? '' : `从你的${m.side > 0 ? '左' : '右'}边补一点光（反光板、白墙或第二盏灯），或把主灯往中间挪`]);
+  rows.push(['背景', m.bg >= -.5 ? (m.bg >= 0 ? '脸比背景亮' : '和脸差不多') : `背景比脸亮 ${Math.abs(m.bg).toFixed(1)} 档`, m.bg >= -.5 ? 'ok' : 'warn',
+    m.bg >= -.5 ? '' : '摄像头会按亮背景把脸压暗：给脸加光，或把背景调暗']);
+  rows.push(['肤色', Math.abs(dh) <= 10 ? '自然' : dh > 0 ? '偏黄绿' : '偏红（品红）', Math.abs(dh) <= 10 ? 'ok' : Math.abs(dh) <= 20 ? 'warn' : 'bad',
+    Math.abs(dh) <= 10 ? '' : `离肤色线 ${Math.abs(dh).toFixed(0)}°：白平衡不准或灯的颜色不纯。摄像头软件里手动设白平衡，${dh > 0 ? '色调往品红调一点' : '色调往绿调一点'}`]);
+  if (m.eye != null) {
+    const dy = m.eye - .382, big = m.size, dx = m.x - .5, tips = [];
+    if (big > 1.25) tips.push(`脸偏大 ${big.toFixed(1)} 倍：往后坐或缩小画面`); else if (big < .75) tips.push('脸偏小：坐近一点或放大画面');
+    if (dy > .06) tips.push('眼睛低于金线：摄像头抬高一点或往下俯'); else if (dy < -.06) tips.push('眼睛高于金线：摄像头放低一点');
+    if (Math.abs(dx) > .1) tips.push(`往你的${dx < 0 ? '右' : '左'}边挪一点`);
+    rows.push(['构图', tips.length ? '要调' : '在轮廓里', tips.length > 1 || big > 1.5 ? 'bad' : tips.length ? 'warn' : 'ok', tips.join('；')]);
+  }
   if (base) {
-    const ds = stops(f * 2.55, base.face * 2.55), dc = m.rb / base.rb - 1;
-    const tone = dc > .06 ? '，偏暖' : dc < -.06 ? '，偏冷' : '';
-    rows.push(['和基准比', Math.abs(ds) <= .25 && !tone ? '一致' : `${ds > 0 ? '亮' : '暗'} ${Math.abs(ds).toFixed(1)} 档${tone}`, Math.abs(ds) <= .25 && !tone ? 'ok' : Math.abs(ds) <= .6 ? 'warn' : 'bad',
-      Math.abs(ds) <= .25 && !tone ? '' : '和之前录的不一样，剪在一起会跳：把灯和摄像头设置调回去。摄像头软件里把曝光和白平衡改成手动，最稳']);
+    const ds = stops(f * 2.55, base.face * 2.55), dhb = m.hue - base.hue;
+    const same = Math.abs(ds) <= .25 && Math.abs(dhb) <= 5;
+    rows.push(['和基准比', same ? '一致' : `${Math.abs(ds) > .25 ? `${ds > 0 ? '亮' : '暗'} ${Math.abs(ds).toFixed(1)} 档` : '亮度一样'}${Math.abs(dhb) > 5 ? `，颜色${dhb > 0 ? '偏黄' : '偏红'}` : ''}`,
+      same ? 'ok' : Math.abs(ds) <= .5 && Math.abs(dhb) <= 10 ? 'warn' : 'bad',
+      same ? '' : '和之前录的不一样，剪在一起会跳：把灯调回去；摄像头软件里把曝光和白平衡改成手动，最稳']);
   }
   const rank = { ok: 0, warn: 1, bad: 2 }, worst = rows.reduce((a, r) => rank[r[2]] > rank[a] ? r[2] : a, 'ok');
   const first = rows.find(r => r[2] === worst && worst !== 'ok');
-  return { level: worst, sum: first ? `${first[0]}：${first[1]}` : '合适', rows };
+  return { level: worst, sum: first ? `${first[0]}：${first[1]}` : '都合适', rows };
 }
 function renderLight() {
+  if (VISION.state !== 'ready') {
+    $('lightDot').className = 'dot'; $('lightSum').textContent = VISION.state === 'off' ? '没装好' : '载入中…';
+    $('lightRows').innerHTML = VISION.state === 'off' ? `<dt></dt><dd>人脸模型没载入，打光检测暂时关闭，录制不受影响。<small>服务第一次启动会自动下载模型（约 23 MB）；离线时运行 scripts/fetch_vision.py。${esc(VISION.why)}</small></dd>` : '';
+    $('faceSvg').innerHTML = ''; return;
+  }
   const m = S.light, v = lightRows(m, S.store?.light_base);
   if (!v) return;
   $('lightDot').className = 'dot ' + v.level; $('lightSum').textContent = v.sum;
@@ -704,23 +733,22 @@ function renderLight() {
   $('lightBaseTxt').textContent = S.store?.light_base ? `基准：脸 ${S.store.light_base.face}%` : '还没有基准，第一遍选中后自动记下';
   $('lightBase').disabled = !m || m.none;
   $('fsLight').textContent = '打光 ' + v.sum;
-  const box = $('faceBox');
-  if (m && m.box) { // the preview is mirrored, so the box is too
-    const [a, b, c, d] = m.box; Object.assign(box.style, { display: 'block', left: (1 - c) * 100 + '%', top: b * 100 + '%', width: (c - a) * 100 + '%', height: (d - b) * 100 + '%' });
-    box.className = v.level;
-  } else box.style.display = 'none';
+  // The face outline the measurement used, mirrored like the preview. Drawn on the page only.
+  $('faceSvg').innerHTML = m && m.oval ? `<polygon class="${v.level}" points="${m.oval.map(p => p.join(',')).join(' ')}"/>` + m.dots.map(([x, y]) => `<circle cx="${x}" cy="${y}" r=".006"/>`).join('') : '';
 }
 function takeLight(samples) {
   if (!samples.length) return null;
-  const out = {}; for (const k of ['face', 'side', 'clip', 'bg', 'rb']) out[k] = +median(samples.map(s => s[k])).toFixed(3);
+  const out = {}; for (const k of ['face', 'side', 'clip', 'bg', 'hue', 'sat', 'eye', 'size', 'x']) out[k] = +median(samples.map(s => s[k])).toFixed(3);
   return out;
 }
-setInterval(() => {
-  if (!S.stream || document.hidden || S.rv.open) return;
-  const m = measureLight($('cam')); if (!m) return;
-  S.light = m; if (S.recording && !S.counting && !m.none) S.lightTake?.push(m);
-  if (!S.recording) renderLight();
-}, 700);
+let lightBusy = false, lightLast = 0;
+setInterval(() => { // half a second when idle; every two seconds during a take, so the recording keeps its frames
+  if (!S.stream || document.hidden || S.rv.open || lightBusy || VISION.state !== 'ready') return;
+  const now = performance.now(); if (S.recording && now - lightLast < 2000) return;
+  lightBusy = true; lightLast = now;
+  try { const m = measureLight($('cam')); if (m) { S.light = m; if (S.recording && !S.counting && !m.none) S.lightTake?.push(m); if (!S.recording) renderLight(); } }
+  finally { lightBusy = false; }
+}, 500);
 $('lightBase').onclick = async () => {
   if (!S.light || S.light.none) return;
   await api('/api/light', { method: 'POST', body: JSON.stringify({ light: S.light }) }); await refresh(); renderLight(); setSt('已把现在的打光记为基准');
@@ -859,7 +887,7 @@ $('slower').onclick = e => { setSpeed(-.1); e.target.blur(); }; $('faster').oncl
 $('micNow').onchange = $('camNow').onchange = switchDevice;
 navigator.mediaDevices.addEventListener('devicechange', () => listDevices().catch(() => {}));
 $('cd').addEventListener('click', e => { const c = +e.target.dataset.c; if (!c || S.recording) return; S.count = c; renderCount(); e.target.blur(); try { localStorage.setItem('coach-count', c); } catch {} });
-async function hold() {
+async function hold(auto) {
   if (S.recording) { if (S.counting) cancelRec(); else await stopRec(); }
   const waitUpload = async () => { for (let i = 0; i < 40 && S.uploading; i++) await sleep(250); };
   await sleep(50); await waitUpload();
@@ -867,10 +895,14 @@ async function hold() {
   await refresh().catch(() => {});
   remember('coach-active', null); // left on purpose: the next visit asks before opening the camera
   const total = Object.values(S.takes).flat().length, done = S.lines.filter(isDone).length;
-  $('heldSum').innerHTML = `摄像头和麦克风已关。已选定 ${done} / ${S.lines.length} 段，共 ${total} 遍，都存在硬盘上。<br>下次打开这个地址，会回到第 ${S.idx + 1} 段。`;
+  $('heldSum').innerHTML = `${auto === true ? `${IDLE_MIN} 分钟没有操作，自动关了。` : ''}摄像头指示灯应该已经灭了。已选定 ${done} / ${S.lines.length} 段，共 ${total} 遍，都存在硬盘上。<br>下次打开这个地址，会回到第 ${S.idx + 1} 段。`;
   $('held').classList.remove('hide');
 }
-$('hold').onclick = hold;
+$('hold').onclick = () => hold(); $('camOffBtn').onclick = () => hold();
+// Walked away: after a quiet spell the camera turns itself off. Never during a take or while a take is saving.
+const IDLE_MIN = 10; let lastActive = Date.now();
+for (const ev of ['pointermove', 'pointerdown', 'keydown', 'wheel']) addEventListener(ev, () => { lastActive = Date.now(); }, { passive: true });
+setInterval(() => { if (S.stream && !S.recording && !S.counting && !S.uploading && Date.now() - lastActive > IDLE_MIN * 60e3) hold(true); }, 30e3);
 $('resume').onclick = async () => {
   $('heldErr').textContent = '';
   try { await openDevices(); syncDevices(); remember('coach-active', '1'); $('held').classList.add('hide'); renderLine(); setSt('接着录'); }
@@ -980,6 +1012,7 @@ const FLIPS = ['y', 'x', 'none'], FLIP_NAME = { x: '左右翻转', y: '上下翻
 const PM_KEYS = new Set(['m', '+', '=', '-', '_', 'f', 'c']);
 const PM = { cam: recall('coach-pm-cam') !== '0', here: false, html: null, words: [], tops: [], starts: [], lineOf: [], pos: 0, cur: -1, y: 0, peek: 0, last: 0, rec: false, active: false, rate: 1, speed: 1, scroll: true, t0: 0, flip: FLIPS.includes(recall('coach-pm-flip2')) ? recall('coach-pm-flip2') : 'y', size: Math.min(12, Math.max(2.5, +recall('coach-pm-size') || 5.5)) };
 const pmCh = new BroadcastChannel('coach-prompter');
+pmCh.addEventListener('message', () => { lastActive = Date.now(); }); // keys pressed on the prompter screen count too
 document.body.classList.toggle('noguide', recall('coach-guide') === '0');
 function toggleGuide() { // the setting is shared through storage, so both windows follow
   const off = !document.body.classList.contains('noguide');

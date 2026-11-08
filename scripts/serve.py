@@ -24,6 +24,7 @@ from urllib.parse import parse_qs, urlparse
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import analyze  # noqa: E402
+import fetch_vision  # noqa: E402
 
 SAFE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 SAFE_FILE = re.compile(r"^[A-Za-z0-9_-]{1,64}\.(mkv|webm|mp4)$")
@@ -33,14 +34,17 @@ SYSTEM_TRASH = Path.home() / ".Trash"
 ON_MAC = sys.platform == "darwin" and not os.environ.get("RA_CONTAINER")
 
 
-LIGHT_KEYS = ("face", "side", "clip", "bg", "rb")
+LIGHT_KEYS = ("face", "side", "clip", "bg", "hue")
+LIGHT_EXTRA = ("sat", "eye", "size", "x")
 
 
 def clean_light(text):
     """Face lighting measured by the page: numbers only, so nothing else reaches disk."""
     try:
         raw = json.loads(text)
-        return {k: round(float(raw[k]), 3) for k in LIGHT_KEYS}
+        out = {k: round(float(raw[k]), 3) for k in LIGHT_KEYS}
+        out.update({k: round(float(raw[k]), 3) for k in LIGHT_EXTRA if k in raw})
+        return out
     except (ValueError, TypeError, KeyError):
         return None
 
@@ -233,6 +237,10 @@ class Handler(BaseHTTPRequestHandler):
         s, u = self.session, urlparse(self.path)
         if u.path in ("/", "/coach.html"):
             return self._file(HERE.parent / "assets" / "coach.html", "text/html; charset=utf-8")
+        if m := re.match(r"^/vendor/((?:wasm/)?[A-Za-z0-9_.-]+)$", u.path):
+            if m.group(1) in fetch_vision.FILES:
+                kind = {".mjs": "text/javascript", ".js": "text/javascript", ".wasm": "application/wasm"}
+                return self._file(fetch_vision.VENDOR / m.group(1), kind.get(Path(m.group(1)).suffix, "application/octet-stream"))
         if u.path == "/api/state":
             return self._json(s.state())
         if m := re.match(r"^/take/([^/]+)$", u.path):
@@ -327,6 +335,8 @@ def main():
     for tool in ("ffmpeg", "ffprobe"):
         if not shutil.which(tool):
             sys.exit(f"{tool} is required")
+    if not fetch_vision.ready():  # once, in the background: recording never waits for it
+        threading.Thread(target=fetch_vision.fetch, daemon=True).start()
     Handler.session = Session(a.session.resolve(), None if a.no_whisper else a.whisper_python)
     print(f"Recording coach: open http://localhost:{a.port}/ in Chrome", flush=True)
     ThreadingHTTPServer((a.host, a.port), Handler).serve_forever()

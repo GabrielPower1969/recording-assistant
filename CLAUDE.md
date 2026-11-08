@@ -18,6 +18,7 @@ A local page for reading a script to camera. `README.md` is the user manual. `SK
 | `scripts/analyze.py` | Per-take checks: level, clipping, pace, transcript against script |
 | `scripts/export.py` | Cuts, levels and writes the picked takes |
 | `sessions/<s>/light.json` | Lighting baseline: the first picked take's face measurement, or set by hand |
+| `scripts/fetch_vision.py` | Downloads the face model into `assets/vendor/` (git-ignored), pinned by SHA-256 |
 | `examples/demo/` | Demo script, copied into a new session |
 | `sessions/` | User data, git-ignored: `lines.json`, `takes/`, `reports/`, `picks.json`, `calibration.json` |
 
@@ -30,7 +31,8 @@ A local page for reading a script to camera. `README.md` is the user manual. `SK
 5. Overlays (grid, outline, eye line) exist only in the page and never enter the recorded stream.
 6. Nothing leaves the machine. The server refuses requests whose Host is not localhost, and compose publishes the port to 127.0.0.1 only.
 7. Do not pass the script to the transcription model, or it will hear the script and miss skipped words.
-8. The core stays on the Python standard library plus ffmpeg. Transcription stays optional.
+8. The core stays on the Python standard library plus ffmpeg. Transcription and the face model stay optional: without them, recording still works.
+9. The camera turns off after 10 idle minutes, never during a take or an upload.
 
 ## How to verify
 

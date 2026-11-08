@@ -17,6 +17,7 @@ A local page for reading a script to camera. `README.md` is the user manual. `SK
 | `scripts/serve.py` | Local HTTP server: saves takes, keeps picks and position, queues analysis |
 | `scripts/analyze.py` | Per-take checks: level, clipping, pace, transcript against script |
 | `scripts/export.py` | Cuts, levels and writes the picked takes |
+| `sessions/<s>/light.json` | Lighting baseline: the first picked take's face measurement, or set by hand |
 | `examples/demo/` | Demo script, copied into a new session |
 | `sessions/` | User data, git-ignored: `lines.json`, `takes/`, `reports/`, `picks.json`, `calibration.json` |
 

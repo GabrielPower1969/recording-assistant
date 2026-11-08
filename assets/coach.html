@@ -82,6 +82,14 @@
   #camStage:fullscreen #fsHud { display:flex; position:absolute; left:24px; bottom:24px; z-index:2; gap:14px; align-items:center; background:#0b1220cc; border-radius:12px; padding:10px 14px; font-size:15px; color:#dfe6f1; }
   #fsLevel { width:220px; height:10px; border-radius:5px; background:#ffffff22; overflow:hidden; position:relative; }
   #fsLevel i { display:block; height:100%; width:0; background:var(--ok); } #fsLevel b { position:absolute; left:75%; top:0; bottom:0; width:2px; background:#fff; }
+  .dot { width:10px; height:10px; border-radius:50%; background:var(--mut); flex:none; } .dot.ok { background:var(--ok); } .dot.warn { background:var(--gold); } .dot.bad { background:var(--bad); }
+  #lightRows { display:grid; grid-template-columns:auto 1fr; gap:6px 10px; font-size:13px; align-items:start; }
+  #lightRows dt { color:var(--mut); white-space:nowrap; display:flex; align-items:center; gap:6px; } #lightRows dd { margin:0; line-height:1.4; }
+  #lightRows dd small { display:block; color:var(--mut); font-size:12px; }
+  #lightFoot { display:flex; align-items:center; gap:8px; margin-top:8px; font-size:12px; color:var(--mut); } #lightFoot button { font-size:12px; padding:4px 8px; flex:none; }
+  #faceBox { position:absolute; z-index:1; border:1.5px dashed #fff9; border-radius:8px; pointer-events:none; display:none; }
+  #faceBox.ok { border-color:#4fdc8fcc; } #faceBox.warn { border-color:#ffcf4acc; } #faceBox.bad { border-color:#ff6470cc; }
+  .noguide #faceBox { display:none !important; }
   #levelRow { display:flex; align-items:center; gap:8px; color:var(--mut); }
   #levelRow #meter { flex:1; margin:0; }
   .sec { border-top:1px solid var(--line); padding-top:8px; }
@@ -230,11 +238,15 @@
   </main>
   <aside id="side">
     <div id="camStage">
-      <div id="camWrap" class="guided"><video id="cam" autoplay muted playsinline></video><svg class="guide" viewBox="0 0 1600 900" aria-hidden="true"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><g class="gOut"><ellipse cx="800" cy="344" rx="152" ry="207"/><path d="M714 515 C716 560 716 590 690 610 C640 648 520 650 440 712 C390 750 372 820 366 900 M886 515 C884 560 884 590 910 610 C960 648 1080 650 1160 712 C1210 750 1228 820 1234 900"/></g><line class="gEye" x1="0" y1="344" x2="1600" y2="344"/></g></svg></div>
+      <div id="camWrap" class="guided"><video id="cam" autoplay muted playsinline></video><i id="faceBox"></i><svg class="guide" viewBox="0 0 1600 900" aria-hidden="true"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><g class="gOut"><ellipse cx="800" cy="344" rx="152" ry="207"/><path d="M714 515 C716 560 716 590 690 610 C640 648 520 650 440 712 C390 750 372 820 366 900 M886 515 C884 560 884 590 910 610 C960 648 1080 650 1160 712 C1210 750 1228 820 1234 900"/></g><line class="gEye" x1="0" y1="344" x2="1600" y2="344"/></g></svg></div>
       <div id="camTools"><button id="guideBtn" title="构图线：眼睛放在金线上，头在轮廓里动就好（G）" aria-label="构图线"><svg class="ic"><use href="#i-grid"/></svg></button><button id="fullBtn" title="全屏预览，录之前对构图（Esc 退出）" aria-label="全屏预览"><svg class="ic"><use href="#i-full"/></svg></button></div>
-      <div id="fsHud"><svg class="ic"><use href="#i-mic"/></svg><div id="fsLevel"><i></i><b></b></div><span id="fsSpec"></span><span style="color:var(--mut)">眼睛放金线上 · G 构图线 · Esc 退出</span></div>
+      <div id="fsHud"><svg class="ic"><use href="#i-mic"/></svg><div id="fsLevel"><i></i><b></b></div><span id="fsSpec"></span><span id="fsLight"></span><span style="color:var(--mut)">眼睛放金线上 · G 构图线 · Esc 退出</span></div>
     </div>
     <div id="levelRow" title="说话时最响到白线附近最好，差一点也没关系"><svg class="ic"><use href="#i-mic"/></svg><div id="meter"><i></i><b></b></div></div>
+    <details class="sec" id="secLight" open><summary><i class="dot" id="lightDot"></i>打光 <small id="lightSum">测量中…</small></summary><div class="body">
+      <dl id="lightRows"></dl>
+      <div id="lightFoot"><button id="lightBase" title="把现在的打光记为基准，之后每次都和它比">以现在为准</button><span id="lightBaseTxt"></span></div>
+    </div></details>
     <details class="sec" id="secDev"><summary><svg class="ic"><use href="#i-devices"/></svg>设备 <small id="devSum"></small></summary><div class="body">
       <div id="devices">
         <label title="麦克风"><svg class="ic"><use href="#i-mic"/></svg><select id="micNow" aria-label="麦克风"></select></label>
@@ -610,9 +622,109 @@ function renderCount() {
 function reportHtml(t) {
   const r = t.report;
   if (!r) return '<li class="wait">检查中…</li>';
-  return [...(r.notes || []).map(n => `<li class="bad">${esc(n)}</li>`), ...(r.good || []).map(n => `<li class="good">${esc(n)}</li>`),
+  const l = t.light, b = S.store?.light_base;
+  const lit = l ? `<li class="wait">打光：脸 ${l.face}%${Math.abs(l.side) > .5 ? ` · ${l.side > 0 ? '左' : '右'}脸暗 ${Math.abs(l.side).toFixed(1)} 档` : ''}${b ? ` · 比基准${Math.abs(stops(l.face * 2.55, b.face * 2.55)) <= .25 ? '一致' : (stops(l.face * 2.55, b.face * 2.55) > 0 ? '亮 ' : '暗 ') + Math.abs(stops(l.face * 2.55, b.face * 2.55)).toFixed(1) + ' 档'}` : ''}</li>` : '';
+  return [...(r.notes || []).map(n => `<li class="bad">${esc(n)}</li>`), ...(r.good || []).map(n => `<li class="good">${esc(n)}</li>`), lit,
     r.heard ? `<li class="wait">机器听到：${esc(r.heard)}</li>` : ''].join('');
 }
+/* ---- face lighting: measured from the preview a few times a second; it never touches the recording ---- */
+const LW = 160, LH = 90, LC = 5, lightCanvas = Object.assign(document.createElement('canvas'), { width: LW, height: LH });
+const lightCtx = lightCanvas.getContext('2d', { willReadFrequently: true });
+const lin = y => Math.pow(Math.max(1, y) / 255, 2.2); // back to linear light, so differences read as camera stops
+const stops = (a, b) => Math.log2(lin(a) / lin(b));
+const median = a => { if (!a.length) return NaN; const s = Float32Array.from(a).sort(); return s[s.length >> 1]; };
+function measureLight(video) {
+  if (!(video.videoWidth || video.naturalWidth)) return null;
+  lightCtx.drawImage(video, 0, 0, LW, LH);
+  const px = lightCtx.getImageData(0, 0, LW, LH).data, n = LW * LH, Y = new Float32Array(n), skin = new Uint8Array(n);
+  for (let i = 0; i < n; i++) {
+    const r = px[i * 4], g = px[i * 4 + 1], b = px[i * 4 + 2], y = .299 * r + .587 * g + .114 * b;
+    const cb = 128 - .168736 * r - .331264 * g + .5 * b, cr = 128 + .5 * r - .418688 * g - .081312 * b;
+    Y[i] = y; skin[i] = cr >= 138 && cr <= 173 && cb >= 77 && cb <= 127 && y >= 35 ? 1 : 0; // a beige wall sits just under Cr 138
+  }
+  // The largest patch of skin-coloured cells is taken as the face.
+  const gw = LW / LC, gh = LH / LC, cell = new Uint8Array(gw * gh), seen = new Uint8Array(gw * gh);
+  for (let cy = 0; cy < gh; cy++) for (let cx = 0; cx < gw; cx++) {
+    let c = 0; for (let y = 0; y < LC; y++) for (let x = 0; x < LC; x++) c += skin[(cy * LC + y) * LW + cx * LC + x];
+    cell[cy * gw + cx] = c * 2 >= LC * LC ? 1 : 0;
+  }
+  let best = [];
+  for (let i = 0; i < gw * gh; i++) {
+    if (!cell[i] || seen[i]) continue;
+    const comp = [], st = [i]; seen[i] = 1;
+    while (st.length) {
+      const j = st.pop(), x = j % gw, y = (j / gw) | 0; comp.push(j);
+      for (const k of [x > 0 ? j - 1 : -1, x < gw - 1 ? j + 1 : -1, y > 0 ? j - gw : -1, y < gh - 1 ? j + gw : -1]) if (k >= 0 && cell[k] && !seen[k]) { seen[k] = 1; st.push(k); }
+    }
+    if (comp.length > best.length) best = comp;
+  }
+  if (best.length < 6) return { none: true };
+  let x0 = gw, x1 = 0, y0 = gh, y1 = 0;
+  for (const j of best) { const x = j % gw, y = (j / gw) | 0; x0 = Math.min(x0, x); x1 = Math.max(x1, x + 1); y0 = Math.min(y0, y); y1 = Math.max(y1, y + 1); }
+  x0 *= LC; x1 *= LC; y1 = Math.min(y1 * LC, y0 * LC + Math.round((x1 - x0) * 1.35)); y0 *= LC; // the neck is not the face
+  const inBest = new Uint8Array(gw * gh); best.forEach(j => { inBest[j] = 1; });
+  const face = [], left = [], right = [], bg = [], rs = [], bs = [], mid = (x0 + x1) / 2; let clip = 0, boxN = 0;
+  for (let y = 0; y < LH; y++) for (let x = 0; x < LW; x++) {
+    const i = y * LW + x, inBox = x >= x0 && x < x1 && y >= y0 && y < y1;
+    if (inBox) { boxN++; if (Y[i] >= 250) clip++; } else if (y < LH * .85) bg.push(Y[i]);
+    if (inBox && skin[i] && inBest[((y / LC) | 0) * gw + ((x / LC) | 0)]) { face.push(Y[i]); (x < mid ? left : right).push(Y[i]); rs.push(px[i * 4]); bs.push(px[i * 4 + 2]); }
+  }
+  const f = median(face);
+  // side: the picture's left (the speaker's right cheek) against its right, in stops
+  return { face: Math.round(f / 2.55), side: +stops(median(left), median(right)).toFixed(2), clip: +(clip / boxN * 100).toFixed(1),
+    bg: +stops(f, median(bg)).toFixed(2), rb: +(median(rs) / Math.max(1, median(bs))).toFixed(3), box: [x0 / LW, y0 / LH, x1 / LW, y1 / LH] };
+}
+// Targets are working values for a talking head, not a standard: face 45-70% of full brightness, cheeks within half a stop,
+// face no darker than the wall behind it. Only clipping and a very dark face cannot be fixed later.
+function lightRows(m, base) {
+  if (!m) return null;
+  if (m.none) return { level: 'warn', sum: '画面里没找到脸', rows: [] };
+  const rows = [], f = m.face, d = Math.abs(m.side).toFixed(1);
+  rows.push(['亮度', `${f}%`, m.clip > 2 ? 'bad' : f < 35 ? 'bad' : f < 45 || f > 70 ? 'warn' : 'ok',
+    m.clip > 2 ? '脸上有一块过曝了，后期救不回来：灯调暗或离远一点' : f < 35 ? '脸太暗，画面会有噪点：加灯或面向窗户' : f < 45 ? '略暗：灯近一点或调亮一点' : f > 70 ? '略亮：灯调暗一点或离远一点' : '']);
+  rows.push(['左右', Math.abs(m.side) <= .5 ? '均匀' : `${m.side > 0 ? '左' : '右'}脸暗 ${d} 档`, Math.abs(m.side) <= .5 ? 'ok' : Math.abs(m.side) <= 1 ? 'warn' : 'bad',
+    Math.abs(m.side) <= .5 ? '' : `从你的${m.side > 0 ? '左' : '右'}边补一点光，或把主灯往中间挪`]);
+  rows.push(['背景', m.bg >= -.3 ? '脸不比背景暗' : `背景比脸亮 ${Math.abs(m.bg).toFixed(1)} 档`, m.bg >= -.3 ? 'ok' : 'warn',
+    m.bg >= -.3 ? '' : '摄像头会按亮背景压暗你的脸：给脸加光，或调暗背景']);
+  if (base) {
+    const ds = stops(f * 2.55, base.face * 2.55), dc = m.rb / base.rb - 1;
+    const tone = dc > .06 ? '，偏暖' : dc < -.06 ? '，偏冷' : '';
+    rows.push(['和基准比', Math.abs(ds) <= .25 && !tone ? '一致' : `${ds > 0 ? '亮' : '暗'} ${Math.abs(ds).toFixed(1)} 档${tone}`, Math.abs(ds) <= .25 && !tone ? 'ok' : Math.abs(ds) <= .6 ? 'warn' : 'bad',
+      Math.abs(ds) <= .25 && !tone ? '' : '和之前录的不一样，剪在一起会跳：把灯和摄像头设置调回去。摄像头软件里把曝光和白平衡改成手动，最稳']);
+  }
+  const rank = { ok: 0, warn: 1, bad: 2 }, worst = rows.reduce((a, r) => rank[r[2]] > rank[a] ? r[2] : a, 'ok');
+  const first = rows.find(r => r[2] === worst && worst !== 'ok');
+  return { level: worst, sum: first ? `${first[0]}：${first[1]}` : '合适', rows };
+}
+function renderLight() {
+  const m = S.light, v = lightRows(m, S.store?.light_base);
+  if (!v) return;
+  $('lightDot').className = 'dot ' + v.level; $('lightSum').textContent = v.sum;
+  $('lightRows').innerHTML = v.rows.map(([k, val, st, tip]) => `<dt><i class="dot ${st}"></i>${k}</dt><dd>${esc(val)}${tip ? `<small>${esc(tip)}</small>` : ''}</dd>`).join('');
+  $('lightBaseTxt').textContent = S.store?.light_base ? `基准：脸 ${S.store.light_base.face}%` : '还没有基准，第一遍选中后自动记下';
+  $('lightBase').disabled = !m || m.none;
+  $('fsLight').textContent = '打光 ' + v.sum;
+  const box = $('faceBox');
+  if (m && m.box) { // the preview is mirrored, so the box is too
+    const [a, b, c, d] = m.box; Object.assign(box.style, { display: 'block', left: (1 - c) * 100 + '%', top: b * 100 + '%', width: (c - a) * 100 + '%', height: (d - b) * 100 + '%' });
+    box.className = v.level;
+  } else box.style.display = 'none';
+}
+function takeLight(samples) {
+  if (!samples.length) return null;
+  const out = {}; for (const k of ['face', 'side', 'clip', 'bg', 'rb']) out[k] = +median(samples.map(s => s[k])).toFixed(3);
+  return out;
+}
+setInterval(() => {
+  if (!S.stream || document.hidden || S.rv.open) return;
+  const m = measureLight($('cam')); if (!m) return;
+  S.light = m; if (S.recording && !S.counting && !m.none) S.lightTake?.push(m);
+  if (!S.recording) renderLight();
+}, 700);
+$('lightBase').onclick = async () => {
+  if (!S.light || S.light.none) return;
+  await api('/api/light', { method: 'POST', body: JSON.stringify({ light: S.light }) }); await refresh(); renderLight(); setSt('已把现在的打光记为基准');
+};
 function renderStore() {
   const st = S.store || {}, old = st.old_trash || {}, row = $('storeRow');
   row.querySelector('.txt').textContent = `本会话 ${st.takes_gb ?? '?'} GB · 硬盘剩 ${st.free_gb ?? '?'} GB`;
@@ -646,8 +758,8 @@ async function startRec() {
   const chunks = [];
   const rec = new MediaRecorder(S.stream, { ...(S.mime ? { mimeType: S.mime } : {}), videoBitsPerSecond: videoBps(), audioBitsPerSecond: 320e3 });
   rec.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
-  const lineId = line().id, devices = deviceQuery();
-  rec.onstop = () => { if (!rec.cancelled) upload(new Blob(chunks, { type: rec.mimeType }), lineId, rec.mimeType, devices); };
+  const lineId = line().id, devices = deviceQuery(), lit = S.lightTake = [];
+  rec.onstop = () => { if (!rec.cancelled) { const l = takeLight(lit); upload(new Blob(chunks, { type: rec.mimeType }), lineId, rec.mimeType, devices + (l ? '&light=' + encodeURIComponent(JSON.stringify(l)) : '')); } };
   // Rolling starts during the countdown, so the first word always has quiet room in front of it.
   rec.start(1000); S.rec = rec; S.recording = true; S.peak = -99; S.t0 = performance.now();
   setRecUi(true); renderCount(); setSt('录制中');
@@ -737,7 +849,7 @@ $('fullBtn').addEventListener('click', e => { e.currentTarget.blur(); document.f
 document.addEventListener('fullscreenchange', () => { const on = document.fullscreenElement === $('camStage'); $('fullBtn').querySelector('use').setAttribute('href', on ? '#i-exitfull' : '#i-full'); $('fullBtn').title = on ? '退出全屏（Esc）' : '全屏预览，录之前对构图（Esc 退出）'; });
 $('guideBtn').addEventListener('click', e => { e.currentTarget.blur(); toggleGuide(); });
 $('guideBtn').classList.toggle('on', !document.body.classList.contains('noguide'));
-for (const id of ['secDev', 'secTakes']) { const d = $(id), k = 'coach-' + id; if (recall(k)) d.open = recall(k) === '1'; d.addEventListener('toggle', () => remember(k, d.open ? '1' : '0')); }
+for (const id of ['secLight', 'secDev', 'secTakes']) { const d = $(id), k = 'coach-' + id; if (recall(k)) d.open = recall(k) === '1'; d.addEventListener('toggle', () => remember(k, d.open ? '1' : '0')); }
 $('strip').addEventListener('click', e => { if (e.target.dataset.i) go(+e.target.dataset.i); });
 $('rec').onclick = () => S.recording ? stopRec() : startRec();
 $('cancel').onclick = cancelRec;

@@ -84,6 +84,12 @@ Marks in `t`: `*word*` for stress, ` / ` for a pause, ` // ` for a longer pause,
 
 Optional fields: `zh` (translation), `p` (pronunciation note), `names` (names the transcript may mishear), `target` (original length in seconds), `ref` (a clip in `ref/`), `parts` (show the segment line by line), `lang: "zh"` (Chinese segment), `covers` and `anySize` (long and medium segment views). [SKILL.md](SKILL.md) describes them all.
 
+## Lighting
+
+The **打光** (lighting) panel measures your face in the preview a few times a second: brightness (aim for 45–70%), the difference between the two sides of the face, whether the background is brighter than the face, and how today compares with your baseline. The face is found by skin colour and outlined on the preview only. The first take you pick becomes the session's baseline, or press **以现在为准** to set it. Each take stores its own measurement. These targets are working values, not a standard.
+
+The most common reason takes look different from day to day is automatic exposure and white balance in the camera. Set both to manual in the camera's own software.
+
 ## Where takes are stored
 
 Each take is saved in `<session>/takes/`. The recording page shows this folder, the size of the session and the free disk space. On a Mac, **打开文件夹** opens the folder and **定位** shows one take in Finder.

@@ -33,6 +33,18 @@ SYSTEM_TRASH = Path.home() / ".Trash"
 ON_MAC = sys.platform == "darwin" and not os.environ.get("RA_CONTAINER")
 
 
+LIGHT_KEYS = ("face", "side", "clip", "bg", "rb")
+
+
+def clean_light(text):
+    """Face lighting measured by the page: numbers only, so nothing else reaches disk."""
+    try:
+        raw = json.loads(text)
+        return {k: round(float(raw[k]), 3) for k in LIGHT_KEYS}
+    except (ValueError, TypeError, KeyError):
+        return None
+
+
 def gb(paths):
     return round(sum(p.stat().st_size for p in paths if p.is_file()) / 1e9, 2)
 
@@ -81,6 +93,10 @@ class Session:
             picks = self.picks()
             if name:
                 picks[line_id] = name
+                # The first picked take sets the lighting every later take is compared with.
+                dev = self.reports / (Path(name).stem + ".devices.json")
+                if not (self.root / "light.json").exists() and dev.exists() and json.loads(dev.read_text("utf-8")).get("light"):
+                    self.set_light_base(json.loads(dev.read_text("utf-8"))["light"])
             else:
                 picks.pop(line_id, None)
             tmp = self.root / "picks.json.tmp"
@@ -94,7 +110,9 @@ class Session:
                 continue
             line_id = f.stem.rsplit("_", 1)[0]
             rep = self.reports / (f.stem + ".json")
+            dev = self.reports / (f.stem + ".devices.json")
             takes.setdefault(line_id, []).append({
+                "light": json.loads(dev.read_text("utf-8")).get("light") if dev.exists() else None,
                 "name": f.name,
                 "size": f.stat().st_size,
                 "report": json.loads(rep.read_text("utf-8")) if rep.exists() else None,
@@ -105,7 +123,17 @@ class Session:
                 "root": str(self.root), "takes_gb": gb(self.takes.iterdir()), "mac": ON_MAC,
                 "old_trash": {"count": sum(1 for f in self.trash.iterdir() if SAFE_FILE.match(f.name)),
                               "gb": gb(self.trash.iterdir())},
-                "position": json.loads(pos.read_text("utf-8")) if pos.exists() else None}
+                "position": json.loads(pos.read_text("utf-8")) if pos.exists() else None,
+                "light_base": self.light_base()}
+
+    def light_base(self):
+        p = self.root / "light.json"
+        return json.loads(p.read_text("utf-8")) if p.exists() else None
+
+    def set_light_base(self, light):
+        tmp = self.root / "light.json.tmp"
+        tmp.write_text(json.dumps(light), "utf-8")
+        tmp.replace(self.root / "light.json")
 
     def note_devices(self, mic, cam):
         """A stored offset waiting for its devices goes to the first pair seen; later pairs start uncalibrated."""
@@ -235,7 +263,8 @@ class Handler(BaseHTTPRequestHandler):
         final = s.takes / name
         part.replace(final)
         (s.reports / (final.stem + ".devices.json")).write_text(json.dumps(
-            {"mic": q.get("mic", [""])[0], "cam": q.get("cam", [""])[0]}, ensure_ascii=False), "utf-8")
+            {"mic": q.get("mic", [""])[0], "cam": q.get("cam", [""])[0], "light": clean_light(q.get("light", [""])[0])},
+            ensure_ascii=False), "utf-8")
         s.jobs.put(final)
         self._json({"name": name})
 
@@ -252,6 +281,11 @@ class Handler(BaseHTTPRequestHandler):
         if u.path == "/api/position" and SAFE.match(body.get("id", "")):
             s.set_position(body["id"])
             return self._json({"ok": True})
+        if u.path == "/api/light":
+            light = clean_light(json.dumps(body.get("light")))
+            if light:
+                s.set_light_base(light)
+                return self._json({"ok": True})
         if u.path == "/api/devices":
             return self._json({"calibrated": s.note_devices(str(body.get("mic", "")), str(body.get("cam", "")))})
         if u.path == "/api/trash":

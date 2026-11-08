@@ -69,7 +69,34 @@
   #bar i { display:block; height:100%; width:0; background:var(--acc); }
   #time { font-size:13px; color:var(--mut); margin-top:5px; font-variant-numeric:tabular-nums; }
 
-  #side { background:var(--card); padding:12px; overflow:auto; min-height:0; border-left:1px solid var(--line); }
+  #side { background:var(--card); padding:12px 14px; overflow:auto; min-height:0; border-left:1px solid var(--line); display:flex; flex-direction:column; gap:10px; }
+  .ic { width:18px; height:18px; flex:none; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; vertical-align:-3px; }
+  #camStage { position:relative; }
+  #camTools { position:absolute; right:8px; bottom:8px; z-index:2; display:flex; gap:6px; }
+  #camTools button { width:34px; height:34px; padding:0; display:grid; place-items:center; border-radius:50%; background:#0b1220cc; border-color:#ffffff33; backdrop-filter:blur(4px); }
+  #camTools button.on { color:var(--gold); }
+  #fsHud { display:none; }
+  #camStage:fullscreen { background:#000; display:flex; align-items:center; justify-content:center; }
+  #camStage:fullscreen #camWrap { width:min(100vw, calc(100vh * 16 / 9)); border-radius:0; }
+  #camStage:fullscreen #camTools { right:24px; bottom:24px; } #camStage:fullscreen #camTools button { width:46px; height:46px; }
+  #camStage:fullscreen #fsHud { display:flex; position:absolute; left:24px; bottom:24px; z-index:2; gap:14px; align-items:center; background:#0b1220cc; border-radius:12px; padding:10px 14px; font-size:15px; color:#dfe6f1; }
+  #fsLevel { width:220px; height:10px; border-radius:5px; background:#ffffff22; overflow:hidden; position:relative; }
+  #fsLevel i { display:block; height:100%; width:0; background:var(--ok); } #fsLevel b { position:absolute; left:75%; top:0; bottom:0; width:2px; background:#fff; }
+  #levelRow { display:flex; align-items:center; gap:8px; color:var(--mut); }
+  #levelRow #meter { flex:1; margin:0; }
+  .sec { border-top:1px solid var(--line); padding-top:8px; }
+  .sec > summary { list-style:none; cursor:pointer; display:flex; align-items:center; gap:8px; font-size:14px; font-weight:600; padding:4px 0; }
+  .sec > summary::-webkit-details-marker { display:none; }
+  .sec > summary::after { content:""; margin-left:auto; width:7px; height:7px; border-right:2px solid var(--mut); border-bottom:2px solid var(--mut); transform:rotate(45deg); transition:transform .15s; }
+  .sec[open] > summary::after { transform:rotate(-135deg); }
+  .sec > summary small { font-weight:400; color:var(--mut); font-size:12.5px; }
+  .sec .body { padding:6px 0 2px; }
+  .chips { display:flex; flex-wrap:wrap; gap:5px; margin-top:8px; }
+  .chips span { font-size:12px; color:#c6d2e4; background:var(--card2); border-radius:6px; padding:2px 7px; }
+  #storeRow { display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--mut); margin-top:auto; border-top:1px solid var(--line); padding-top:10px; }
+  #storeRow .txt { flex:1; min-width:0; } #storeRow.low { color:var(--bad); font-weight:600; }
+  #storeRow button { padding:4px 8px; font-size:12px; display:inline-flex; gap:4px; align-items:center; }
+  #storeOld { margin-top:6px; } #storeOld:empty { display:none; } #storeOld button { font-size:12px; padding:4px 8px; }
   #camWrap { position:relative; border-radius:10px; overflow:hidden; background:#000; aspect-ratio:16/9; }
   /* Framing guide, drawn on the preview only: it never reaches the recording. Eyes on the golden line, 38.2% from the top. */
   .guide { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:1; }
@@ -77,42 +104,43 @@
   .gOut { stroke:#fff; stroke-width:1.6px; opacity:.8; filter:drop-shadow(0 0 1.5px #000) drop-shadow(0 0 1.5px #000); }
   .gEye { stroke:var(--gold); stroke-width:1.6px; stroke-dasharray:7 5; filter:drop-shadow(0 0 1.5px #000); }
   .noguide .guide, .noguide #camWrap::after, .noguide #pmCamWrap::after, .tall .guide { display:none; } /* the outline is drawn for a wide frame */
-  #guideTip { font-size:12px; color:var(--mut); margin-top:5px; }
-  .noguide #guideTip, .tall #guideTip { visibility:hidden; height:0; margin:0; }
   #cam { width:100%; height:100%; object-fit:cover; display:block; transform:scaleX(-1); }
   #camWrap::after, #pmCamWrap::after { content:""; position:absolute; inset:0; pointer-events:none; background:
     linear-gradient(transparent 33.1%,#fff5 33.1% 33.5%,transparent 33.5%), linear-gradient(90deg,transparent 33.1%,#fff5 33.1% 33.4%,transparent 33.4% 66.6%,#fff5 66.6% 66.9%,transparent 66.9%); }
   #meter { height:10px; background:var(--card2); border-radius:5px; overflow:hidden; margin:9px 0 3px; position:relative; }
   #meter i { display:block; height:100%; width:0; background:linear-gradient(90deg,var(--ok) 0 90%,var(--gold) 90% 95%,var(--bad) 95%); background-size:calc(340px - 24px) 100%; }
   #meter b { position:absolute; left:75%; top:0; bottom:0; width:2px; background:#fff9; }
-  #devices { display:grid; gap:6px; margin-top:9px; }
-  #devices label { display:grid; grid-template-columns:44px minmax(0,1fr); align-items:center; gap:6px; font-size:12.5px; color:var(--mut); }
+  #devices { display:grid; gap:7px; }
+  #devices label { display:grid; grid-template-columns:20px minmax(0,1fr); align-items:center; gap:8px; color:var(--mut); }
   #devices select { width:100%; padding:5px 7px; font-size:12.5px; min-width:0; }
-  #peak { font-size:12px; color:var(--mut); }
-  #takes h2 { font-size:13px; color:var(--mut); font-weight:500; margin:14px 0 8px; }
-  #store { font-size:12px; color:var(--mut); line-height:1.5; margin-top:8px; word-break:break-all; }
-  #store button { padding:2px 8px; font-size:12px; margin:3px 6px 0 0; }
+  #takesEmpty { color:var(--mut); font-size:13px; padding:4px 0; }
   .take { background:var(--card2); border-radius:10px; padding:9px; margin-bottom:8px; border:1px solid transparent; }
   .take.picked { border-color:var(--ok); }
   .take .hd { display:flex; align-items:center; gap:6px; font-size:13px; }
   .take .hd span { flex:1; }
-  .take button { padding:3px 8px; font-size:12px; }
+  .take button { padding:4px 8px; font-size:12px; display:inline-flex; align-items:center; gap:4px; } .take button .ic { width:15px; height:15px; }
   .take video { width:100%; border-radius:6px; margin-top:7px; display:block; background:#000; }
   .take ul { list-style:none; margin:7px 0 0; padding:0; font-size:12.5px; line-height:1.5; }
   .take li.bad { color:#ffb0b6; } .take li.good { color:#9ee8bd; } .take li.wait { color:var(--mut); }
 
-  #foot { grid-column:1 / 3; display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:10px 16px; border-top:1px solid var(--line); background:var(--bg); }
-  #rec { background:var(--bad); border-color:var(--bad); color:#fff; font-weight:700; min-width:170px; font-size:15px; padding:10px 16px; }
-  #rec.on { background:#fff; color:#b00; border-color:#fff; }
-  #foot button { white-space:nowrap; flex:none; } .seg { flex:none; white-space:nowrap; }
-  #togglePm { margin-left:auto; }
+  #foot { grid-column:1 / 3; display:grid; grid-template-columns:1fr auto 1fr; align-items:end; gap:10px 18px; padding:10px 18px 8px; border-top:1px solid var(--line); background:var(--bg); }
+  .grp { display:flex; align-items:flex-end; gap:16px; min-width:0; } .grp.r { justify-content:flex-end; }
+  .ctl { display:flex; flex-direction:column; align-items:center; gap:4px; flex:none; }
+  .ctl > small { font-size:11.5px; color:var(--mut); white-space:nowrap; }
+  .seg { display:inline-flex; align-items:center; background:var(--card2); border:1px solid var(--line); border-radius:9px; padding:2px; gap:2px; font-size:13px; color:var(--mut); flex:none; white-space:nowrap; }
+  .seg button { border:0; background:transparent; padding:5px 10px; border-radius:7px; } .seg button.on { background:var(--acc); color:#04121f; font-weight:700; }
+  #speedNow { min-width:42px; text-align:center; color:var(--fg); }
+  .round { width:44px; height:44px; padding:0; border-radius:50%; display:grid; place-items:center; }
+  .round .ic { width:20px; height:20px; }
+  #rec { width:62px; height:62px; padding:0; border-radius:50%; display:grid; place-items:center; background:var(--bad); border:3px solid #ffffff55; color:#fff; }
+  #rec .ic { width:22px; height:22px; fill:currentColor; stroke:none; }
+  #rec.on { background:#fff; color:var(--bad); border-color:var(--bad); }
+  #cancel { color:#ffb0b6; border-color:#ff647088; }
+  #next { background:var(--acc); border-color:var(--acc); color:#04121f; }
+  .ctl kbd { font-size:10.5px; padding:0 4px; }
   /* A message gets its own full line: squeezed into the button row it stood one character wide and pushed the whole page away. */
-  #st { order:9; flex:1 1 100%; color:var(--mut); font-size:14px; line-height:1.4; } #st:empty { display:none; }
+  #st { grid-column:1 / -1; text-align:center; color:var(--mut); font-size:13.5px; line-height:1.4; } #st:empty { display:none; }
   #st.warn { color:var(--bad); font-weight:600; }
-  #next { background:var(--acc); border-color:var(--acc); color:#04121f; font-weight:700; }
-  .seg { display:inline-flex; align-items:center; gap:4px; font-size:13px; color:var(--mut); }
-  .seg button { padding:5px 10px; } .seg button.on { background:var(--acc); border-color:var(--acc); color:#04121f; font-weight:700; }
-  #cancel { border-color:var(--bad); color:#ffb0b6; }
   .layer { position:fixed; inset:0; background:var(--bg); z-index:5; }
   #held { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; text-align:center; padding:20px; }
   #held h2 { margin:0; font-size:28px; } #held p { margin:0; color:var(--mut); line-height:1.7; }
@@ -163,10 +191,11 @@
   #pmCount { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:26vw; font-weight:800; background:#000a; pointer-events:none; }
   #togglePm.on { background:var(--acc); border-color:var(--acc); color:#04121f; font-weight:700; }
   #count { z-index:6; position:fixed; inset:0; display:flex; align-items:center; justify-content:center; font-size:220px; font-weight:800; color:#fff; background:#0008; pointer-events:none; }
-  @media (max-width:900px) { #studio { grid-template-columns:1fr; grid-template-rows:auto auto auto auto; height:auto; } #strip,#foot { grid-column:1; } #side { border-left:0; } #foot { flex-wrap:wrap; } }
+  @media (max-width:900px) { #studio { grid-template-columns:1fr; grid-template-rows:auto auto auto auto; height:auto; } #strip,#foot { grid-column:1; } #side { border-left:0; } #foot { grid-template-columns:1fr; justify-items:center; } .grp { flex-wrap:wrap; justify-content:center; } }
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="i-rec" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></symbol><symbol id="i-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></symbol><symbol id="i-prev" viewBox="0 0 24 24"><path d="M19 20 9 12l10-8z"/><path d="M5 19V5"/></symbol><symbol id="i-next" viewBox="0 0 24 24"><path d="m5 4 10 8-10 8z"/><path d="M19 5v14"/></symbol><symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol><symbol id="i-prompter" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4M7 8h10M7 12h6"/></symbol><symbol id="i-review" viewBox="0 0 24 24"><path d="M3 5h12M3 10h12M3 15h7"/><path d="m15 13 6 3.5-6 3.5z"/></symbol><symbol id="i-pause" viewBox="0 0 24 24"><path d="M9 4H6v16h3zM18 4h-3v16h3z"/></symbol><symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></symbol><symbol id="i-full" viewBox="0 0 24 24"><path d="M8 3H3v5M21 8V3h-5M16 21h5v-5M3 16v5h5"/></symbol><symbol id="i-exitfull" viewBox="0 0 24 24"><path d="M3 8h5V3M16 3v5h5M21 16h-5v5M8 21v-5H3"/></symbol><symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v4"/></symbol><symbol id="i-cam" viewBox="0 0 24 24"><path d="m23 7-7 5 7 5z"/><rect x="1" y="5" width="15" height="14" rx="2"/></symbol><symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol><symbol id="i-disk" viewBox="0 0 24 24"><path d="M22 12H2M5.5 5.1 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.8 4H7.2a2 2 0 0 0-1.7 1.1zM6 16h.01M10 16h.01"/></symbol><symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></symbol><symbol id="i-find" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol><symbol id="i-film" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M7 3v18M17 3v18M2 8h5M2 16h5M17 8h5M17 16h5"/></symbol><symbol id="i-devices" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></symbol></svg>
 <section id="setup">
   <h1>录音教练</h1>
   <p>一段一段连着读，同时录声音和画面，存在这台电脑上，不上传。每录完一遍，机器检查音量、留白、语速和有没有读漏。语气好不好，你自己听。</p>
@@ -200,30 +229,41 @@
     <div id="timer"><div id="bar"><i></i></div><div id="time"></div></div>
   </main>
   <aside id="side">
-    <div id="camWrap" class="guided"><video id="cam" autoplay muted playsinline></video><svg class="guide" viewBox="0 0 1600 900" aria-hidden="true"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><g class="gOut"><ellipse cx="800" cy="344" rx="152" ry="207"/><path d="M714 515 C716 560 716 590 690 610 C640 648 520 650 440 712 C390 750 372 820 366 900 M886 515 C884 560 884 590 910 610 C960 648 1080 650 1160 712 C1210 750 1228 820 1234 900"/></g><line class="gEye" x1="0" y1="344" x2="1600" y2="344"/></g></svg></div>
-    <div id="guideTip">眼睛放在金线上，头在轮廓里动就好　<kbd>G</kbd> 开关</div>
-    <div id="devices">
-      <label>麦克风<select id="micNow"></select></label>
-      <label>摄像头<select id="camNow"></select></label>
+    <div id="camStage">
+      <div id="camWrap" class="guided"><video id="cam" autoplay muted playsinline></video><svg class="guide" viewBox="0 0 1600 900" aria-hidden="true"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><g class="gOut"><ellipse cx="800" cy="344" rx="152" ry="207"/><path d="M714 515 C716 560 716 590 690 610 C640 648 520 650 440 712 C390 750 372 820 366 900 M886 515 C884 560 884 590 910 610 C960 648 1080 650 1160 712 C1210 750 1228 820 1234 900"/></g><line class="gEye" x1="0" y1="344" x2="1600" y2="344"/></g></svg></div>
+      <div id="camTools"><button id="guideBtn" title="构图线：眼睛放在金线上，头在轮廓里动就好（G）" aria-label="构图线"><svg class="ic"><use href="#i-grid"/></svg></button><button id="fullBtn" title="全屏预览，录之前对构图（Esc 退出）" aria-label="全屏预览"><svg class="ic"><use href="#i-full"/></svg></button></div>
+      <div id="fsHud"><svg class="ic"><use href="#i-mic"/></svg><div id="fsLevel"><i></i><b></b></div><span id="fsSpec"></span><span style="color:var(--mut)">眼睛放金线上 · G 构图线 · Esc 退出</span></div>
     </div>
-    <div id="fmt" style="color:var(--mut);font-size:12px;margin-top:6px"></div>
-    <div id="meter"><i></i><b></b></div>
-    <div id="peak">最响到白线附近最好，差一点也没关系</div>
-    <div id="takes"></div>
+    <div id="levelRow" title="说话时最响到白线附近最好，差一点也没关系"><svg class="ic"><use href="#i-mic"/></svg><div id="meter"><i></i><b></b></div></div>
+    <details class="sec" id="secDev"><summary><svg class="ic"><use href="#i-devices"/></svg>设备 <small id="devSum"></small></summary><div class="body">
+      <div id="devices">
+        <label title="麦克风"><svg class="ic"><use href="#i-mic"/></svg><select id="micNow" aria-label="麦克风"></select></label>
+        <label title="摄像头"><svg class="ic"><use href="#i-cam"/></svg><select id="camNow" aria-label="摄像头"></select></label>
+      </div>
+      <div class="chips" id="fmt"></div>
+    </div></details>
+    <details class="sec" id="secTakes" open><summary><svg class="ic"><use href="#i-film"/></svg>这一段的录音 <small id="takesSum"></small></summary><div class="body"><div id="takes"></div></div></details>
+    <div id="storeBox"><div id="storeRow"><svg class="ic"><use href="#i-disk"/></svg><span class="txt"></span><button data-reveal="" title="在 Finder 中打开录像文件夹"><svg class="ic"><use href="#i-folder"/></svg>打开</button></div><div id="storeOld"></div></div>
   </aside>
   <footer id="foot">
-    <button id="prev">← 上一段</button>
-    <button id="rec">● 开始录 <kbd>空格</kbd></button>
-    <button id="cancel" class="hide">取消这遍 <kbd>Esc</kbd></button>
-    <span class="seg" id="cd" role="group" aria-label="倒数秒数">倒数 <button data-c="3">3 2 1</button><button data-c="2">2 1</button></span>
-    <span class="seg" id="sizeMode" role="group" aria-label="每段长度"><button data-z="long">长段</button><button data-z="mid">中段</button></span>
-    <span class="seg" id="scrollMode" role="group" aria-label="提词方式"><button data-s="1">滚动</button><button data-s="0">不滚动</button></span>
-    <span class="seg" id="speedBox" role="group" aria-label="滚动速度">速度 <button id="slower" aria-label="慢一点">−</button><span id="speedNow" style="min-width:38px;text-align:center"></span><button id="faster" aria-label="快一点">+</button></span>
+    <div class="grp">
+      <div class="ctl"><span class="seg" id="cd" role="group" aria-label="倒数秒数"><button data-c="3">3 秒</button><button data-c="2">2 秒</button></span><small>倒数</small></div>
+      <div class="ctl"><span class="seg" id="sizeMode" role="group" aria-label="每段长度"><button data-z="long">长段</button><button data-z="mid">中段</button></span><small>每段长度</small></div>
+      <div class="ctl"><span class="seg" id="scrollMode" role="group" aria-label="提词方式"><button data-s="1">滚动</button><button data-s="0">不动</button></span><small>稿子 <kbd>L</kbd></small></div>
+      <div class="ctl" id="speedBox"><span class="seg" role="group" aria-label="滚动速度"><button id="slower" aria-label="慢一点">−</button><span id="speedNow"></span><button id="faster" aria-label="快一点">+</button></span><small>速度 <kbd>↑↓</kbd></small></div>
+    </div>
+    <div class="grp">
+      <div class="ctl"><button id="prev" class="round" title="上一段（←）" aria-label="上一段"><svg class="ic"><use href="#i-prev"/></svg></button><small>上一段</small></div>
+      <div class="ctl"><button id="rec" aria-label="开始录"><svg class="ic"><use href="#i-rec"/></svg></button><small id="recCap">开始 <kbd>空格</kbd></small></div>
+      <div class="ctl hide" id="cancelCtl"><button id="cancel" class="round" title="取消这遍，不保存（Esc）" aria-label="取消这遍"><svg class="ic"><use href="#i-x"/></svg></button><small>取消 <kbd>Esc</kbd></small></div>
+      <div class="ctl"><button id="next" class="round" title="下一段（→）" aria-label="下一段"><svg class="ic"><use href="#i-next"/></svg></button><small>下一段</small></div>
+    </div>
+    <div class="grp r">
+      <div class="ctl"><button id="togglePm" class="round" title="有第二块屏（随航、外接）就开到那块屏上；只有一块屏（镜像）就铺满这块屏" aria-label="提词器"><svg class="ic"><use href="#i-prompter"/></svg></button><small>提词器 <kbd>T</kbd></small></div>
+      <div class="ctl"><button id="review" class="round" aria-label="回顾"><svg class="ic"><use href="#i-review"/></svg></button><small>回顾 <kbd>V</kbd></small></div>
+      <div class="ctl"><button id="hold" class="round" title="存好当前这遍，关掉摄像头和麦克风" aria-label="暂存离开"><svg class="ic"><use href="#i-pause"/></svg></button><small>暂存离开</small></div>
+    </div>
     <span id="st" role="status"></span>
-    <button id="togglePm" title="有第二块屏（随航、外接）就开到那块屏上；只有一块屏（镜像）就铺满这块屏">提词器 <kbd>T</kbd></button>
-    <button id="review">回顾 <kbd>V</kbd></button>
-    <button id="hold">暂存离开</button>
-    <button id="next">跳过 →</button>
   </footer>
 </section>
 
@@ -388,7 +428,8 @@ async function openDevices() {
     if (meterId !== S.meter) return;
     const db = window.coachLevel();
     followTick(performance.now());
-    document.querySelector('#meter i').style.width = Math.max(0, Math.min(100, (db + 60) / 60 * 100)) + '%';
+    const w = Math.max(0, Math.min(100, (db + 60) / 60 * 100)) + '%';
+    document.querySelector('#meter i').style.width = w; document.querySelector('#fsLevel i').style.width = w;
     if (S.recording) { S.peak = Math.max(S.peak, db); const sec = (performance.now() - S.t0) / 1000 - S.lead; drawTimer(Math.max(0, sec)); }
     requestAnimationFrame(tick);
   };
@@ -405,10 +446,21 @@ function specNow() {
   const name = long >= 7000 ? '8K' : long >= 3800 ? '4K' : `${short}P`;
   return `${name} ${w === h ? '方形' : w > h ? '横屏' : '竖屏'} · ${w}×${h} · ${Math.round(s.frameRate || 0)}fps`;
 }
+function setRecUi(on) {
+  $('rec').classList.toggle('on', on); $('rec').setAttribute('aria-label', on ? '停止' : '开始录');
+  $('rec').querySelector('use').setAttribute('href', on ? '#i-stop' : '#i-rec');
+  $('recCap').innerHTML = on ? '停止 <kbd>空格</kbd>' : '开始 <kbd>空格</kbd>';
+  $('cancelCtl').classList.toggle('hide', !on);
+}
+const icon = n => `<svg class="ic"><use href="#i-${n}"/></svg>`;
 function renderFmt() {
   if (!S.stream) return;
   const a = S.stream.getAudioTracks()[0].getSettings();
-  $('fmt').textContent = `${specNow()} · ${a.sampleRate || '?'} Hz · ${/pcm/.test(S.mime) ? '无损声音' : '压缩声音'} · 画面目标 ${Math.round(videoBps() / 1e6)} Mbps`;
+  const sound = /pcm/.test(S.mime) ? '无损声音' : '压缩声音';
+  const parts = specNow().split(' · ');
+  $('fmt').innerHTML = [...parts, sound].map(x => `<span>${esc(x)}</span>`).join('');
+  $('fmt').title = `${a.sampleRate || '?'} Hz · 画面目标 ${Math.round(videoBps() / 1e6)} Mbps`;
+  $('devSum').textContent = `${parts[0]} · ${sound}`; $('fsSpec').textContent = `${parts[0]} ${parts[1] || ''}`;
   document.body.classList.toggle('tall', /竖屏/.test(specNow()));
   pmSync();
 }
@@ -454,7 +506,7 @@ function renderLine() {
   $('playRef').disabled = !L.ref; $('ref').src = L.ref ? `/ref/${L.ref}` : '';
   $('say').disabled = L.clap;
   $('prev').disabled = S.idx === 0;
-  $('next').textContent = S.idx === S.lines.length - 1 ? '已是最后一段' : '跳过 →';
+  $('next').title = S.idx === S.lines.length - 1 ? '已是最后一段' : '下一段（→）';
   $('next').disabled = S.idx === S.lines.length - 1;
   drawTimer(0); renderStrip(); renderTakes(true);
   renderCount(); renderScroll(); renderSize(); pmSync();
@@ -561,19 +613,25 @@ function reportHtml(t) {
   return [...(r.notes || []).map(n => `<li class="bad">${esc(n)}</li>`), ...(r.good || []).map(n => `<li class="good">${esc(n)}</li>`),
     r.heard ? `<li class="wait">机器听到：${esc(r.heard)}</li>` : ''].join('');
 }
+function renderStore() {
+  const st = S.store || {}, old = st.old_trash || {}, row = $('storeRow');
+  row.querySelector('.txt').textContent = `本会话 ${st.takes_gb ?? '?'} GB · 硬盘剩 ${st.free_gb ?? '?'} GB`;
+  row.title = `录像存在 ${st.root || ''}/takes`; row.classList.toggle('low', st.free_gb < 5);
+  row.querySelector('button').classList.toggle('hide', !st.mac);
+  $('storeOld').innerHTML = st.mac && old.count ? `<button data-old="1">${icon('trash')}之前移走的 ${old.count} 遍（${old.gb} GB）移到废纸篓</button>` : '';
+}
 function renderTakes(force) {
   const L = line(), list = S.takes[L.id] || [];
   const box = $('takes');
   const playing = [...box.querySelectorAll('video')].some(v => !v.paused);
   if (playing && !force) return; // a report arriving must not reload a take someone is watching
-  const st = S.store || {}, old = st.old_trash || {};
-  const store = `<div id="store">存在 ${esc(st.root || '')}/takes<br>这个会话共 ${st.takes_gb ?? '?'} GB · 硬盘还剩 ${st.free_gb ?? '?'} GB<br>
-    ${st.mac ? '<button data-reveal="">打开文件夹</button>' : ''}${st.mac && old.count ? `<button data-old="1">之前移走的 ${old.count} 遍（${old.gb} GB）移到废纸篓</button>` : ''}</div>`;
-  box.innerHTML = `<h2>这一段已录 ${list.length} 遍</h2>` + store + list.slice().reverse().map(t => `
+  renderStore();
+  $('takesSum').textContent = list.length ? `${list.length} 遍` : '';
+  box.innerHTML = (list.length ? '' : '<div id="takesEmpty">还没录。按空格开始。</div>') + list.slice().reverse().map(t => `
     <div class="take ${S.picks[L.id] === t.name ? 'picked' : ''}">
       <div class="hd"><span>第 ${t.name.match(/_(\d+)\./)[1]} 遍${t.report?.duration ? ` · ${t.report.duration} 秒` : ''}</span>
-        <button data-pick="${esc(t.name)}">${S.picks[L.id] === t.name ? '✓ 已选' : '选这遍'}</button>
-        <button data-trash="${esc(t.name)}" aria-label="删除这遍">删除</button>${S.store?.mac ? `<button data-reveal="${esc(t.name)}" aria-label="在 Finder 中显示">定位</button>` : ''}</div>
+        <button data-pick="${esc(t.name)}" title="选这遍（P 选最新一遍）">${icon('check')}${S.picks[L.id] === t.name ? '已选' : '选这遍'}</button>
+        <button data-trash="${esc(t.name)}" title="删除：移到废纸篓，可以放回" aria-label="删除这遍">${icon('trash')}</button>${S.store?.mac ? `<button data-reveal="${esc(t.name)}" title="在 Finder 中显示" aria-label="在 Finder 中显示">${icon('find')}</button>` : ''}</div>
       <video controls preload="metadata" src="/take/${esc(t.name)}"></video>
       <ul>${reportHtml(t)}</ul>
     </div>`).join('');
@@ -592,7 +650,7 @@ async function startRec() {
   rec.onstop = () => { if (!rec.cancelled) upload(new Blob(chunks, { type: rec.mimeType }), lineId, rec.mimeType, devices); };
   // Rolling starts during the countdown, so the first word always has quiet room in front of it.
   rec.start(1000); S.rec = rec; S.recording = true; S.peak = -99; S.t0 = performance.now();
-  $('rec').textContent = '■ 停止 （空格）'; $('rec').classList.add('on'); $('cancel').classList.remove('hide'); renderCount(); setSt('录制中');
+  setRecUi(true); renderCount(); setSt('录制中');
   followStart();
   const box = $('count'); box.classList.remove('hide');
   for (let i = S.lead; i > 0; i--) { box.textContent = i; S.countNow = i; pmSync(); await sleep(1000); if (run !== S.run || !S.recording) return; }
@@ -602,8 +660,8 @@ async function startRec() {
 function endRecUi() {
   followStop();
   S.recording = false; S.counting = false; S.countNow = 0;
-  $('count').classList.add('hide'); $('cancel').classList.add('hide');
-  $('rec').disabled = false; $('rec').textContent = '● 开始录 （空格）'; $('rec').classList.remove('on'); renderCount(); pmSync();
+  $('count').classList.add('hide'); setRecUi(false);
+  $('rec').disabled = false; setRecUi(false); renderCount(); pmSync();
 }
 function cancelRec() {
   if (!S.recording) return;
@@ -650,8 +708,9 @@ function say() {
 }
 
 $('text').addEventListener('click', e => { const i = e.target.dataset?.w; if (S.recording && i != null) { F.pos = +i; paintWords(); } });
-$('takes').addEventListener('click', async e => {
-  const pick = e.target.dataset.pick, trash = e.target.dataset.trash, L = line();
+async function takesClick(e) {
+  const btn = e.target.closest('button'); if (!btn) return;
+  const pick = btn.dataset.pick, trash = btn.dataset.trash, L = line();
   if (pick) {
     const choosing = S.picks[L.id] !== pick;
     await api('/api/pick', { method: 'POST', body: JSON.stringify({ id: L.id, name: choosing ? pick : null }) });
@@ -662,7 +721,7 @@ $('takes').addEventListener('click', async e => {
     else { renderLine(); setSt('最后一段也选好了，可以按 V 回顾'); }
     return;
   }
-  const reveal = e.target.dataset.reveal, old = e.target.dataset.old;
+  const reveal = btn.dataset.reveal, old = btn.dataset.old;
   if (reveal != null) { await api('/api/reveal', { method: 'POST', body: JSON.stringify(reveal ? { name: reveal } : {}) }); return; }
   if (old) { const r = await api('/api/empty-old-trash', { method: 'POST', body: '{}' }); await refresh(); renderLine(); setSt(`${r.moved} 遍已移到废纸篓，需要时可以从废纸篓放回`); return; }
   if (trash) {
@@ -671,7 +730,14 @@ $('takes').addEventListener('click', async e => {
     const r = await api('/api/trash', { method: 'POST', body: JSON.stringify({ name: trash }) }); await refresh(); renderLine();
     setSt(r.where === 'trash' ? `第 ${n} 遍已移到废纸篓，需要时可以从废纸篓放回` : `第 ${n} 遍已移到会话的 takes/.trash 文件夹`);
   }
-});
+}
+$('takes').addEventListener('click', takesClick); $('storeBox').addEventListener('click', takesClick);
+// Full-screen preview, to set up framing before a take. The overlay is page-only, as in the small preview.
+$('fullBtn').addEventListener('click', e => { e.currentTarget.blur(); document.fullscreenElement ? document.exitFullscreen() : $('camStage').requestFullscreen().catch(() => {}); });
+document.addEventListener('fullscreenchange', () => { const on = document.fullscreenElement === $('camStage'); $('fullBtn').querySelector('use').setAttribute('href', on ? '#i-exitfull' : '#i-full'); $('fullBtn').title = on ? '退出全屏（Esc）' : '全屏预览，录之前对构图（Esc 退出）'; });
+$('guideBtn').addEventListener('click', e => { e.currentTarget.blur(); toggleGuide(); });
+$('guideBtn').classList.toggle('on', !document.body.classList.contains('noguide'));
+for (const id of ['secDev', 'secTakes']) { const d = $(id), k = 'coach-' + id; if (recall(k)) d.open = recall(k) === '1'; d.addEventListener('toggle', () => remember(k, d.open ? '1' : '0')); }
 $('strip').addEventListener('click', e => { if (e.target.dataset.i) go(+e.target.dataset.i); });
 $('rec').onclick = () => S.recording ? stopRec() : startRec();
 $('cancel').onclick = cancelRec;
@@ -806,6 +872,7 @@ document.body.classList.toggle('noguide', recall('coach-guide') === '0');
 function toggleGuide() { // the setting is shared through storage, so both windows follow
   const off = !document.body.classList.contains('noguide');
   document.body.classList.toggle('noguide', off); remember('coach-guide', off ? '0' : '1'); pmCh.postMessage({ k: 'guide', off });
+  $('guideBtn')?.classList.toggle('on', !off);
 }
 function pmSend(m) { if (PM.here) pmHandle(m); pmCh.postMessage(m); }
 const pmHtml = L => L.parts ? L.parts.map(p => `<p>${marked(p.t)}</p>`).join(' ') : marked(L.t);

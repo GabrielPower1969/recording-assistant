@@ -58,6 +58,7 @@ The model downloads once from Hugging Face. After that, audio is transcribed loc
 | T | Teleprompter for a glass rig, on a second screen when there is one |
 | M / C / L | In the teleprompter: flip the text / show yourself / scroll on or off |
 | G | Framing guide: grid, head-and-shoulders outline, eye line. Never recorded |
+| ⛶ on the preview | Full-screen preview, to set up framing before a take. Esc exits |
 | V | Review all segments and play the picked takes |
 | R / S | Play the reference clip / the standard pronunciation (English) |
 

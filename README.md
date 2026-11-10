@@ -55,6 +55,7 @@ The model downloads once from Hugging Face. After that, audio is transcribed loc
 | Esc | Cancel this take without saving |
 | + − | Text size: the teleprompter when one is showing, the script on the page otherwise |
 | H | Hand gestures on or off |
+| O | Open the folder that holds the recordings, in Finder |
 | E | Change the wording of this segment. Saved in `edits.json` beside the script and used at once |
 | Z | Long or short segments. A segment written as one piece is also offered cut at its long pauses (`//`) |
 | ? | The full list of keys and gestures, on whichever screen has the focus |

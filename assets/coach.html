@@ -73,13 +73,16 @@
   #side { background:var(--card); padding:12px 14px; overflow:auto; min-height:0; border-left:1px solid var(--line); display:flex; flex-direction:column; gap:10px; }
   .ic { width:18px; height:18px; flex:none; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; vertical-align:-3px; }
   #camStage { position:relative; }
-  #camTools { position:absolute; right:8px; bottom:8px; z-index:2; display:flex; gap:6px; }
-  #camTools button { width:34px; height:34px; padding:0; display:grid; place-items:center; border-radius:50%; background:#0b1220cc; border-color:#ffffff33; backdrop-filter:blur(4px); }
-  #camTools button.on { color:var(--gold); }
+  /* Under the preview, with words: an icon alone did not say what it switches. Lit = on. */
+  #camTools { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-top:7px; }
+  #camTools button { display:flex; align-items:center; justify-content:center; gap:5px; padding:6px 4px; font-size:12.5px; color:var(--mut); background:var(--bg); white-space:nowrap; }
+  #camTools button .ic { width:15px; height:15px; } #camTools kbd { font-size:10.5px; padding:0 4px; }
+  #camTools button.on { color:#1a1300; background:var(--gold); border-color:var(--gold); font-weight:700; } #camTools button.on kbd { background:#0003; color:inherit; }
+  #camStage:fullscreen #camTools { position:absolute; z-index:2; display:flex; margin:0; } #camStage:fullscreen #camTools span, #camStage:fullscreen #camTools kbd { display:none; }
   #fsHud { display:none; }
   #camStage:fullscreen { background:#000; display:flex; align-items:center; justify-content:center; }
   #camStage:fullscreen #camWrap { width:min(100vw, calc(100vh * 16 / 9)); border-radius:0; }
-  #camStage:fullscreen #camTools { right:24px; bottom:24px; } #camStage:fullscreen #camTools button { width:46px; height:46px; }
+  #camStage:fullscreen #camTools { right:24px; bottom:24px; } #camStage:fullscreen #camTools button { width:46px; height:46px; border-radius:50%; background:#0b1220cc; color:#fff; }
   #camStage:fullscreen #fsHud { display:flex; position:absolute; left:24px; bottom:24px; z-index:2; gap:14px; align-items:center; background:#0b1220cc; border-radius:12px; padding:10px 14px; font-size:15px; color:#dfe6f1; }
   #fsLevel { width:220px; height:10px; border-radius:5px; background:#ffffff22; overflow:hidden; position:relative; }
   #fsLevel i { display:block; height:100%; width:0; background:var(--ok); } #fsLevel b { position:absolute; left:75%; top:0; bottom:0; width:2px; background:#fff; }
@@ -94,19 +97,22 @@
   #faceSvg circle { fill:#ffffffaa; } .noguide #faceSvg { display:none; }
   #levelRow { display:flex; align-items:center; gap:8px; color:var(--mut); }
   #levelRow #meter { flex:1; margin:0; }
-  .sec { border-top:1px solid var(--line); padding-top:8px; }
-  .sec > summary { list-style:none; cursor:pointer; display:flex; align-items:center; gap:8px; font-size:14px; font-weight:600; padding:4px 0; }
+  /* Each block of the side panel has a header bar that looks pressable and its own colour stripe. */
+  .sec { --c:var(--mut); }
+  .sec > summary { list-style:none; cursor:pointer; display:flex; align-items:center; gap:8px; font-size:14px; font-weight:700; padding:8px 10px; background:var(--card2); border-radius:8px; border-left:4px solid var(--c); }
+  .sec > summary:hover { background:#24324f; } .sec > summary > .ic { color:var(--c); }
+  #secLight { --c:var(--gold); } #secDev { --c:var(--acc); } #secTakes { --c:var(--ok); }
   .sec > summary::-webkit-details-marker { display:none; }
   .sec > summary::after { content:""; margin-left:auto; width:7px; height:7px; border-right:2px solid var(--mut); border-bottom:2px solid var(--mut); transform:rotate(45deg); transition:transform .15s; }
   .sec[open] > summary::after { transform:rotate(-135deg); }
   .sec > summary small { font-weight:400; color:var(--mut); font-size:12.5px; }
-  .sec .body { padding:6px 0 2px; }
+  .sec .body { padding:8px 2px 2px; }
   .chips { display:flex; flex-wrap:wrap; gap:5px; margin-top:8px; }
   .chips span { font-size:12px; color:#c6d2e4; background:var(--card2); border-radius:6px; padding:2px 7px; }
-  #keepRow { display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--mut); margin-top:auto; cursor:pointer; } #keepRow + #storeBox #storeRow { margin-top:6px; }
+  #keepRow { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--fg); margin-top:auto; cursor:pointer; background:var(--card2); border-radius:8px; padding:8px 10px; } #keepRow input { width:16px; height:16px; accent-color:var(--ok); } #keepRow + #storeBox #storeRow { margin-top:6px; }
   #storeRow { display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--mut); margin-top:auto; border-top:1px solid var(--line); padding-top:10px; }
   #storeRow .txt { flex:1; min-width:0; } #storeRow.low { color:var(--bad); font-weight:600; }
-  #storeRow button { padding:4px 8px; font-size:12px; display:inline-flex; gap:4px; align-items:center; }
+  #storeRow button { padding:4px 8px; font-size:12px; display:inline-flex; gap:4px; align-items:center; color:#ff9f43; border-color:#ff9f4388; }
   #storeOld { margin-top:6px; } #storeOld:empty { display:none; } #storeOld button { font-size:12px; padding:4px 8px; }
   #camWrap { position:relative; border-radius:10px; overflow:hidden; background:#000; aspect-ratio:16/9; }
   /* Framing guide, drawn on the preview only: it never reaches the recording. Eyes on the golden line, 38.2% from the top. */
@@ -125,8 +131,12 @@
   #devices label { display:grid; grid-template-columns:20px minmax(0,1fr); align-items:center; gap:8px; color:var(--mut); }
   #devices select { width:100%; padding:5px 7px; font-size:12.5px; min-width:0; }
   #takesEmpty { color:var(--mut); font-size:13px; padding:4px 0; }
-  .take { background:var(--card2); border-radius:10px; padding:9px; margin-bottom:8px; border:1px solid transparent; }
-  .take.picked { border-color:var(--ok); }
+  .take { background:var(--bg); border-radius:10px; padding:9px; margin-bottom:8px; border:1.5px solid var(--line); }
+  .take.picked { border-color:var(--ok); background:#10261d; }
+  .take .hd { flex-wrap:wrap; } .take .hd span { font-weight:700; min-width:100%; }
+  .take button[data-pick] { color:var(--ok); border-color:var(--ok); background:#4fdc8f1f; font-weight:700; flex:1; justify-content:center; } .take.picked button[data-pick] { background:var(--ok); color:#04121f; }
+  .take button[data-trash] { color:var(--bad); border-color:var(--bad); background:#ff64701a; font-weight:700; flex:1; justify-content:center; }
+  .take button[data-reveal] { color:#ff9f43; border-color:#ff9f4388; }
   .take .hd { display:flex; align-items:center; gap:6px; font-size:13px; }
   .take .hd span { flex:1; }
   .take button { padding:4px 8px; font-size:12px; display:inline-flex; align-items:center; gap:4px; } .take button .ic { width:15px; height:15px; }
@@ -145,7 +155,13 @@
   #prev, #next { color:var(--acc); border-color:#39a0ff88; } #prev:disabled, #next:disabled { color:var(--mut); border-color:var(--line); opacity:.5; }
   #togglePm { color:var(--ok); border-color:#4fdc8f88; } #togglePm.on { background:var(--ok); color:#04121f; }
   #review { color:#b79cff; border-color:#b79cff88; }
-  #hold { color:var(--mut); } #keysBtn { color:var(--fg); }
+  /* Tools say what they are: icon, word and key inside one pill, one colour each. Filled = on. */
+  .tool { --c:var(--mut); display:inline-flex; align-items:center; gap:7px; height:42px; padding:0 14px; border-radius:21px; font-size:14px; font-weight:600; white-space:nowrap; flex:none;
+    color:var(--c); border:1.5px solid color-mix(in srgb, var(--c) 55%, transparent); background:color-mix(in srgb, var(--c) 13%, transparent); }
+  .tool:hover:not(:disabled) { background:color-mix(in srgb, var(--c) 26%, transparent); border-color:var(--c); }
+  .tool.on { background:var(--c); color:#04121f; } .tool kbd { background:#0006; color:inherit; font-size:11px; }
+  #togglePm { --c:var(--ok); } #openFolder { --c:#ff9f43; } #review { --c:#b79cff; } #hold { --c:#93a1b8; } #keysBtn { --c:#dfe6f1; }
+  #foot .grp.r { gap:8px; flex-wrap:wrap; row-gap:6px; align-items:center; align-self:center; }
   .ctl { display:flex; flex-direction:column; align-items:center; gap:4px; flex:none; }
   .ctl > small { font-size:11.5px; color:var(--mut); white-space:nowrap; }
   .seg { display:inline-flex; align-items:center; background:var(--card2); border:1px solid var(--line); border-radius:9px; padding:2px; gap:2px; font-size:13px; color:var(--mut); flex:none; white-space:nowrap; }
@@ -285,7 +301,7 @@
   <aside id="side">
     <div id="camStage">
       <div id="camWrap" class="guided"><video id="cam" autoplay muted playsinline></video><svg id="faceSvg" viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true"></svg><svg class="guide" viewBox="0 0 1600 900" aria-hidden="true"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><g class="gOut"><ellipse cx="800" cy="344" rx="152" ry="207"/><path d="M714 515 C716 560 716 590 690 610 C640 648 520 650 440 712 C390 750 372 820 366 900 M886 515 C884 560 884 590 910 610 C960 648 1080 650 1160 712 C1210 750 1228 820 1234 900"/></g><line class="gEye" x1="0" y1="344" x2="1600" y2="344"/></g></svg></div>
-      <div id="gestBadge" class="hide"></div><div id="camTools"><button id="gestBtn" title="手势：👍 开始，👎 重录，双手打叉取消（H 开关）" aria-label="手势"><svg class="ic"><use href="#i-hand"/></svg></button><button id="camOffBtn" title="关摄像头和麦克风（离开时用）" aria-label="关摄像头"><svg class="ic"><use href="#i-camoff"/></svg></button><button id="guideBtn" title="构图线：眼睛放在金线上，头在轮廓里动就好（G）" aria-label="构图线"><svg class="ic"><use href="#i-grid"/></svg></button><button id="fullBtn" title="全屏预览，录之前对构图（Esc 退出）" aria-label="全屏预览"><svg class="ic"><use href="#i-full"/></svg></button></div>
+      <div id="gestBadge" class="hide"></div><div id="camTools"><button id="gestBtn" title="手势：👍 开始，👎 重录，双手打叉取消（H 开关）"><svg class="ic"><use href="#i-hand"/></svg><span>手势</span><kbd>H</kbd></button><button id="guideBtn" title="构图线：眼睛放在金线上，头在轮廓里动就好（G）"><svg class="ic"><use href="#i-grid"/></svg><span>构图线</span><kbd>G</kbd></button><button id="fullBtn" title="全屏预览，录之前对构图（Esc 退出）"><svg class="ic"><use href="#i-full"/></svg><span>全屏看</span></button><button id="camOffBtn" class="hide"></button></div>
       <div id="fsHud"><svg class="ic"><use href="#i-mic"/></svg><div id="fsLevel"><i></i><b></b></div><span id="fsSpec"></span><span id="fsLight"></span><span style="color:var(--mut)">眼睛放金线上 · G 构图线 · Esc 退出</span></div>
     </div>
     <div id="levelRow" title="说话时最响到白线附近最好，差一点也没关系"><svg class="ic"><use href="#i-mic"/></svg><div id="meter"><i></i><b></b></div></div>
@@ -319,10 +335,11 @@
       <div class="ctl"><button id="next" class="round" title="下一段（→）" aria-label="下一段"><svg class="ic"><use href="#i-next"/></svg></button><small>下一段</small></div>
     </div>
     <div class="grp r">
-      <div class="ctl"><button id="togglePm" class="round" title="有第二块屏（随航、外接）就开到那块屏上；只有一块屏（镜像）就铺满这块屏" aria-label="提词器"><svg class="ic"><use href="#i-prompter"/></svg></button><small>提词器 <kbd>T</kbd></small></div>
-      <div class="ctl"><button id="review" class="round" aria-label="回顾"><svg class="ic"><use href="#i-review"/></svg></button><small>回顾 <kbd>V</kbd></small></div>
-      <div class="ctl"><button id="hold" class="round" title="离开时用：存好当前这遍，关掉摄像头和麦克风。10 分钟没操作也会自动关" aria-label="关摄像头"><svg class="ic"><use href="#i-camoff"/></svg></button><small>关摄像头</small></div>
-      <div class="ctl"><button id="keysBtn" class="round" title="全部快捷键和手势" aria-label="快捷键"><b>?</b></button><small>快捷键 <kbd>?</kbd></small></div>
+      <button id="togglePm" class="tool" title="提词器：有第二块屏（随航、外接）就开到那块屏上；只有一块屏就铺满这块屏。Shift+T 强制开在这块屏"><svg class="ic"><use href="#i-prompter"/></svg><span>提词器</span><kbd>T</kbd></button>
+      <button id="openFolder" class="tool" title="在 Finder 中打开存录像的文件夹"><svg class="ic"><use href="#i-folder"/></svg><span>打开录音文件夹</span><kbd>O</kbd></button>
+      <button id="review" class="tool" title="回顾录过的段：回看、删除、一键清理"><svg class="ic"><use href="#i-review"/></svg><span>回顾</span><kbd>V</kbd></button>
+      <button id="hold" class="tool" title="离开时用：存好当前这遍，关掉摄像头和麦克风。10 分钟没操作也会自动关"><svg class="ic"><use href="#i-camoff"/></svg><span>关摄像头</span></button>
+      <button id="keysBtn" class="tool" title="全部快捷键和手势"><span>快捷键</span><kbd>?</kbd></button>
     </div>
     <span id="st" role="status"></span>
   </footer>
@@ -391,7 +408,8 @@
     </dl></div>
     <div><h3>画面和回看</h3><dl>
       <dt><kbd>G</kbd></dt><dd>构图线</dd>
-      <dt><kbd>V</kbd></dt><dd>回顾全部段落</dd>
+      <dt><kbd>V</kbd></dt><dd>回顾录过的段：回看、删除、清理</dd>
+      <dt><kbd>O</kbd></dt><dd>打开录音文件夹</dd>
       <dt><kbd>R</kbd></dt><dd>听中文原声</dd>
       <dt><kbd>S</kbd></dt><dd>听标准发音</dd>
       <dt><kbd>?</kbd></dt><dd>打开、关闭这张表</dd>
@@ -1011,8 +1029,8 @@ function renderTakes(force) {
   box.innerHTML = (list.length ? '' : '<div id="takesEmpty">还没录。按空格开始。</div>') + list.slice().reverse().map(t => `
     <div class="take ${S.picks[L.id] === t.name ? 'picked' : ''}">
       <div class="hd"><span>第 ${t.name.match(/_(\d+)\./)[1]} 遍${t.report?.duration ? ` · ${t.report.duration} 秒` : ''}</span>
-        <button data-pick="${esc(t.name)}" title="选这遍（P 选最新一遍）">${icon('check')}${S.picks[L.id] === t.name ? '已选' : '选这遍'}</button>
-        <button data-trash="${esc(t.name)}" title="删除并马上重录（移到废纸篓，可以放回）" aria-label="删除这遍并重录">${icon('trash')}</button>${S.store?.mac ? `<button data-reveal="${esc(t.name)}" title="在 Finder 中显示" aria-label="在 Finder 中显示">${icon('find')}</button>` : ''}</div>
+        <button data-pick="${esc(t.name)}" title="选这遍，进入下一段（P 选最新一遍）">${icon('check')}${S.picks[L.id] === t.name ? '已选这遍' : '选这遍'}</button>
+        <button data-trash="${esc(t.name)}" title="删除并马上重录（移到废纸篓，可以放回）" aria-label="删除这遍并重录">${icon('trash')}删掉重录</button>${S.store?.mac ? `<button data-reveal="${esc(t.name)}" title="在 Finder 中显示" aria-label="在 Finder 中显示">${icon('find')}</button>` : ''}</div>
       <video controls preload="metadata" src="/take/${esc(t.name)}"></video>
       <ul>${reportHtml(t)}</ul>
     </div>`).join('');
@@ -1200,6 +1218,7 @@ function resetEdit() {
   sendEdits(L.parts ? L.parts.filter(p => p.orig != null).map(p => [p.id, null]) : [[L.of || L.id, null]]);
 }
 $('editBtn').onclick = e => { e.currentTarget.blur(); openEdit(); }; $('editSave').onclick = saveEdit; $('editCancel').onclick = closeEdit; $('editReset').onclick = resetEdit;
+async function openFolder() { if (!S.store?.mac) return toast('只有在 Mac 上才能直接打开文件夹'); await api('/api/reveal', { method: 'POST', body: '{}' }).catch(() => {}); toast('已在 Finder 中打开录音文件夹'); }
 function toggleKeys(on = $('keys').classList.contains('hide')) { $('keys').classList.toggle('hide', !on); }
 $('sizeMode').addEventListener('click', e => { if (e.target.dataset.z) { setSize(e.target.dataset.z); e.target.blur(); } });
 $('scrollMode').addEventListener('click', e => { const m = e.target.dataset.s; if (!m) return; if (m !== '0') { S.voice = m === 'v'; remember('coach-voice', S.voice ? '1' : '0'); } setScroll(m !== '0'); e.target.blur(); });
@@ -1305,6 +1324,7 @@ async function rvTrash(names, done) {
   for (const name of names) await api('/api/trash', { method: 'POST', body: JSON.stringify({ name }) }).catch(() => {});
   await refresh(); rvShow(S.rv.id); toast(done);
 }
+$('openFolder').onclick = e => { e.currentTarget.blur(); openFolder(); };
 $('review').onclick = openReview; $('rvClose').onclick = closeReview;
 $('rvBack').onclick = () => { if (S.rv.id) rvGo(S.rv.id); };
 $('rvClean').onclick = () => { const x = rvExtra(); rvTrash(x.map(t => t.name), `清理了 ${x.length} 遍，已移到废纸篓`); };
@@ -1347,6 +1367,7 @@ function handleKey(e) {
   if (e.key === 'l' || e.key === 'L') { setScroll(!S.scroll); return; }
   if (e.key === 'g' || e.key === 'G') { toggleGuide(); return; }
   if (e.key === 'h' || e.key === 'H') { toggleGest(); return; }
+  if (e.key === 'o' || e.key === 'O') { openFolder(); return; }
   if (e.key === 'e' || e.key === 'E') { e.preventDefault(); openEdit(); return; }
   if (e.key === 'z' || e.key === 'Z') { if (S.recording) toast('录的时候不能换长短'); else setSize(S.size === 'long' ? 'mid' : 'long'); return; }
   if (e.key === 'Enter' || e.key === 'c' || e.key === 'C') { e.preventDefault(); e.target.blur?.(); redoRec(); return; }
@@ -1368,9 +1389,9 @@ const PM_WINDOW = new URLSearchParams(location.search).has('prompter');
 const READ_LINE = .08; // near the top of the text area, just under the self view, so no part of the glass stays empty
 // The glass swaps near and far: a tablet lying flat with its top toward the glass needs a top-bottom flip.
 // A left-right flip there reads upside down (tested on a real rig); it suits a tablet turned around.
-const FLIPS = ['y', 'x', 'none'], FLIP_NAME = { x: '左右翻转', y: '上下翻转', none: '不翻转' };
+const FLIPS = ['y', 'none', 'x'], FLIP_NAME = { x: '左右翻转', y: '上下翻转（玻璃提词器用这个）', none: '不翻转（直接看屏幕）' };
 const PM_KEYS = new Set(['m', '+', '=', '-', '_', 'f', 'k']);
-const PM = { cam: recall('coach-pm-cam') !== '0', here: false, html: null, words: [], tops: [], starts: [], lineOf: [], pos: 0, cur: -1, y: 0, peek: 0, last: 0, rec: false, active: false, rate: 1, speed: 1, scroll: true, t0: 0, flip: FLIPS.includes(recall('coach-pm-flip2')) ? recall('coach-pm-flip2') : 'y', size: Math.min(12, Math.max(2.5, +recall('coach-pm-size') || 5.5)) };
+const PM = { cam: recall('coach-pm-cam') !== '0', here: false, html: null, words: [], tops: [], starts: [], lineOf: [], pos: 0, cur: -1, y: 0, peek: 0, last: 0, rec: false, active: false, rate: 1, speed: 1, scroll: true, t0: 0, flip: FLIPS.includes(recall('coach-pm-flip3')) ? recall('coach-pm-flip3') : 'y', size: Math.min(12, Math.max(2.5, +recall('coach-pm-size') || 5.5)) };
 const pmCh = new BroadcastChannel('coach-prompter');
 pmCh.addEventListener('message', () => { lastActive = Date.now(); }); // keys pressed on the prompter screen count too
 document.body.classList.toggle('noguide', recall('coach-guide') === '0');
@@ -1498,7 +1519,7 @@ function pmFrame(now) {
 }
 function pmKey(key) {
   const k = key.toLowerCase();
-  if (k === 'm') { PM.flip = FLIPS[(FLIPS.indexOf(PM.flip) + 1) % FLIPS.length]; remember('coach-pm-flip2', PM.flip); setTimeout(() => toastLocal(FLIP_NAME[PM.flip] + ' · 按 M 再换'), 0); }
+  if (k === 'm') { PM.flip = FLIPS[(FLIPS.indexOf(PM.flip) + 1) % FLIPS.length]; remember('coach-pm-flip3', PM.flip); setTimeout(() => toastLocal(FLIP_NAME[PM.flip] + ' · 按 M 再换'), 0); }
   else if (k === 'k') { PM.cam = !PM.cam; remember('coach-pm-cam', PM.cam ? '1' : '0'); toastLocal(PM.cam ? '显示自己的画面' : '隐藏自己的画面 · 按 K 再显示'); }
   else if (k === '+' || k === '=') PM.size = Math.min(12, +(PM.size + .5).toFixed(1));
   else if (k === '-' || k === '_') PM.size = Math.max(2.5, +(PM.size - .5).toFixed(1));

@@ -17,6 +17,7 @@ import shutil
 import subprocess
 import sys
 import threading
+import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
@@ -166,15 +167,17 @@ class Session:
             tmp.replace(self.root / "picks.json")
 
     def state(self):
-        takes = {}
+        takes, pairs = {}, self.pairs()
         for f in sorted(self.takes.iterdir()):
             if not f.is_file() or not SAFE_FILE.match(f.name):
                 continue
             line_id = f.stem.rsplit("_", 1)[0]
             rep = self.reports / (f.stem + ".json")
             dev = self.reports / (f.stem + ".devices.json")
+            d = json.loads(dev.read_text("utf-8")) if dev.exists() else {}
             takes.setdefault(line_id, []).append({
-                "light": json.loads(dev.read_text("utf-8")).get("light") if dev.exists() else None,
+                "av": pairs.get(f"{d.get('mic', '')}|{d.get('cam', '')}", {}).get("offset"),  # seconds the picture runs late
+                "light": d.get("light"),
                 "name": f.name,
                 "size": f.stat().st_size,
                 "report": json.loads(rep.read_text("utf-8")) if rep.exists() else None,
@@ -186,7 +189,7 @@ class Session:
                 "old_trash": {"count": sum(1 for f in self.trash.iterdir() if SAFE_FILE.match(f.name)),
                               "gb": gb(self.trash.iterdir())},
                 "position": json.loads(pos.read_text("utf-8")) if pos.exists() else None,
-                "light_base": self.light_base()}
+                "light_base": self.light_base(), "pairs": pairs}
 
     def light_base(self):
         p = self.root / "light.json"
@@ -235,6 +238,36 @@ class Session:
             tmp = self.reports / (f.stem + ".json.tmp")
             tmp.write_text(json.dumps(rep, ensure_ascii=False, indent=1), "utf-8")
             tmp.replace(self.reports / (f.stem + ".json"))
+            if line_id == "_clap":  # a sync check, not a take: keep the number, not the file
+                self.note_clap(f, rep)
+
+    def pairs(self):
+        path = self.root / "calibration.json"
+        return (json.loads(path.read_text("utf-8")) if path.exists() else {}).get("pairs", {})
+
+    def note_clap(self, f, rep):
+        """One clap measures how late the picture is for this microphone and camera. The stored offset is the
+        median of the last five, so one bad clap does not move it."""
+        dev = self.reports / (f.stem + ".devices.json")
+        d = json.loads(dev.read_text("utf-8")) if dev.exists() else {}
+        key = f"{d.get('mic', '')}|{d.get('cam', '')}"
+        path = self.root / "calibration.json"
+        with self.lock:
+            cal = json.loads(path.read_text("utf-8")) if path.exists() else {"pairs": {}}
+            pair = cal["pairs"].setdefault(key, {})
+            runs = pair.setdefault("runs", [])
+            runs.append({"name": f.name, "offset": rep.get("offset"), "note": (rep.get("notes") or [""])[0] if rep.get("offset") is None else ""})
+            del runs[:-8]
+            seen = sorted(r["offset"] for r in runs if r["offset"] is not None)[-5:]
+            if seen:
+                seen = sorted(r["offset"] for r in [r for r in runs if r["offset"] is not None][-5:])
+                pair["offset"] = round(seen[len(seen) // 2], 3)
+                pair["source"] = f"median of {len(seen)} claps, {time.strftime('%Y-%m-%d')}: " + " ".join(f"{o * 1000:+.0f}" for o in seen) + " ms (about one frame of precision)"
+            tmp = path.with_suffix(".json.part")
+            tmp.write_text(json.dumps(cal, ensure_ascii=False, indent=1), "utf-8")
+            tmp.replace(path)
+        if not to_system_trash(f):
+            shutil.move(f, self.trash / f.name)
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -344,6 +377,18 @@ class Handler(BaseHTTPRequestHandler):
             if SAFE.match(line_id) and (name is None or SAFE_FILE.match(name)):
                 s.set_pick(line_id, name)
                 return self._json({"ok": True})
+        if u.path == "/api/av":
+            # The reader's own fine adjustment of how late the picture is for one microphone and camera, in seconds.
+            key, off = f"{body.get('mic', '')}|{body.get('cam', '')}", body.get("offset")
+            if isinstance(off, (int, float)) and -1 <= off <= 1 and len(key) < 300:
+                path = s.root / "calibration.json"
+                with s.lock:
+                    cal = json.loads(path.read_text("utf-8")) if path.exists() else {"pairs": {}}
+                    pair = cal["pairs"].setdefault(key, {})
+                    pair["offset"], pair["source"] = round(off, 3), f"set by hand {time.strftime('%Y-%m-%d')}"
+                    path.write_text(json.dumps(cal, ensure_ascii=False, indent=1), "utf-8")
+                return self._json({"ok": True})
+            return self._json({"error": "bad request"}, 400)
         if u.path == "/api/line":
             # {id: segment or sentence id, t: new wording, or null to put the script back}
             key, text = body.get("id", ""), body.get("t")

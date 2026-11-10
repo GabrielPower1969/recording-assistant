@@ -90,6 +90,17 @@ you and waits while you pause. After each take read to the end it corrects itsel
 of the script. ↑ ↓ still trims the speed, and every change of speed or text size shows its new value on the
 page and on the teleprompter glass.
 
+### Picture and sound in step
+
+Every camera delivers its picture late by its own amount, and a virtual camera or a wireless link adds more.
+The delay is measured, per microphone and camera, and never assumed:
+
+- **Clap to calibrate** (Devices panel): three claps in front of the face. The offset is the median, stored in
+  `calibration.json`.
+- **−10 / +10** trims it by hand while a take plays; the change is heard at once.
+- Takes stay as recorded. Playback in the page holds the sound back by the offset, and the export shifts the
+  picture, so both are in step.
+
 ### The end of a take is announced
 
 Space stops the take and a card in the middle of the screen (and on the teleprompter glass) says so: stopped and

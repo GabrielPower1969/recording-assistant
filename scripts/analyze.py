@@ -222,7 +222,8 @@ def clap_report(path: Path):
     for i in range(1, n):
         a, b = raw[(i - 1) * size: i * size], raw[i * size: (i + 1) * size]
         diff[i] = sum(abs(x - y) for x, y in zip(a, b)) / size
-    near = [i for i in range(1, n) if abs(pts[i] - t_audio) < .35]
+    # A camera can be most of a second late (virtual cameras, wireless links), and is almost never early.
+    near = [i for i in range(1, n) if -.2 < pts[i] - t_audio < .8]
     rep = {"ok": False, "clap": True, "duration": round(dur, 2), "good": [], "notes": []}
     if not near or max(levels) < -30 or max(diff[i] for i in near) < 1:
         rep["notes"].append("没看清拍手：让手出现在画面中间，用力拍一下，再录一次")

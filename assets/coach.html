@@ -107,6 +107,9 @@
   .sec[open] > summary::after { transform:rotate(-135deg); }
   .sec > summary small { font-weight:400; color:var(--mut); font-size:12.5px; }
   .sec .body { padding:8px 2px 2px; }
+  #avBox { margin-top:10px; padding:9px 10px; border-radius:8px; background:var(--bg); border:1.5px solid var(--line); display:grid; gap:7px; } #avBox.todo { border-color:var(--gold); }
+  #avNow { font-size:13.5px; font-weight:700; } #avBox.todo #avNow { color:var(--gold); } #avBox small { color:var(--mut); font-size:12px; line-height:1.5; }
+  #avBtns { display:flex; gap:6px; align-items:center; flex-wrap:wrap; } #avClap { flex:1; font-size:12.5px; padding:6px 8px; color:#1a1300; background:var(--gold); border-color:var(--gold); font-weight:700; white-space:nowrap; }
   .chips { display:flex; flex-wrap:wrap; gap:5px; margin-top:8px; }
   .chips span { font-size:12px; color:#c6d2e4; background:var(--card2); border-radius:6px; padding:2px 7px; }
   #keepRow { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--fg); margin-top:auto; cursor:pointer; background:var(--card2); border-radius:8px; padding:8px 10px; } #keepRow input { width:16px; height:16px; accent-color:var(--ok); } #keepRow + #storeBox #storeRow { margin-top:6px; }
@@ -323,6 +326,11 @@
         <label title="摄像头"><svg class="ic"><use href="#i-cam"/></svg><select id="camNow" aria-label="摄像头"></select></label>
       </div>
       <div class="chips" id="fmt"></div>
+      <div id="avBox">
+        <div id="avNow"></div>
+        <div id="avBtns"><button id="avClap" title="倒数后在脸前拍一下手，连拍三次。机器量出这台相机的画面比声音晚多少，以后回看和导出都自动对齐">👏 拍手自动校准</button><span class="seg" role="group" aria-label="手动微调"><button id="avMinus" title="画面早 10 毫秒">−10</button><button id="avPlus" title="画面晚 10 毫秒">+10</button></span></div>
+        <small>回看觉得嘴和声音对不上：先拍手校准；还差一点就用 −10 / +10 微调，边播边调，马上生效。声音先到就加，嘴先动就减。</small>
+      </div>
     </div></details>
     <details class="sec" id="secTakes" open><summary><svg class="ic"><use href="#i-film"/></svg>这一段的录音 <small id="takesSum"></small></summary><div class="body"><div id="takes"></div></div></details>
     <label id="keepRow" title="每段只留最新录的一遍，之前的自动移到废纸篓（可以放回）。清空废纸篓才真正腾出硬盘。"><input type="checkbox" id="keepLast"> 每段只留最后一遍</label><div id="storeBox"><div id="storeRow"><svg class="ic"><use href="#i-disk"/></svg><span class="txt"></span><button data-reveal="" title="在 Finder 中打开录像文件夹"><svg class="ic"><use href="#i-folder"/></svg>打开</button></div><div id="storeOld"></div></div>
@@ -515,7 +523,7 @@ function setSize(size) {
 }
 function renderSize() { document.querySelectorAll('#sizeMode button').forEach(b => { b.classList.toggle('on', b.dataset.z === S.size); b.disabled = S.recording; }); }
 async function api(path, opts) { const r = await fetch(path, opts); if (!r.ok) throw new Error(`${path}: ${r.status}`); return r.json(); }
-async function refresh() { const d = await api('/api/state'); S.lines = d.lines; S.allLines = d.lines; S.lines = viewLines(); S.takes = d.takes; S.picks = d.picks; S.whisper = d.whisper; S.position = d.position; S.store = d; S.freeGb = d.free_gb; if (d.free_gb < 5) setSt(`硬盘只剩 ${d.free_gb} GB，录不了几遍了，先清理空间。`, true); }
+async function refresh() { const d = await api('/api/state'); S.lines = d.lines; S.allLines = d.lines; S.lines = viewLines(); S.takes = d.takes; S.picks = d.picks; S.pairs = d.pairs || {}; renderAv(); S.whisper = d.whisper; S.position = d.position; S.store = d; S.freeGb = d.free_gb; if (d.free_gb < 5) setSt(`硬盘只剩 ${d.free_gb} GB，录不了几遍了，先清理空间。`, true); }
 
 async function listDevices() {
   const all = await navigator.mediaDevices.enumerateDevices();
@@ -609,7 +617,7 @@ function renderFmt() {
   const parts = specNow().split(' · ');
   $('fmt').innerHTML = [...parts, sound].map(x => `<span>${esc(x)}</span>`).join('');
   $('fmt').title = `${a.sampleRate || '?'} Hz · 画面目标 ${Math.round(videoBps() / 1e6)} Mbps`;
-  $('devSum').textContent = `${parts[0]} · ${sound}`; $('fsSpec').textContent = `${parts[0]} ${parts[1] || ''}`;
+  $('devSum').textContent = `${parts[0]} · ${sound}${avOffset() == null ? ' · 声画没校准' : ''}`; renderAv(); $('fsSpec').textContent = `${parts[0]} ${parts[1] || ''}`;
   document.body.classList.toggle('tall', /竖屏/.test(specNow()));
   pmSync();
 }
@@ -1077,6 +1085,60 @@ function cancelRec() {
   S.run++; S.rec.cancelled = true; S.rec.stop(); endRecUi();
   setSt('已取消，这一遍没有保存');
 }
+/* ---- picture and sound in step: every camera is late by its own amount, so it is measured, never assumed ---- */
+// A clap gives the number for this microphone and camera. Takes are stored as recorded; playback here delays the
+// sound by that much and the export shifts the picture, so both look in step. −10 / +10 is the reader's own trim.
+const avKey = () => S.stream ? `${S.stream.getAudioTracks()[0]?.label}|${S.stream.getVideoTracks()[0]?.label}` : '';
+const avOffset = () => S.pairs?.[avKey()]?.offset;
+function renderAv() {
+  if (!$('avBox') || !S.stream) return;
+  const o = avOffset(), ms = Math.round((o || 0) * 1000);
+  $('avBox').classList.toggle('todo', o == null);
+  $('avNow').textContent = o == null ? '声画同步：这台相机还没校准' : `声画同步：${ms === 0 ? '不用补' : ms > 0 ? `画面晚 ${ms} 毫秒，已自动补上` : `声音晚 ${-ms} 毫秒，导出时补上`}`;
+  for (const [v, name] of AV.live) if (v.isConnected) avSet(v, name); else AV.live.delete(v);
+}
+const AV = { ctx: null, live: new Map() };
+const takeAv = name => Object.values(S.takes).flat().find(t => t.name === name)?.av || 0;
+function avSet(v, name) { v._delay.delayTime.value = Math.max(0, Math.min(1, takeAv(name))); }
+// Sound that arrives early is held back while playing here. Sound that arrives late cannot be fixed in a player; the export does it.
+document.addEventListener('play', e => {
+  const v = e.target; if (!v.matches?.('#takes video, #rvVideo')) return;
+  const name = decodeURIComponent((v.currentSrc || v.src).split('/take/')[1] || '');
+  try {
+    AV.ctx ||= new AudioContext(); AV.ctx.resume();
+    if (!v._delay) { v._delay = AV.ctx.createDelay(1); AV.ctx.createMediaElementSource(v).connect(v._delay).connect(AV.ctx.destination); }
+    AV.live.set(v, name); avSet(v, name);
+  } catch { /* plays uncorrected */ }
+}, true);
+async function avNudge(ms) {
+  const [mic, cam] = avKey().split('|'), off = Math.max(-1, Math.min(1, (avOffset() || 0) + ms / 1000));
+  await api('/api/av', { method: 'POST', body: JSON.stringify({ mic, cam, offset: off }) }); await refresh(); toast(`画面晚 ${Math.round(off * 1000)} 毫秒`);
+}
+async function clapRun() {
+  if (S.recording || S.counting || S.uploading || !S.stream) return;
+  S.counting = true; document.querySelectorAll('video').forEach(v => v !== $('cam') && v.pause?.());
+  const key = avKey(), names = [], say = (k, a, b) => { bannerLocal(k, a, b); pmCh.postMessage({ k: 'banner', kind: k, title: a, sub: b }); };
+  try {
+    for (let r = 1; r <= 3; r++) {
+      say('wait', `拍手校准 ${r} / 3`, '两只手举到脸前，看到“拍”就用力拍一下');
+      await sleep(1600);
+      const chunks = [], rec = new MediaRecorder(S.stream, { ...(S.mime ? { mimeType: S.mime } : {}), videoBitsPerSecond: 20e6, audioBitsPerSecond: 320e3 });
+      rec.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+      const stopped = new Promise(done => { rec.onstop = done; });
+      rec.start(); await sleep(900); say('ok', '👏 拍！'); await sleep(1700); rec.stop(); await stopped;
+      const put = await fetch(`/api/take?id=_clap&${deviceQuery()}`, { method: 'PUT', headers: { 'Content-Type': rec.mimeType.split(';')[0] }, body: new Blob(chunks, { type: rec.mimeType }) });
+      if (put.ok) names.push((await put.json()).name);
+    }
+    say('wait', '正在计算…', '');
+    let runs = [];
+    for (let i = 0; i < 60; i++) { await sleep(700); await refresh(); runs = (S.pairs[key]?.runs || []).filter(x => names.includes(x.name)); if (runs.length >= names.length) break; }
+    const good = runs.filter(x => x.offset != null), ms = Math.round((avOffset() || 0) * 1000);
+    if (good.length) say('ok', ms >= 0 ? `画面晚 ${ms} 毫秒` : `声音晚 ${-ms} 毫秒`, `量到 ${good.length} 次：${good.map(x => Math.round(x.offset * 1000)).join('、')} 毫秒 · 已记下，回看和导出自动对齐`);
+    else say('bad', '没看清拍手', '手要在画面中间，拍得响一点，再点一次“拍手自动校准”');
+  } catch (e) { say('bad', '校准没完成', String(e.message || e)); }
+  finally { S.counting = false; renderAv(); }
+}
+$('avClap').onclick = e => { e.currentTarget.blur(); clapRun(); }; $('avMinus').onclick = e => { e.currentTarget.blur(); avNudge(-10); }; $('avPlus').onclick = e => { e.currentTarget.blur(); avNudge(10); };
 // One key for "that was wrong, again": the take in progress is dropped and the countdown starts over.
 async function redoRec() {
   if ($('studio').classList.contains('hide') || !S.stream) return;

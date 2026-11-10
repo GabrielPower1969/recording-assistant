@@ -371,7 +371,8 @@
       <dt>触控板</dt><dd>上下翻看稿子</dd>
     </dl></div>
     <div><h3>提词器</h3><dl>
-      <dt><kbd>T</kbd></dt><dd>开、关提词器</dd>
+      <dt><kbd>T</kbd></dt><dd>开、关提词器（有第二块屏就开到那块屏）</dd>
+      <dt><kbd>Shift</kbd> <kbd>T</kbd></dt><dd>提词器强制开在这块屏</dd>
       <dt><kbd>F</kbd></dt><dd>全屏</dd>
       <dt><kbd>M</kbd></dt><dd>换翻转方向</dd>
       <dt><kbd>K</kbd></dt><dd>显示、隐藏自己的画面</dd>
@@ -760,7 +761,7 @@ function setScroll(on) {
     if (on && !box.querySelector('.pad')) box.insertAdjacentHTML('beforeend', '<div class="pad"></div>');
     if (!on) { box.querySelector('.pad')?.remove(); box.scrollTop = 0; }
   }
-  renderScroll(); pmSync(); toast(!on ? '稿子不动' : S.voice ? '稿子跟着声音走' : '稿子匀速滚动');
+  renderScroll(); pmSync(); toast(!on ? '稿子不动（整段缩在一屏）· 按 L 恢复滚动' : S.voice ? '稿子跟着声音走' : '稿子匀速滚动');
 }
 function renderScroll() {
   document.querySelectorAll('#scrollMode button').forEach(b => b.classList.toggle('on', b.dataset.s === (!S.scroll ? '0' : S.voice ? 'v' : '1')));
@@ -1300,7 +1301,7 @@ function handleKey(e) {
   if (e.target.matches?.("select") || $('studio').classList.contains('hide') || !$('held').classList.contains('hide')) return;
   if (e.key === 'Escape' || e.key === 'Backspace') { cancelRec(); return; }
   if (e.key === 'v' || e.key === 'V') { openReview(); return; }
-  if (e.key === 't' || e.key === 'T') { togglePrompter(); return; }
+  if (e.key === 't' || e.key === 'T') { togglePrompter(!!e.shiftKey); return; }
   if (e.key === 'l' || e.key === 'L') { setScroll(!S.scroll); return; }
   if (e.key === 'g' || e.key === 'G') { toggleGuide(); return; }
   if (e.key === 'h' || e.key === 'H') { toggleGest(); return; }
@@ -1455,8 +1456,8 @@ function pmFrame(now) {
 }
 function pmKey(key) {
   const k = key.toLowerCase();
-  if (k === 'm') { PM.flip = FLIPS[(FLIPS.indexOf(PM.flip) + 1) % FLIPS.length]; remember('coach-pm-flip2', PM.flip); }
-  else if (k === 'k') { PM.cam = !PM.cam; remember('coach-pm-cam', PM.cam ? '1' : '0'); }
+  if (k === 'm') { PM.flip = FLIPS[(FLIPS.indexOf(PM.flip) + 1) % FLIPS.length]; remember('coach-pm-flip2', PM.flip); setTimeout(() => toastLocal(FLIP_NAME[PM.flip] + ' · 按 M 再换'), 0); }
+  else if (k === 'k') { PM.cam = !PM.cam; remember('coach-pm-cam', PM.cam ? '1' : '0'); toastLocal(PM.cam ? '显示自己的画面' : '隐藏自己的画面 · 按 K 再显示'); }
   else if (k === '+' || k === '=') PM.size = Math.min(12, +(PM.size + .5).toFixed(1));
   else if (k === '-' || k === '_') PM.size = Math.max(2.5, +(PM.size - .5).toFixed(1));
   else if (k === 'f') return pmFull();
@@ -1481,10 +1482,20 @@ function pmHere(on) {
 }
 function renderPmBtn() { $('togglePm').classList.toggle('on', PM.here || !!S.pmRemote); }
 // Pick by itself: a second screen gets its own window, one screen gets this window.
-async function togglePrompter() {
-  if (PM.here) return pmHere(false);
+// Is a prompter window really there? The flag alone can be stale: a window closed by hand, or left on a screen that is gone.
+let pmHello = null;
+const pmAlive = () => new Promise(done => { pmHello = () => done(true); pmCh.postMessage({ k: 'ping' }); setTimeout(() => done(false), 350); }).finally(() => { pmHello = null; });
+// T always ends in a state the reader can see, and says which. Shift+T puts the prompter on this screen whatever else is connected.
+async function togglePrompter(here) {
+  if (PM.here) { pmHere(false); return toast('提词器已关 · 按 T 再打开'); }
   if (!recall('coach-pm-used')) { remember('coach-pm-used', '1'); if (!S.scroll) setScroll(true); } // a whole segment on one glass is too small to read
-  if (S.pmRemote) { pmCh.postMessage({ k: 'close' }); S.pmRemote = false; remember('coach-pm', null); return renderPmBtn(); }
+  if (S.pmRemote || here) {
+    const live = await pmAlive();
+    if (live) pmCh.postMessage({ k: 'close' });
+    S.pmRemote = false; remember('coach-pm', null); renderPmBtn();
+    if (live && !here) return toast('第二块屏上的提词器已关 · 按 T 再打开');
+  }
+  if (here) { pmHere(true); return toast('提词器开在这块屏 · 按 T 关闭'); }
   let spot = null, extended = !!window.screen.isExtended;
   try {
     const d = await window.getScreenDetails();
@@ -1492,10 +1503,11 @@ async function togglePrompter() {
     spot = others.find(s => /sidecar|ipad/i.test(s.label)) || others[0] || null;
     extended = !!spot;
   } catch {}
-  if (!extended) { pmHere(true); setSt(PM_ALONE_MSG); return; }
+  if (!extended) { pmHere(true); setSt(PM_ALONE_MSG); return toast('提词器开在这块屏 · 按 T 关闭'); }
   const place = spot ? `,left=${spot.availLeft},top=${spot.availTop},width=${spot.availWidth},height=${spot.availHeight}` : ',width=1100,height=800';
   const w = window.open('/?prompter=1', 'coach-prompter', 'popup' + place);
-  if (!w) return setSt('Chrome 挡住了提词器窗口：再按一次 T；还不行就在地址栏右侧允许弹窗。', true);
+  if (!w) { pmHere(true); toast('提词器开在这块屏 · 按 T 关闭'); return setSt('Chrome 挡住了新窗口，所以提词器先开在这块屏。要开到第二块屏：在地址栏右侧允许弹窗，再按两次 T。', true); }
+  toast(`提词器开到了${spot?.label || '第二块屏'} · 想开在这块屏按 Shift+T`);
   S.pmRemote = true; remember('coach-pm', 'screen'); renderPmBtn();
   setSt(spot ? `提词器开到了：${spot.label || '第二块屏'}。用鼠标点它一下，或者按 F，就全屏。` : '把提词器窗口拖到 iPad 上，用鼠标点它一下就全屏。');
 }
@@ -1506,7 +1518,7 @@ pmCh.onmessage = ({ data: m }) => {
     if (m.k === 'ping') return pmCh.postMessage({ k: 'hello' });
     return pmHandle(m);
   }
-  if (m.k === 'hello') { S.pmRemote = true; renderPmBtn(); pmSync(); }
+  if (m.k === 'hello') { S.pmRemote = true; pmHello?.(); renderPmBtn(); pmSync(); }
   else if (m.k === 'bye') { S.pmRemote = false; if (recall('coach-pm') === 'screen') remember('coach-pm', null); renderPmBtn(); }
   else if (m.k === 'key') handleKey({ key: m.key, code: m.code, target: {}, preventDefault() {} });
 };

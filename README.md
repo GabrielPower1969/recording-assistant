@@ -55,6 +55,8 @@ The model downloads once from Hugging Face. After that, audio is transcribed loc
 | Esc | Cancel this take without saving |
 | + − | Text size: the teleprompter when one is showing, the script on the page otherwise |
 | H | Hand gestures on or off |
+| E | Change the wording of this segment. Saved in `edits.json` beside the script and used at once |
+| Z | Long or short segments. A segment written as one piece is also offered cut at its long pauses (`//`) |
 | ? | The full list of keys and gestures, on whichever screen has the focus |
 | P | Pick the latest take and go to the next segment |
 | ← → | Change segment when idle; move the reading position while recording |
@@ -83,7 +85,8 @@ the pose before the next gesture counts.
 The scroll setting has three choices: **follow me**, steady, and still. "Follow me" never recognises words. It
 listens for when you are speaking and how fast the syllables come, so the text speeds up and slows down with
 you and waits while you pause. After each take read to the end it corrects itself against the syllable count
-of the script. ↑ ↓ still trims the speed.
+of the script. ↑ ↓ still trims the speed, and every change of speed or text size shows its new value on the
+page and on the teleprompter glass.
 
 ### Small differences from the script are fine
 

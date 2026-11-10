@@ -68,6 +68,35 @@ def to_system_trash(path: Path):
     return True
 
 
+def split_long(lines):
+    """A segment written as one piece also comes in short pieces, cut at its long pauses (//), so the reader can
+    choose the length. The short pieces cover the long one, the same way a project's own two lengths do."""
+    out = []
+    for l in lines:
+        chunks = [c.strip() for c in re.split(r"\s*//\s*", l.get("t", "")) if c.strip()]
+        if not l.get("anySize") or l.get("parts") or l.get("covers") or l.get("clap") or len(chunks) < 2:
+            out.append(l)
+            continue
+        groups = []
+        for c in chunks:  # a greeting of a few words is not worth its own take
+            if groups and len(re.sub(r"[\s/，。！？,.!?]", "", groups[-1])) < 14:
+                groups[-1] += " // " + c
+            else:
+                groups.append(c)
+        if len(groups) > 1 and len(re.sub(r"[\s/，。！？,.!?]", "", groups[-1])) < 14:
+            groups[-2:] = [groups[-2] + " // " + groups[-1]]
+        if len(groups) < 2:
+            out.append(l)
+            continue
+        kids = [{**{k: v for k, v in l.items() if k not in ("anySize", "orig", "edited", "target", "ref")},
+                 "id": f"{l['id']}_p{i + 1}", "t": g, "size": "mid", "of": l["id"],
+                 "chapter": f"{l.get('chapter', '')} {i + 1}/{len(groups)}".strip(),
+                 "order": l.get("order", 0) + (i + 1) * 1e-4} for i, g in enumerate(groups)]
+        out.append({**{k: v for k, v in l.items() if k != "anySize"}, "size": "long", "covers": [k["id"] for k in kids]})
+        out += kids
+    return out
+
+
 class Session:
     def __init__(self, root: Path, whisper_py: str | None):
         self.root = root
@@ -85,8 +114,37 @@ class Session:
             if f.is_file() and SAFE_FILE.match(f.name) and not (self.reports / (f.stem + ".json")).exists():
                 self.jobs.put(f)
 
+    def edits(self):
+        p = self.root / "edits.json"
+        return json.loads(p.read_text("utf-8")) if p.exists() else {}
+
+    def set_edit(self, key, text):
+        """The reader's own wording for a segment (or one sentence of it). Kept beside lines.json, which a
+        project may rebuild at any time; None puts the written script back."""
+        with self.lock:
+            edits = self.edits()
+            if text is None:
+                edits.pop(key, None)
+            else:
+                edits[key] = text
+            tmp = self.root / "edits.json.part"
+            tmp.write_text(json.dumps(edits, ensure_ascii=False, indent=1), "utf-8")
+            tmp.replace(self.root / "edits.json")
+
     def lines(self):
-        return json.loads((self.root / "lines.json").read_text("utf-8"))
+        lines = json.loads((self.root / "lines.json").read_text("utf-8"))
+        edits = self.edits()
+        for l in lines:
+            if l.get("parts"):  # sentences are shared by the long and the short segment that hold them
+                hit = False
+                for part in l["parts"]:
+                    if part.get("id") in edits:
+                        part["orig"], part["t"], hit = part["t"], edits[part["id"]], True
+                if hit:
+                    l["t"], l["edited"] = " // ".join(part["t"] for part in l["parts"]), True
+            elif l["id"] in edits:
+                l["orig"], l["t"], l["edited"] = l["t"], edits[l["id"]], True
+        return split_long(lines)
 
     def picks(self):
         p = self.root / "picks.json"
@@ -286,6 +344,15 @@ class Handler(BaseHTTPRequestHandler):
             if SAFE.match(line_id) and (name is None or SAFE_FILE.match(name)):
                 s.set_pick(line_id, name)
                 return self._json({"ok": True})
+        if u.path == "/api/line":
+            # {id: segment or sentence id, t: new wording, or null to put the script back}
+            key, text = body.get("id", ""), body.get("t")
+            known = {l["id"] for l in s.lines() if not l.get("of") and not l.get("parts")}
+            known |= {p["id"] for l in s.lines() for p in l.get("parts", []) if p.get("id")}
+            if key in known and (text is None or (isinstance(text, str) and 0 < len(text.strip()) < 6000)):
+                s.set_edit(key, None if text is None else re.sub(r"[ \t]+", " ", text.strip()))
+                return self._json({"ok": True})
+            return self._json({"error": "bad request"}, 400)
         if u.path == "/api/position" and SAFE.match(body.get("id", "")):
             s.set_position(body["id"])
             return self._json({"ok": True})

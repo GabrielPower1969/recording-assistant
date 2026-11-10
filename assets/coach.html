@@ -153,6 +153,16 @@
   #st.warn { color:var(--bad); font-weight:600; }
   #gestBadge { position:absolute; left:8px; top:8px; z-index:2; background:#0b1220dd; border-radius:10px; padding:5px 10px; font-size:14px; font-weight:600; overflow:hidden; pointer-events:none; }
   #gestBadge i { position:absolute; left:0; bottom:0; height:3px; background:var(--gold); }
+  #toast, #pmToast { position:fixed; left:50%; top:12%; transform:translateX(-50%); z-index:10; background:#0b1220ee; color:#fff; border:1px solid #ffffff33; border-radius:14px; padding:10px 22px; font-size:30px; font-weight:700; font-variant-numeric:tabular-nums; pointer-events:none; white-space:nowrap; }
+  #pmToast { position:absolute; top:30%; font-size:clamp(34px,6vw,90px); padding:.2em .6em; }
+  #edit { position:fixed; inset:0; z-index:9; background:#060b14ee; display:flex; align-items:center; justify-content:center; padding:24px; cursor:default; }
+  #editBox { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px 22px; max-width:900px; width:100%; max-height:100%; overflow:auto; color:var(--fg); display:flex; flex-direction:column; gap:10px; }
+  #editBox h2 { margin:0; font-size:20px; } #editBox h2 small { font-weight:400; font-size:13px; color:var(--mut); margin-left:8px; }
+  #editBox p { margin:0; color:var(--mut); font-size:13.5px; line-height:1.6; }
+  #editAreas { display:flex; flex-direction:column; gap:8px; }
+  #editAreas textarea { width:100%; box-sizing:border-box; min-height:84px; font:inherit; font-size:19px; line-height:1.55; color:var(--fg); background:var(--card2); border:1px solid var(--line); border-radius:9px; padding:10px 12px; resize:vertical; }
+  #editAreas textarea.one { min-height:46vh; }
+  #editBtns { display:flex; gap:8px; align-items:center; flex-wrap:wrap; } #editSave { background:var(--acc); border-color:var(--acc); color:#04121f; font-weight:700; } #editErr { color:var(--bad); font-size:13.5px; }
   #keys { position:fixed; inset:0; z-index:9; background:#060b14ee; display:flex; align-items:center; justify-content:center; padding:24px; cursor:default; }
   #keysBox { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px 24px; max-width:980px; width:100%; max-height:100%; overflow:auto; color:var(--fg); }
   #keysBox h2 { margin:0 0 12px; font-size:20px; display:flex; align-items:center; gap:10px; } #keysBox h2 small { font-weight:400; font-size:13px; color:var(--mut); }
@@ -244,6 +254,7 @@
     <div id="tools">
       <button id="playRef">听中文原声 <kbd>R</kbd></button>
       <button id="say">听标准发音 <kbd>S</kbd></button>
+      <button id="editBtn" title="改这一段的台词，保存后马上生效">改台词 <kbd>E</kbd></button>
     </div>
     <audio id="ref" preload="none"></audio>
     <div id="timer"><div id="bar"><i></i></div><div id="time"></div></div>
@@ -272,7 +283,7 @@
   <footer id="foot">
     <div class="grp">
       <div class="ctl"><span class="seg" id="cd" role="group" aria-label="倒数秒数"><button data-c="3">3 秒</button><button data-c="2">2 秒</button></span><small>倒数</small></div>
-      <div class="ctl"><span class="seg" id="sizeMode" role="group" aria-label="每段长度"><button data-z="long">长段</button><button data-z="mid">中段</button></span><small>每段长度</small></div>
+      <div class="ctl"><span class="seg" id="sizeMode" role="group" aria-label="每段长度"><button data-z="long">长段</button><button data-z="mid">短段</button></span><small>每段长度 <kbd>Z</kbd></small></div>
       <div class="ctl"><span class="seg" id="scrollMode" role="group" aria-label="提词方式"><button data-s="v" title="稿子跟着你的声音走：说得快就快，停下就等你">跟我</button><button data-s="1" title="按固定速度滚">匀速</button><button data-s="0">不动</button></span><small>稿子 <kbd>L</kbd></small></div>
       <div class="ctl" id="speedBox"><span class="seg" role="group" aria-label="滚动速度"><button id="slower" aria-label="慢一点">−</button><span id="speedNow"></span><button id="faster" aria-label="快一点">+</button></span><small>速度 <kbd>↑↓</kbd></small></div>
       <div class="ctl"><span class="seg" role="group" aria-label="字号"><button id="smaller" aria-label="字小一点">A−</button><button id="bigger" aria-label="字大一点">A+</button></span><small>字号 <kbd>−</kbd> <kbd>+</kbd></small></div>
@@ -316,6 +327,14 @@
   <div id="rvList"></div>
 </section>
 <div id="count" class="hide" aria-hidden="true"></div>
+<div id="toast" class="hide" role="status"></div>
+<section id="edit" class="hide" aria-label="改台词"><div id="editBox">
+  <h2>改台词<small id="editWhere"></small></h2>
+  <p>直接改字就行。<b>换行</b> = 停一下；<b>空一行</b> = 停久一点。英文词后面写全角括号（中文意思），提词器上小字显示，不用念。保存后马上生效，已经录好的不受影响。</p>
+  <div id="editAreas"></div>
+  <div id="editBtns"><button id="editSave">保存 <kbd>⌘ Enter</kbd></button><button id="editCancel">不改了 <kbd>Esc</kbd></button><button id="editReset" style="margin-left:auto">还原成原稿</button></div>
+  <div id="editErr" role="alert"></div>
+</div></section>
 <section id="keys" class="hide" aria-label="快捷键和手势"><div id="keysBox">
   <h2>快捷键和手势 <small>按 ? 或 Esc 关闭。焦点在提词器那块屏上也一样用。</small></h2>
   <div id="keysGrid">
@@ -334,7 +353,9 @@
     </dl></div>
     <div><h3>稿子</h3><dl>
       <dt><kbd>+</kbd> <kbd>−</kbd></dt><dd>字大一点、小一点（开着提词器就调提词器）</dd>
-      <dt><kbd>↑</kbd> <kbd>↓</kbd></dt><dd>滚动快一点、慢一点（“跟我”时是微调）</dd>
+      <dt><kbd>↑</kbd> <kbd>↓</kbd></dt><dd>滚动快一点、慢一点，屏幕上会跳出当前数值</dd>
+      <dt><kbd>E</kbd></dt><dd>改这一段的台词</dd>
+      <dt><kbd>Z</kbd></dt><dd>长段 / 短段</dd>
       <dt><kbd>L</kbd></dt><dd>稿子滚动 / 不动（滚动分“跟我”和“匀速”，在底栏选）</dd>
       <dt>触控板</dt><dd>上下翻看稿子</dd>
     </dl></div>
@@ -360,6 +381,7 @@
     <div id="pmBox"><div id="pmText"></div><i id="pmMark"></i></div>
     <div id="pmFoot"></div>
     <div id="pmCount" class="hide"></div>
+    <div id="pmToast" class="hide"></div>
   </div>
 </section>
 
@@ -435,7 +457,7 @@ function setSize(size) {
   // Stay on the same topic: the new view's segment that contains or starts with the current one.
   let i = S.lines.findIndex(l => l.covers?.includes(cur.id));
   if (i < 0 && cur.covers) i = S.lines.findIndex(l => l.id === cur.covers[0]);
-  go(Math.max(0, i));
+  go(Math.max(0, i)); toast(`${size === 'long' ? '长段' : '短段'} · 共 ${S.lines.length} 段`);
 }
 function renderSize() { document.querySelectorAll('#sizeMode button').forEach(b => { b.classList.toggle('on', b.dataset.z === S.size); b.disabled = S.recording; }); }
 async function api(path, opts) { const r = await fetch(path, opts); if (!r.ok) throw new Error(`${path}: ${r.status}`); return r.json(); }
@@ -714,7 +736,7 @@ function nudge(d) { F.pos = Math.max(0, Math.min(F.words.length - .01, Math.floo
 function setSpeed(d) {
   S.speed = Math.max(.5, Math.min(2, Math.round((S.speed + d) * 10) / 10));
   try { localStorage.setItem('coach-speed', S.speed); } catch {}
-  renderScroll(); pmSync();
+  renderScroll(); pmSync(); toast(`速度 ${Math.round(S.speed * 100)}%`);
 }
 function setScroll(on) {
   S.scroll = on;
@@ -725,7 +747,7 @@ function setScroll(on) {
     if (on && !box.querySelector('.pad')) box.insertAdjacentHTML('beforeend', '<div class="pad"></div>');
     if (!on) { box.querySelector('.pad')?.remove(); box.scrollTop = 0; }
   }
-  renderScroll(); pmSync();
+  renderScroll(); pmSync(); toast(!on ? '稿子不动' : S.voice ? '稿子跟着声音走' : '稿子匀速滚动');
 }
 function renderScroll() {
   document.querySelectorAll('#scrollMode button').forEach(b => b.classList.toggle('on', b.dataset.s === (!S.scroll ? '0' : S.voice ? 'v' : '1')));
@@ -818,7 +840,7 @@ function gestFire(g) {
 }
 setInterval(() => {
   if (!GEST.on || GEST.state !== 'ready' || GEST.busy || !S.stream || document.hidden || S.rv.open || S.uploading && !S.recording) return;
-  if ($('studio').classList.contains('hide') || !$('held').classList.contains('hide') || !$('keys').classList.contains('hide')) return;
+  if ($('studio').classList.contains('hide') || !$('held').classList.contains('hide') || !$('keys').classList.contains('hide') || editOpen()) return;
   const v = $('cam'); if (!v.videoWidth) return;
   GEST.busy = true;
   try {
@@ -1093,8 +1115,54 @@ function textSize(dir) {
   if (PM.here) return pmKey(key);
   if (S.pmRemote) return pmCh.postMessage({ k: 'pmKey', key });
   S.tz = Math.min(1.8, Math.max(.6, +((S.tz || 1) + dir * .1).toFixed(1))); remember('coach-text-zoom', S.tz); applyZoom();
-  setSt(`字号 ${Math.round(S.tz * 100)}%`);
+  toast(`字号 ${Math.round(S.tz * 100)}%`);
 }
+// A number that changes must be seen where the reader is looking: on this page and on the prompter glass.
+let toastT = 0;
+function toastLocal(text) {
+  const onGlass = PM_WINDOW || PM.here, el = $(onGlass ? 'pmToast' : 'toast');
+  $('toast').classList.add('hide'); $('pmToast').classList.add('hide');
+  el.textContent = text; el.classList.remove('hide');
+  clearTimeout(toastT); toastT = setTimeout(() => el.classList.add('hide'), 1400);
+}
+function toast(text) { toastLocal(text); if (!PM_WINDOW) pmCh.postMessage({ k: 'toast', text }); }
+/* ---- change the wording: saved beside the script on this machine, used at once ---- */
+const toEdit = t => t.replace(/\s+\/\/\s+/g, '\n\n').replace(/\s+\/\s+/g, '\n');
+const fromEdit = v => v.trim().replace(/[ \t]*\n[ \t]*\n\s*/g, ' // ').replace(/[ \t]*\n[ \t]*/g, ' / ');
+const editOpen = () => !$('edit').classList.contains('hide');
+function openEdit() {
+  if (S.recording || S.counting || $('studio').classList.contains('hide') || S.rv.open) return;
+  const L = line(), parts = L.parts;
+  $('editWhere').textContent = `第 ${S.idx + 1} 段 · ${L.chapter || ''}${parts ? ` · ${parts.length} 句，一句一格` : ''}`;
+  $('editAreas').innerHTML = (parts || [L]).map((x, i) => `<textarea data-i="${i}" class="${parts ? '' : 'one'}" spellcheck="false">${esc(toEdit(x.t))}</textarea>`).join('');
+  $('editErr').textContent = ''; $('editReset').classList.toggle('hide', !(L.edited || L.of && S.allLines.find(l => l.id === L.of)?.edited));
+  $('edit').classList.remove('hide'); $('editAreas').querySelector('textarea').focus();
+}
+function closeEdit() { $('edit').classList.add('hide'); }
+async function sendEdits(list) {
+  const id = line().id;
+  try {
+    for (const [key, t] of list) await api('/api/line', { method: 'POST', body: JSON.stringify({ id: key, t }) });
+    await refresh();
+    const i = S.lines.findIndex(l => l.id === id); S.idx = i >= 0 ? i : Math.min(S.idx, S.lines.length - 1);
+    closeEdit(); renderLine(); toast(list.some(e => e[1] === null) ? '已还原成原稿' : '台词已保存');
+  } catch (e) { $('editErr').textContent = `没存上：${e.message}`; }
+}
+function saveEdit() {
+  const L = line(), vals = [...$('editAreas').querySelectorAll('textarea')].map(a => fromEdit(a.value));
+  if (vals.some(v => !v)) return void ($('editErr').textContent = '台词不能是空的。不想要这一段，就别选它的录音。');
+  if (L.parts) return sendEdits(L.parts.map((p, i) => [p.id, vals[i]]).filter(([, v], i) => v !== L.parts[i].t));
+  if (L.of) { // a short piece: written back into the long segment it was cut from
+    const whole = S.allLines.find(l => l.id === L.of);
+    return sendEdits([[whole.id, whole.covers.map(c => c === L.id ? vals[0] : S.allLines.find(l => l.id === c).t).join(' // ')]]);
+  }
+  return sendEdits(vals[0] === L.t ? [] : [[L.id, vals[0]]]);
+}
+function resetEdit() {
+  const L = line();
+  sendEdits(L.parts ? L.parts.filter(p => p.orig != null).map(p => [p.id, null]) : [[L.of || L.id, null]]);
+}
+$('editBtn').onclick = e => { e.currentTarget.blur(); openEdit(); }; $('editSave').onclick = saveEdit; $('editCancel').onclick = closeEdit; $('editReset').onclick = resetEdit;
 function toggleKeys(on = $('keys').classList.contains('hide')) { $('keys').classList.toggle('hide', !on); }
 $('sizeMode').addEventListener('click', e => { if (e.target.dataset.z) { setSize(e.target.dataset.z); e.target.blur(); } });
 $('scrollMode').addEventListener('click', e => { const m = e.target.dataset.s; if (!m) return; if (m !== '0') { S.voice = m === 'v'; remember('coach-voice', S.voice ? '1' : '0'); } setScroll(m !== '0'); e.target.blur(); });
@@ -1195,10 +1263,15 @@ addEventListener('keydown', e => {
   if ((e.metaKey || e.ctrlKey) && (e.key === 'r' || e.key === 'R') && (S.recording || S.uploading)) { // a reload would lose the take
     e.preventDefault(); setSt('正在录或正在存，现在不能刷新。', true); return;
   }
+  if (editOpen()) { // typing belongs to the editor
+    if (e.key === 'Escape') closeEdit(); else if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); saveEdit(); }
+    return;
+  }
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   handleKey(e);
 });
 function handleKey(e) {
+  if (editOpen()) return;
   if (!$('keys').classList.contains('hide')) { if (e.key === 'Escape' || e.key === '?' || e.key === '/') toggleKeys(false); return; }
   if (e.key === '?' || e.key === '/') { toggleKeys(true); return; }
   if (S.rv.open) { if (e.key === 'Escape') closeReview(); return; }
@@ -1209,6 +1282,8 @@ function handleKey(e) {
   if (e.key === 'l' || e.key === 'L') { setScroll(!S.scroll); return; }
   if (e.key === 'g' || e.key === 'G') { toggleGuide(); return; }
   if (e.key === 'h' || e.key === 'H') { toggleGest(); return; }
+  if (e.key === 'e' || e.key === 'E') { e.preventDefault(); openEdit(); return; }
+  if (e.key === 'z' || e.key === 'Z') { if (S.recording) toast('录的时候不能换长短'); else setSize(S.size === 'long' ? 'mid' : 'long'); return; }
   if (e.key === 'Enter') { e.preventDefault(); e.target.blur?.(); redoRec(); return; }
   if ('+=-_'.includes(e.key)) { textSize(e.key === '+' || e.key === '=' ? 1 : -1); return; }
   if (PM_KEYS.has(e.key.toLowerCase())) { if (PM.here) pmKey(e.key); else pmSend({ k: 'pmKey', key: e.key }); return; }
@@ -1253,6 +1328,7 @@ function pmHandle(m) {
   if (m.k === 'state') pmApply(m);
   else if (m.k === 'nudge') { PM.pos = Math.max(0, Math.min(PM.words.length - .01, Math.floor(PM.pos) + m.d)); }
   else if (m.k === 'wheel') pmWheel(m.d);
+  else if (m.k === 'toast') { if (PM_WINDOW) toastLocal(m.text); }
   else if (m.k === 'guide') document.body.classList.toggle('noguide', m.off);
   else if (m.k === 'pmKey') pmKey(m.key);
   else if (m.k === 'close' && PM_WINDOW) window.close();
@@ -1281,7 +1357,7 @@ function pmApply(m) {
   pmAttachCam();
   $('pmCount').textContent = m.count || ''; $('pmCount').classList.toggle('hide', !m.count);
   const foot = $('pmFoot');
-  const help = `空格 开始 / 停止　Enter 重录　Esc 取消　P 选这遍　+ − 字号　↑↓ 速度　M 翻转（${FLIP_NAME[PM.flip]}）　👍 开始　👎 重录　🙅 取消　? 全部快捷键`;
+  const help = `空格 开始 / 停止　Enter 重录　Esc 取消　P 选这遍　E 改台词　Z 长短段　+ − 字号　↑↓ 速度　M 翻转（${FLIP_NAME[PM.flip]}）　👍 开始　👎 重录　🙅 取消　? 全部快捷键`;
   foot.className = m.warn ? 'warn' : '';
   foot.textContent = m.warn ? m.status : m.rec ? '' : `${m.status ? m.status + '　' : ''}${help}${m.devices ? '　｜ ' + m.devices : ''}`;
   if (layoutChanged) pmLayout();
@@ -1362,6 +1438,7 @@ function pmKey(key) {
   else if (k === '+' || k === '=') PM.size = Math.min(12, +(PM.size + .5).toFixed(1));
   else if (k === '-' || k === '_') PM.size = Math.max(2.5, +(PM.size - .5).toFixed(1));
   else if (k === 'f') return pmFull();
+  if ('+=-_'.includes(k)) toastLocal(`字号 ${PM.size.toFixed(1)}`);
   remember('coach-pm-size', PM.size);
   pmLayout(); if (PM_WINDOW) pmCh.postMessage({ k: 'hello' }); else pmSync();
 }

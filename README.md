@@ -90,6 +90,12 @@ you and waits while you pause. After each take read to the end it corrects itsel
 of the script. ↑ ↓ still trims the speed, and every change of speed or text size shows its new value on the
 page and on the teleprompter glass.
 
+### The end of a take is announced
+
+Space stops the take and a card in the middle of the screen (and on the teleprompter glass) says so: stopped and
+saving, then saved. The take is picked and the next segment comes up by itself. Press C while the card shows to
+record the same segment again; the arrow keys go back at any time.
+
 ### Deleting a take means "again"
 
 The bin on a take in the side panel moves it to the Trash and starts the countdown for a new take at once.

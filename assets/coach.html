@@ -182,6 +182,14 @@
   #gestBadge i { position:absolute; left:0; bottom:0; height:3px; background:var(--gold); }
   #toast, #pmToast { position:fixed; left:50%; top:12%; transform:translateX(-50%); z-index:10; background:#0b1220ee; color:#fff; border:1px solid #ffffff33; border-radius:14px; padding:10px 22px; font-size:30px; font-weight:700; font-variant-numeric:tabular-nums; pointer-events:none; white-space:nowrap; }
   #pmToast { position:absolute; top:30%; font-size:clamp(34px,6vw,90px); padding:.2em .6em; }
+  /* The end of a take is an event: a card in the middle of the screen says it stopped, it is saved, and what comes next. */
+  #done, #pmDone { position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); z-index:10; min-width:min(560px,80vw); text-align:center; border-radius:22px; padding:26px 40px; pointer-events:none;
+    background:#0b1220f2; border:3px solid var(--line); color:#fff; box-shadow:0 20px 80px #000c; }
+  #done b, #pmDone b { display:block; font-size:44px; font-weight:800; line-height:1.25; } #done span, #pmDone span { display:block; margin-top:8px; font-size:20px; color:#dfe6f1; }
+  #done.ok, #pmDone.ok { background:#0f3d28f5; border-color:var(--ok); } #done.ok b, #pmDone.ok b { color:var(--ok); }
+  #done.next, #pmDone.next { background:#0f2c4ef5; border-color:var(--acc); } #done.next b, #pmDone.next b { color:#8fd0ff; }
+  #done.bad, #pmDone.bad { background:#4a1218f5; border-color:var(--bad); } #done.bad b, #pmDone.bad b { color:#ff8a93; }
+  #pmDone { position:absolute; } #pmDone b { font-size:clamp(40px,7vw,110px); } #pmDone span { font-size:clamp(20px,2.6vw,44px); }
   #edit { position:fixed; inset:0; z-index:9; background:#060b14ee; display:flex; align-items:center; justify-content:center; padding:24px; cursor:default; }
   #editBox { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px 22px; max-width:900px; width:100%; max-height:100%; overflow:auto; color:var(--fg); display:flex; flex-direction:column; gap:10px; }
   #editBox h2 { margin:0; font-size:20px; } #editBox h2 small { font-weight:400; font-size:13px; color:var(--mut); margin-left:8px; }
@@ -368,6 +376,7 @@
 </section>
 <div id="count" class="hide" aria-hidden="true"></div>
 <div id="toast" class="hide" role="status"></div>
+<div id="done" class="hide" role="status"></div>
 <section id="edit" class="hide" aria-label="改台词"><div id="editBox">
   <h2>改台词<small id="editWhere"></small></h2>
   <p>直接改字就行。<b>换行</b>就是提词器上换一行；<b>空一行</b>是短段切开的地方。英文词后面写全角括号（中文意思），提词器上小字显示，不用念。保存后马上生效，已经录好的不受影响。</p>
@@ -424,6 +433,7 @@
     <div id="pmFoot"></div>
     <div id="pmCount" class="hide"></div>
     <div id="pmToast" class="hide"></div>
+    <div id="pmDone" class="hide"></div>
   </div>
 </section>
 
@@ -1039,7 +1049,7 @@ function renderTakes(force) {
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 async function startRec() {
   if (S.recording || S.counting) return;
-  S.counting = true; window.speechSynthesis?.cancel(); $('ref').pause();
+  S.counting = true; window.speechSynthesis?.cancel(); $('ref').pause(); banner(null);
   document.querySelectorAll('#takes video').forEach(v => v.pause());
   const run = ++S.run; S.lead = S.count;
   const chunks = [];
@@ -1083,6 +1093,7 @@ async function stopRec() {
   await sleep(STOP_GRACE); // keep the room tone after the last word
   if (rec !== S.rec || rec.state === 'inactive') return; // cancelled during the wait
   paceLearn(); rec.stop(); endRecUi();
+  banner('wait', '■ 录完了', '正在保存…');
 }
 async function upload(blob, id, mime, devices, attempt = 1) {
   S.uploading++; setSt('正在存到硬盘…');
@@ -1098,11 +1109,22 @@ async function upload(blob, id, mime, devices, attempt = 1) {
       for (const t of old) await api('/api/trash', { method: 'POST', body: JSON.stringify({ name: t.name }) }).catch(() => {});
       if (old.length) { await refresh(); setSt(`已存好，机器正在检查。之前的 ${old.length} 遍已移到废纸篓`); }
     }
+    // Stopping a take means "this one": it is picked, the card says so, and the next segment comes up by itself.
+    // C during the card records this segment again instead; the arrow keys go back any time.
+    await api('/api/pick', { method: 'POST', body: JSON.stringify({ id, name: saved }) }).catch(() => {}); await refresh();
     renderLine();
+    if (line().id === id && !S.recording && !S.counting && !S.rv.open) {
+      const last = S.idx >= S.lines.length - 1, run = S.run;
+      banner('ok', `✓ 第 ${S.idx + 1} 段录好了`, last ? '已保存 · 最后一段也录完了，按 V 回顾' : '已保存 · 马上到下一段（不满意按 C 重录这段）');
+      if (!last) setTimeout(() => {
+        if (S.run !== run || line().id !== id || S.recording || S.counting || S.rv.open || editOpen()) return;
+        go(S.idx + 1); banner('next', `第 ${S.idx + 1} / ${S.lines.length} 段`, `${line().chapter || ''} · 准备好按空格`);
+      }, 1800);
+    }
   } catch (e) {
     S.uploading--;
     if (attempt < 4) { await sleep(1500 * attempt); return upload(blob, id, mime, devices, attempt + 1); }
-    setSt('这一遍没存上。服务是否还开着？不要刷新页面，先开服务再重录。', true);
+    setSt('这一遍没存上。服务是否还开着？不要刷新页面，先开服务再重录。', true); banner('bad', '✗ 这一遍没存上', '不要刷新页面，先开服务再重录');
   }
 }
 async function pollReports() {
@@ -1180,6 +1202,16 @@ function toastLocal(text) {
   el.textContent = text; el.classList.remove('hide');
   clearTimeout(toastT); toastT = setTimeout(() => el.classList.add('hide'), 1400);
 }
+// The big card. kind: wait (stopped, saving), ok (saved), next (now on the next segment), bad (not saved).
+let doneT = 0;
+function bannerLocal(kind, title, sub) {
+  const onGlass = PM_WINDOW || PM.here, el = $(onGlass ? 'pmDone' : 'done');
+  $('done').className = 'hide'; $('pmDone').className = 'hide'; clearTimeout(doneT);
+  if (!kind) return;
+  el.innerHTML = `<b>${esc(title)}</b>${sub ? `<span>${esc(sub)}</span>` : ''}`; el.className = kind;
+  doneT = setTimeout(() => { el.className = 'hide'; }, kind === 'wait' ? 20000 : kind === 'bad' ? 6000 : 2200);
+}
+function banner(kind, title, sub) { bannerLocal(kind, title, sub); if (!PM_WINDOW) pmCh.postMessage({ k: 'banner', kind, title, sub }); }
 function toast(text) { toastLocal(text); if (!PM_WINDOW) pmCh.postMessage({ k: 'toast', text }); }
 /* ---- change the wording: saved beside the script on this machine, used at once ---- */
 const toEdit = t => t.replace(/\s+\/\/\s+/g, '\n\n').replace(/\s+\/\s+/g, '\n');
@@ -1415,6 +1447,7 @@ function pmHandle(m) {
   else if (m.k === 'nudge') { PM.pos = Math.max(0, Math.min(PM.words.length - .01, Math.floor(PM.pos) + m.d)); }
   else if (m.k === 'wheel') pmWheel(m.d);
   else if (m.k === 'toast') { if (PM_WINDOW) toastLocal(m.text); }
+  else if (m.k === 'banner') { if (PM_WINDOW) bannerLocal(m.kind, m.title, m.sub); }
   else if (m.k === 'guide') document.body.classList.toggle('noguide', m.off);
   else if (m.k === 'pmKey') pmKey(m.key);
   else if (m.k === 'close' && PM_WINDOW) window.close();

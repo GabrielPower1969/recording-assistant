@@ -103,6 +103,7 @@
   .sec .body { padding:6px 0 2px; }
   .chips { display:flex; flex-wrap:wrap; gap:5px; margin-top:8px; }
   .chips span { font-size:12px; color:#c6d2e4; background:var(--card2); border-radius:6px; padding:2px 7px; }
+  #keepRow { display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--mut); margin-top:auto; cursor:pointer; } #keepRow + #storeBox #storeRow { margin-top:6px; }
   #storeRow { display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--mut); margin-top:auto; border-top:1px solid var(--line); padding-top:10px; }
   #storeRow .txt { flex:1; min-width:0; } #storeRow.low { color:var(--bad); font-weight:600; }
   #storeRow button { padding:4px 8px; font-size:12px; display:inline-flex; gap:4px; align-items:center; }
@@ -234,7 +235,7 @@
     <li>关掉会议软件，摄像头放到和眼睛一样高，看镜头说话。</li>
     <li>麦克风离嘴一拳左右。说话时最响到白线附近最好，差一点也没关系，后期会统一音量。</li>
     <li>按空格后有倒数（三秒或两秒，录制页可选），倒数结束开口，说完按空格。</li>
-    <li>读错了按 <kbd>Enter</kbd> 重录（丢掉这遍，马上重新倒数），或按 <kbd>Esc</kbd> 取消。和稿子差几个字没关系，不用重录。一段可以录好几遍，点“选这遍”（<kbd>P</kbd> 选最新一遍）就进入下一句。</li>
+    <li>读错了按 <kbd>C</kbd> 重录（丢掉这遍，马上重新倒数），或按 <kbd>Esc</kbd> 取消。和稿子差几个字没关系，不用重录。一段可以录好几遍，点“选这遍”（<kbd>P</kbd> 选最新一遍）就进入下一句。</li>
     <li>不想碰键盘就对镜头比手势，保持一秒：👍 开始，👎 重录，双手打叉 取消。</li>
     <li>要走开就点“暂存离开”。想看之前录的，按 <kbd>V</kbd> 回顾。</li>
     <li>用提词器：按 <kbd>T</kbd>。iPad 随航或外接屏，稿子自动开到那块屏；镜像屏就铺满这块屏。<kbd>M</kbd> 换翻转方向，<kbd>+</kbd> <kbd>−</kbd> 调字号。全部快捷键按 <kbd>?</kbd>。</li>
@@ -278,7 +279,7 @@
       <div class="chips" id="fmt"></div>
     </div></details>
     <details class="sec" id="secTakes" open><summary><svg class="ic"><use href="#i-film"/></svg>这一段的录音 <small id="takesSum"></small></summary><div class="body"><div id="takes"></div></div></details>
-    <div id="storeBox"><div id="storeRow"><svg class="ic"><use href="#i-disk"/></svg><span class="txt"></span><button data-reveal="" title="在 Finder 中打开录像文件夹"><svg class="ic"><use href="#i-folder"/></svg>打开</button></div><div id="storeOld"></div></div>
+    <label id="keepRow" title="每段只留最新录的一遍，之前的自动移到废纸篓（可以放回）。清空废纸篓才真正腾出硬盘。"><input type="checkbox" id="keepLast"> 每段只留最后一遍</label><div id="storeBox"><div id="storeRow"><svg class="ic"><use href="#i-disk"/></svg><span class="txt"></span><button data-reveal="" title="在 Finder 中打开录像文件夹"><svg class="ic"><use href="#i-folder"/></svg>打开</button></div><div id="storeOld"></div></div>
   </aside>
   <footer id="foot">
     <div class="grp">
@@ -292,7 +293,7 @@
       <div class="ctl"><button id="prev" class="round" title="上一段（←）" aria-label="上一段"><svg class="ic"><use href="#i-prev"/></svg></button><small>上一段</small></div>
       <div class="ctl"><button id="rec" aria-label="开始录"><svg class="ic"><use href="#i-rec"/></svg></button><small id="recCap">开始 <kbd>空格</kbd></small></div>
       <div class="ctl hide" id="cancelCtl"><button id="cancel" class="round" title="取消这遍，不保存（Esc）" aria-label="取消这遍"><svg class="ic"><use href="#i-x"/></svg></button><small>取消 <kbd>Esc</kbd></small></div>
-      <div class="ctl hide" id="redoCtl"><button id="redo" class="round" title="重录：丢掉这遍，马上重新倒数（Enter）" aria-label="重录"><svg class="ic"><use href="#i-redo"/></svg></button><small>重录 <kbd>Enter</kbd></small></div>
+      <div class="ctl hide" id="redoCtl"><button id="redo" class="round" title="重录：丢掉这遍，马上重新倒数（C 或 Enter）" aria-label="重录"><svg class="ic"><use href="#i-redo"/></svg></button><small>重录 <kbd>C</kbd></small></div>
       <div class="ctl"><button id="next" class="round" title="下一段（→）" aria-label="下一段"><svg class="ic"><use href="#i-next"/></svg></button><small>下一段</small></div>
     </div>
     <div class="grp r">
@@ -330,7 +331,7 @@
 <div id="toast" class="hide" role="status"></div>
 <section id="edit" class="hide" aria-label="改台词"><div id="editBox">
   <h2>改台词<small id="editWhere"></small></h2>
-  <p>直接改字就行。<b>换行</b> = 停一下；<b>空一行</b> = 停久一点。英文词后面写全角括号（中文意思），提词器上小字显示，不用念。保存后马上生效，已经录好的不受影响。</p>
+  <p>直接改字就行。<b>换行</b>就是提词器上换一行；<b>空一行</b>是短段切开的地方。英文词后面写全角括号（中文意思），提词器上小字显示，不用念。保存后马上生效，已经录好的不受影响。</p>
   <div id="editAreas"></div>
   <div id="editBtns"><button id="editSave">保存 <kbd>⌘ Enter</kbd></button><button id="editCancel">不改了 <kbd>Esc</kbd></button><button id="editReset" style="margin-left:auto">还原成原稿</button></div>
   <div id="editErr" role="alert"></div>
@@ -340,7 +341,7 @@
   <div id="keysGrid">
     <div><h3>录制</h3><dl>
       <dt><kbd>空格</kbd></dt><dd>开始；再按一次停止并保存</dd>
-      <dt><kbd>Enter</kbd></dt><dd>重录：丢掉这遍，马上重新倒数</dd>
+      <dt><kbd>C</kbd> <kbd>Enter</kbd></dt><dd>重录：丢掉这遍，马上重新倒数</dd>
       <dt><kbd>Esc</kbd> <kbd>退格</kbd></dt><dd>取消这遍，不保存</dd>
       <dt><kbd>P</kbd></dt><dd>选最新一遍，进入下一段</dd>
       <dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>上一段、下一段；录的时候是把稿子挪一行</dd>
@@ -363,7 +364,7 @@
       <dt><kbd>T</kbd></dt><dd>开、关提词器</dd>
       <dt><kbd>F</kbd></dt><dd>全屏</dd>
       <dt><kbd>M</kbd></dt><dd>换翻转方向</dd>
-      <dt><kbd>C</kbd></dt><dd>显示、隐藏自己的画面</dd>
+      <dt><kbd>K</kbd></dt><dd>显示、隐藏自己的画面</dd>
     </dl></div>
     <div><h3>画面和回看</h3><dl>
       <dt><kbd>G</kbd></dt><dd>构图线</dd>
@@ -433,9 +434,11 @@ function lkLinks(a, b) {
   return !/[csgh]/.test(end) && y[0] === end && !/^(th|sh|ch|ph)/.test(y); // one sound said once: some months
 }
 const linked = t => (t.match(/\S*\{[^}]*\}\S*|\S+/g) || []).reduce((out, w, i, all) => out + (i ? (lkLinks(all[i - 1], w) ? '\u203f' : ' ') : '') + w, '');
-const marked = t => esc(linked(t)).replace(/\u203f/g, '<span class="lk">\u00a0</span>') // pauses first: the tags added below contain slashes of their own
-  .replace(/\s*\/\/\s*/g, ' <span class="pz" aria-label="停久一点">｜｜</span> ')
-  .replace(/(^|[^<])\s*\/\s*(?=[^>]|$)/g, '$1 <span class="pz" aria-label="停一下">｜</span> ')
+// Chinese reads in lines: a pause is a new line and nothing else. English keeps the ｜ marks inside its lines.
+const mostlyZh = t => (t.match(/[\u4e00-\u9fff]/g) || []).length * 3 > t.replace(/\s/g, '').length;
+const marked = t => (zh => esc(linked(t)).replace(/\u203f/g, '<span class="lk">\u00a0</span>') // pauses first: the tags added below contain slashes of their own
+  .replace(/\s*\/\/\s*/g, zh ? '<br>' : ' <span class="pz" aria-label="停久一点">｜｜</span> ')
+  .replace(/(^|[^<])\s*\/\s*(?=[^>]|$)/g, zh ? '$1<br>' : '$1 <span class="pz" aria-label="停一下">｜</span> '))(mostlyZh(t))
   .replace(/\{([^|}]+)\|([^}]*)\}/g, '<ruby>$1<rt>$2</rt></ruby>')
   .replace(/\*([^*]+)\*/g, '<b>$1</b>')
   // Gloss: full-width brackets after an English word in a Chinese line give its meaning, e.g. volunteer（志愿者）.
@@ -593,7 +596,7 @@ function renderLine() {
     $('text').style.fontSize = `calc(${n > 120 ? 20 : n > 55 ? 24 : n > 35 ? 28 : 33}px * var(--tz,1))`;
     $('text').innerHTML = L.parts.map(p => `<div class="part">${marked(p.t)}<small>${esc(p.zh)}</small></div>`).join('');
   } else { $('text').className = ''; $('text').style.fontSize = ''; $('text').innerHTML = marked(L.t); }
-  $('legend').classList.toggle('hide', !!L.clap);
+  $('legend').classList.toggle('hide', !!L.clap || mostlyZh(L.t));
   $('zh').textContent = L.parts ? '' : (L.zh || '');
   F.words = buildWords($('text'));
   const rows = [['语气', L.m], ['画面', L.d], ['难词', L.p]].filter(r => r[1]);
@@ -1046,8 +1049,15 @@ async function upload(blob, id, mime, devices, attempt = 1) {
     const type = mime.split(';')[0];
     const r = await fetch(`/api/take?id=${encodeURIComponent(id)}&${devices}`, { method: 'PUT', headers: { 'Content-Type': type }, body: blob });
     if (!r.ok) throw new Error(r.status);
+    const saved = (await r.json()).name;
     S.uploading--; setSt('已存好，机器正在检查');
-    await refresh(); renderLine();
+    await refresh();
+    if (S.keepLast) { // storage: a take is large, so the earlier ones of this segment go to the Trash, where they can be put back
+      const old = (S.takes[id] || []).filter(t => t.name !== saved);
+      for (const t of old) await api('/api/trash', { method: 'POST', body: JSON.stringify({ name: t.name }) }).catch(() => {});
+      if (old.length) { await refresh(); setSt(`已存好，机器正在检查。之前的 ${old.length} 遍已移到废纸篓`); }
+    }
+    renderLine();
   } catch (e) {
     S.uploading--;
     if (attempt < 4) { await sleep(1500 * attempt); return upload(blob, id, mime, devices, attempt + 1); }
@@ -1104,6 +1114,8 @@ $('guideBtn').classList.toggle('on', !document.body.classList.contains('noguide'
 for (const id of ['secLight', 'secDev', 'secTakes']) { const d = $(id), k = 'coach-' + id; if (recall(k)) d.open = recall(k) === '1'; d.addEventListener('toggle', () => remember(k, d.open ? '1' : '0')); }
 $('strip').addEventListener('click', e => { if (e.target.dataset.i) go(+e.target.dataset.i); });
 $('rec').onclick = () => S.recording ? stopRec() : startRec();
+S.keepLast = recall('coach-keep-last') !== '0'; $('keepLast').checked = S.keepLast;
+$('keepLast').onchange = e => { S.keepLast = e.target.checked; remember('coach-keep-last', S.keepLast ? '1' : '0'); e.target.blur(); toast(S.keepLast ? '每段只留最后一遍' : '每一遍都留着'); };
 $('cancel').onclick = cancelRec; $('redo').onclick = e => { e.currentTarget.blur(); redoRec(); };
 $('smaller').onclick = e => { textSize(-1); e.currentTarget.blur(); }; $('bigger').onclick = e => { textSize(1); e.currentTarget.blur(); };
 $('keysBtn').onclick = e => { e.currentTarget.blur(); toggleKeys(); }; $('keys').onclick = () => toggleKeys(false);
@@ -1284,7 +1296,7 @@ function handleKey(e) {
   if (e.key === 'h' || e.key === 'H') { toggleGest(); return; }
   if (e.key === 'e' || e.key === 'E') { e.preventDefault(); openEdit(); return; }
   if (e.key === 'z' || e.key === 'Z') { if (S.recording) toast('录的时候不能换长短'); else setSize(S.size === 'long' ? 'mid' : 'long'); return; }
-  if (e.key === 'Enter') { e.preventDefault(); e.target.blur?.(); redoRec(); return; }
+  if (e.key === 'Enter' || e.key === 'c' || e.key === 'C') { e.preventDefault(); e.target.blur?.(); redoRec(); return; }
   if ('+=-_'.includes(e.key)) { textSize(e.key === '+' || e.key === '=' ? 1 : -1); return; }
   if (PM_KEYS.has(e.key.toLowerCase())) { if (PM.here) pmKey(e.key); else pmSend({ k: 'pmKey', key: e.key }); return; }
   if (e.code === 'Space') { e.preventDefault(); e.target.blur?.(); S.recording ? stopRec() : startRec(); }
@@ -1304,7 +1316,7 @@ const READ_LINE = .08; // near the top of the text area, just under the self vie
 // The glass swaps near and far: a tablet lying flat with its top toward the glass needs a top-bottom flip.
 // A left-right flip there reads upside down (tested on a real rig); it suits a tablet turned around.
 const FLIPS = ['y', 'x', 'none'], FLIP_NAME = { x: '左右翻转', y: '上下翻转', none: '不翻转' };
-const PM_KEYS = new Set(['m', '+', '=', '-', '_', 'f', 'c']);
+const PM_KEYS = new Set(['m', '+', '=', '-', '_', 'f', 'k']);
 const PM = { cam: recall('coach-pm-cam') !== '0', here: false, html: null, words: [], tops: [], starts: [], lineOf: [], pos: 0, cur: -1, y: 0, peek: 0, last: 0, rec: false, active: false, rate: 1, speed: 1, scroll: true, t0: 0, flip: FLIPS.includes(recall('coach-pm-flip2')) ? recall('coach-pm-flip2') : 'y', size: Math.min(12, Math.max(2.5, +recall('coach-pm-size') || 5.5)) };
 const pmCh = new BroadcastChannel('coach-prompter');
 pmCh.addEventListener('message', () => { lastActive = Date.now(); }); // keys pressed on the prompter screen count too
@@ -1357,7 +1369,7 @@ function pmApply(m) {
   pmAttachCam();
   $('pmCount').textContent = m.count || ''; $('pmCount').classList.toggle('hide', !m.count);
   const foot = $('pmFoot');
-  const help = `空格 开始 / 停止　Enter 重录　Esc 取消　P 选这遍　E 改台词　Z 长短段　+ − 字号　↑↓ 速度　M 翻转（${FLIP_NAME[PM.flip]}）　👍 开始　👎 重录　🙅 取消　? 全部快捷键`;
+  const help = `空格 开始 / 停止　C 重录　Esc 取消　P 选这遍　E 改台词　Z 长短段　+ − 字号　↑↓ 速度　M 翻转（${FLIP_NAME[PM.flip]}）　👍 开始　👎 重录　🙅 取消　? 全部快捷键`;
   foot.className = m.warn ? 'warn' : '';
   foot.textContent = m.warn ? m.status : m.rec ? '' : `${m.status ? m.status + '　' : ''}${help}${m.devices ? '　｜ ' + m.devices : ''}`;
   if (layoutChanged) pmLayout();
@@ -1434,7 +1446,7 @@ function pmFrame(now) {
 function pmKey(key) {
   const k = key.toLowerCase();
   if (k === 'm') { PM.flip = FLIPS[(FLIPS.indexOf(PM.flip) + 1) % FLIPS.length]; remember('coach-pm-flip2', PM.flip); }
-  else if (k === 'c') { PM.cam = !PM.cam; remember('coach-pm-cam', PM.cam ? '1' : '0'); }
+  else if (k === 'k') { PM.cam = !PM.cam; remember('coach-pm-cam', PM.cam ? '1' : '0'); }
   else if (k === '+' || k === '=') PM.size = Math.min(12, +(PM.size + .5).toFixed(1));
   else if (k === '-' || k === '_') PM.size = Math.max(2.5, +(PM.size - .5).toFixed(1));
   else if (k === 'f') return pmFull();

@@ -51,7 +51,7 @@ The model downloads once from Hugging Face. After that, audio is transcribed loc
 | Key | What it does |
 |---|---|
 | Space | Start or stop a take |
-| Enter | Start over: drop the take in progress and count down again |
+| C or Enter | Start over: drop the take in progress and count down again |
 | Esc | Cancel this take without saving |
 | + − | Text size: the teleprompter when one is showing, the script on the page otherwise |
 | H | Hand gestures on or off |
@@ -62,7 +62,7 @@ The model downloads once from Hugging Face. After that, audio is transcribed loc
 | ← → | Change segment when idle; move the reading position while recording |
 | ↑ ↓ | Change scroll speed |
 | T | Teleprompter for a glass rig, on a second screen when there is one |
-| M / C / L | In the teleprompter: flip the text / show yourself / scroll on or off |
+| M / K / L | In the teleprompter: flip the text / show yourself / scroll on or off |
 | G | Framing guide: grid, head-and-shoulders outline, eye line. Never recorded |
 | ⛶ on the preview | Full-screen preview, to set up framing before a take. Esc exits |
 | V | Review all segments and play the picked takes |
@@ -87,6 +87,16 @@ listens for when you are speaking and how fast the syllables come, so the text s
 you and waits while you pause. After each take read to the end it corrects itself against the syllable count
 of the script. ↑ ↓ still trims the speed, and every change of speed or text size shows its new value on the
 page and on the teleprompter glass.
+
+### One take per segment
+
+"Keep only the last take" is on by default: when a new take of a segment is saved, the earlier takes of that
+segment go to the Trash, where they can be put back. Untick it in the side panel to keep every take. Disk space
+comes back when the Trash is emptied.
+
+### Chinese scripts read in lines
+
+In a Chinese line a pause (`/` or `//`) is shown as a new line, with no pause marks. English lines keep ｜ and ｜｜.
 
 ### Small differences from the script are fine
 

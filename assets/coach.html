@@ -38,6 +38,7 @@
   #text { line-height:1.75; }
   #text b { color:var(--gold); font-weight:750; }
   #text .pz { color:var(--acc); font-weight:400; margin:0 .14em; opacity:.95; }
+  #text .gloss, #pmText .gloss { font-size:.5em; font-weight:500; color:var(--mut, #9fb3c8); opacity:.75; margin:0 .1em; }
   .lk { position:relative; }
   .lk::after { content:''; position:absolute; left:-.16em; right:-.16em; bottom:-.04em; height:.24em; border:solid #6fdc9c; border-width:0 0 max(2px,.09em); border-radius:0 0 50% 50% / 0 0 100% 100%; pointer-events:none; }
   .w.read + .lk::after { opacity:.3; }
@@ -362,7 +363,10 @@ const marked = t => esc(linked(t)).replace(/\u203f/g, '<span class="lk">\u00a0</
   .replace(/\s*\/\/\s*/g, ' <span class="pz" aria-label="停久一点">｜｜</span> ')
   .replace(/(^|[^<])\s*\/\s*(?=[^>]|$)/g, '$1 <span class="pz" aria-label="停一下">｜</span> ')
   .replace(/\{([^|}]+)\|([^}]*)\}/g, '<ruby>$1<rt>$2</rt></ruby>')
-  .replace(/\*([^*]+)\*/g, '<b>$1</b>');
+  .replace(/\*([^*]+)\*/g, '<b>$1</b>')
+  // Gloss: full-width brackets after an English word in a Chinese line give its meaning, e.g. volunteer（志愿者）.
+  // Shown small and dim, never read aloud: buildWords skips <small>, so it takes no prompter time.
+  .replace(/（[^）]*）/g, m => `<small class="gloss">${m}</small>`);
 
 const viewLines = () => { const v = S.allLines.filter(l => l.anySize || (l.size || 'mid') === S.size); return v.length ? v : S.allLines; };
 // A line is done if it was picked, or if the other segment length already covers it.

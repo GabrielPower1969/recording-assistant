@@ -122,8 +122,11 @@ def compare(script, heard):
     return missing, extra
 
 
+GLOSS = re.compile(r"（[^）]*）")  # meaning of an English word, shown to reader and viewer, never spoken
+
+
 def zh_chars(text):
-    return re.sub(r"[^\u4e00-\u9fff]", "", text)
+    return re.sub(r"[^\u4e00-\u9fff]", "", GLOSS.sub("", text))
 
 
 def zh_match(script, heard):

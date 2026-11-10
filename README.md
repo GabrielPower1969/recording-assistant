@@ -80,7 +80,7 @@ Each session is a folder with a `lines.json`: a list of segments.
 }
 ```
 
-Marks in `t`: `*word*` for stress, ` / ` for a pause, ` // ` for a longer pause, `{word|sounds like}` for a reading aid.
+Marks in `t`: `*word*` for stress, ` / ` for a pause, ` // ` for a longer pause, `{word|sounds like}` for a reading aid. In a Chinese line, an English word is followed by its meaning in full-width brackets, `volunteer（志愿者）`: the prompter shows it small and dim, it takes no prompter time and the missed-word check ignores it, while exports and subtitles keep it.
 
 Optional fields: `zh` (translation), `p` (pronunciation note), `names` (names the transcript may mishear), `target` (original length in seconds), `ref` (a clip in `ref/`), `parts` (show the segment line by line), `lang: "zh"` (Chinese segment), `covers` and `anySize` (long and medium segment views). [SKILL.md](SKILL.md) describes them all.
 

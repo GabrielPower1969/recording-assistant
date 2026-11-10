@@ -34,7 +34,7 @@
   #strip i.has { background:#5b7396; } #strip i.pick { background:var(--ok); } #strip i.cur { outline:2px solid var(--fg); outline-offset:1px; }
   #main { padding:6px 34px 12px; overflow:auto; display:flex; flex-direction:column; min-width:0; }
   #num { color:var(--mut); font-size:13px; letter-spacing:.5px; }
-  #text { font-size:clamp(30px,3.7vw,54px); line-height:1.25; font-weight:650; margin:8px 0 12px; letter-spacing:-.3px; }
+  #text { font-size:calc(clamp(30px,3.7vw,54px) * var(--tz,1)); line-height:1.25; font-weight:650; margin:8px 0 12px; letter-spacing:-.3px; }
   #text { line-height:1.75; }
   #text b { color:var(--gold); font-weight:750; }
   #text .pz { color:var(--acc); font-weight:400; margin:0 .14em; opacity:.95; }
@@ -53,9 +53,9 @@
   /* teleprompter while recording */
   #main.live { overflow:hidden; scroll-behavior:auto; }
   #main.live #coach, #main.live #legend, #main.live #tools, #main.live #zh, #main.live .part small { display:none; }
-  #main.live #text { font-size:clamp(38px,3.6vw,54px) !important; line-height:1.7; flex:1; min-height:0; overflow:hidden; margin:6px 0; }
+  #main.live #text { font-size:calc(clamp(38px,3.6vw,54px) * var(--tz,1)) !important; line-height:1.7; flex:1; min-height:0; overflow:hidden; margin:6px 0; }
   #main.live #text .pad { height:45vh; }
-  #main.live.still #text { overflow:auto; font-size:clamp(24px,2.1vw,32px) !important; line-height:1.5; }
+  #main.live.still #text { overflow:auto; font-size:calc(clamp(24px,2.1vw,32px) * var(--tz,1)) !important; line-height:1.5; }
   #main.live.still .w.read, #main.live.still .w.now { opacity:1; text-decoration:none; }
   .w { transition:color .12s, opacity .12s; }
   #main.live .w.read { opacity:.32; }
@@ -151,6 +151,15 @@
   /* A message gets its own full line: squeezed into the button row it stood one character wide and pushed the whole page away. */
   #st { grid-column:1 / -1; text-align:center; color:var(--mut); font-size:13.5px; line-height:1.4; } #st:empty { display:none; }
   #st.warn { color:var(--bad); font-weight:600; }
+  #gestBadge { position:absolute; left:8px; top:8px; z-index:2; background:#0b1220dd; border-radius:10px; padding:5px 10px; font-size:14px; font-weight:600; overflow:hidden; pointer-events:none; }
+  #gestBadge i { position:absolute; left:0; bottom:0; height:3px; background:var(--gold); }
+  #keys { position:fixed; inset:0; z-index:9; background:#060b14ee; display:flex; align-items:center; justify-content:center; padding:24px; cursor:default; }
+  #keysBox { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px 24px; max-width:980px; width:100%; max-height:100%; overflow:auto; color:var(--fg); }
+  #keysBox h2 { margin:0 0 12px; font-size:20px; display:flex; align-items:center; gap:10px; } #keysBox h2 small { font-weight:400; font-size:13px; color:var(--mut); }
+  #keysGrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(270px,1fr)); gap:14px 28px; }
+  #keysGrid h3 { margin:0 0 6px; font-size:13px; color:var(--mut); font-weight:600; }
+  #keysGrid dl { margin:0; display:grid; grid-template-columns:auto 1fr; gap:5px 12px; font-size:14.5px; line-height:1.45; align-items:baseline; }
+  #keysGrid dt { white-space:nowrap; } #keysGrid dd { margin:0; } #keysGrid kbd { font-size:13px; } #keysGrid .em { font-size:20px; }
   .layer { position:fixed; inset:0; background:var(--bg); z-index:5; }
   #held { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; text-align:center; padding:20px; }
   #held h2 { margin:0; font-size:28px; } #held p { margin:0; color:var(--mut); line-height:1.7; }
@@ -205,7 +214,7 @@
 </style>
 </head>
 <body>
-<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="i-rec" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></symbol><symbol id="i-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></symbol><symbol id="i-prev" viewBox="0 0 24 24"><path d="M19 20 9 12l10-8z"/><path d="M5 19V5"/></symbol><symbol id="i-next" viewBox="0 0 24 24"><path d="m5 4 10 8-10 8z"/><path d="M19 5v14"/></symbol><symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol><symbol id="i-prompter" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4M7 8h10M7 12h6"/></symbol><symbol id="i-review" viewBox="0 0 24 24"><path d="M3 5h12M3 10h12M3 15h7"/><path d="m15 13 6 3.5-6 3.5z"/></symbol><symbol id="i-camoff" viewBox="0 0 24 24"><path d="m2 2 20 20M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m5 0h4a2 2 0 0 1 2 2v3.3l1 1L22 7v10"/></symbol><symbol id="i-pause" viewBox="0 0 24 24"><path d="M9 4H6v16h3zM18 4h-3v16h3z"/></symbol><symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></symbol><symbol id="i-full" viewBox="0 0 24 24"><path d="M8 3H3v5M21 8V3h-5M16 21h5v-5M3 16v5h5"/></symbol><symbol id="i-exitfull" viewBox="0 0 24 24"><path d="M3 8h5V3M16 3v5h5M21 16h-5v5M8 21v-5H3"/></symbol><symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v4"/></symbol><symbol id="i-cam" viewBox="0 0 24 24"><path d="m23 7-7 5 7 5z"/><rect x="1" y="5" width="15" height="14" rx="2"/></symbol><symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol><symbol id="i-disk" viewBox="0 0 24 24"><path d="M22 12H2M5.5 5.1 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.8 4H7.2a2 2 0 0 0-1.7 1.1zM6 16h.01M10 16h.01"/></symbol><symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></symbol><symbol id="i-find" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol><symbol id="i-film" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M7 3v18M17 3v18M2 8h5M2 16h5M17 8h5M17 16h5"/></symbol><symbol id="i-devices" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></symbol></svg>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="i-rec" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></symbol><symbol id="i-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></symbol><symbol id="i-prev" viewBox="0 0 24 24"><path d="M19 20 9 12l10-8z"/><path d="M5 19V5"/></symbol><symbol id="i-next" viewBox="0 0 24 24"><path d="m5 4 10 8-10 8z"/><path d="M19 5v14"/></symbol><symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol><symbol id="i-prompter" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4M7 8h10M7 12h6"/></symbol><symbol id="i-review" viewBox="0 0 24 24"><path d="M3 5h12M3 10h12M3 15h7"/><path d="m15 13 6 3.5-6 3.5z"/></symbol><symbol id="i-camoff" viewBox="0 0 24 24"><path d="m2 2 20 20M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m5 0h4a2 2 0 0 1 2 2v3.3l1 1L22 7v10"/></symbol><symbol id="i-pause" viewBox="0 0 24 24"><path d="M9 4H6v16h3zM18 4h-3v16h3z"/></symbol><symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></symbol><symbol id="i-full" viewBox="0 0 24 24"><path d="M8 3H3v5M21 8V3h-5M16 21h5v-5M3 16v5h5"/></symbol><symbol id="i-exitfull" viewBox="0 0 24 24"><path d="M3 8h5V3M16 3v5h5M21 16h-5v5M8 21v-5H3"/></symbol><symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v4"/></symbol><symbol id="i-cam" viewBox="0 0 24 24"><path d="m23 7-7 5 7 5z"/><rect x="1" y="5" width="15" height="14" rx="2"/></symbol><symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol><symbol id="i-disk" viewBox="0 0 24 24"><path d="M22 12H2M5.5 5.1 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.8 4H7.2a2 2 0 0 0-1.7 1.1zM6 16h.01M10 16h.01"/></symbol><symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></symbol><symbol id="i-find" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol><symbol id="i-film" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M7 3v18M17 3v18M2 8h5M2 16h5M17 8h5M17 16h5"/></symbol><symbol id="i-redo" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></symbol><symbol id="i-hand" viewBox="0 0 24 24"><path d="M7 11v8a2 2 0 0 0 2 2h6.5a3 3 0 0 0 2.9-2.2l1.5-5.6A2 2 0 0 0 18 10.7h-4V6a2 2 0 0 0-2-2l-2.3 6.2A2 2 0 0 1 7.8 11.5zM3 11h4v10H3z"/></symbol><symbol id="i-devices" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></symbol></svg>
 <section id="setup">
   <h1>录音教练</h1>
   <p>一段一段连着读，同时录声音和画面，存在这台电脑上，不上传。每录完一遍，机器检查音量、留白、语速和有没有读漏。语气好不好，你自己听。</p>
@@ -215,9 +224,10 @@
     <li>关掉会议软件，摄像头放到和眼睛一样高，看镜头说话。</li>
     <li>麦克风离嘴一拳左右。说话时最响到白线附近最好，差一点也没关系，后期会统一音量。</li>
     <li>按空格后有倒数（三秒或两秒，录制页可选），倒数结束开口，说完按空格。</li>
-    <li>读错了按 <kbd>Esc</kbd> 取消，马上再来。一段可以录好几遍，点“选这遍”（<kbd>P</kbd> 选最新一遍）就进入下一句。</li>
+    <li>读错了按 <kbd>Enter</kbd> 重录（丢掉这遍，马上重新倒数），或按 <kbd>Esc</kbd> 取消。和稿子差几个字没关系，不用重录。一段可以录好几遍，点“选这遍”（<kbd>P</kbd> 选最新一遍）就进入下一句。</li>
+    <li>不想碰键盘就对镜头比手势，保持一秒：👍 开始，👎 重录，双手打叉 取消。</li>
     <li>要走开就点“暂存离开”。想看之前录的，按 <kbd>V</kbd> 回顾。</li>
-    <li>用提词器：按 <kbd>T</kbd>。iPad 随航或外接屏，稿子自动开到那块屏；镜像屏就铺满这块屏。<kbd>M</kbd> 换翻转方向。</li>
+    <li>用提词器：按 <kbd>T</kbd>。iPad 随航或外接屏，稿子自动开到那块屏；镜像屏就铺满这块屏。<kbd>M</kbd> 换翻转方向，<kbd>+</kbd> <kbd>−</kbd> 调字号。全部快捷键按 <kbd>?</kbd>。</li>
   </ol>
   <button id="start">打开摄像头和麦克风</button>
   <div id="err" role="alert"></div>
@@ -241,7 +251,7 @@
   <aside id="side">
     <div id="camStage">
       <div id="camWrap" class="guided"><video id="cam" autoplay muted playsinline></video><svg id="faceSvg" viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true"></svg><svg class="guide" viewBox="0 0 1600 900" aria-hidden="true"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><g class="gOut"><ellipse cx="800" cy="344" rx="152" ry="207"/><path d="M714 515 C716 560 716 590 690 610 C640 648 520 650 440 712 C390 750 372 820 366 900 M886 515 C884 560 884 590 910 610 C960 648 1080 650 1160 712 C1210 750 1228 820 1234 900"/></g><line class="gEye" x1="0" y1="344" x2="1600" y2="344"/></g></svg></div>
-      <div id="camTools"><button id="camOffBtn" title="关摄像头和麦克风（离开时用）" aria-label="关摄像头"><svg class="ic"><use href="#i-camoff"/></svg></button><button id="guideBtn" title="构图线：眼睛放在金线上，头在轮廓里动就好（G）" aria-label="构图线"><svg class="ic"><use href="#i-grid"/></svg></button><button id="fullBtn" title="全屏预览，录之前对构图（Esc 退出）" aria-label="全屏预览"><svg class="ic"><use href="#i-full"/></svg></button></div>
+      <div id="gestBadge" class="hide"></div><div id="camTools"><button id="gestBtn" title="手势：👍 开始，👎 重录，双手打叉取消（H 开关）" aria-label="手势"><svg class="ic"><use href="#i-hand"/></svg></button><button id="camOffBtn" title="关摄像头和麦克风（离开时用）" aria-label="关摄像头"><svg class="ic"><use href="#i-camoff"/></svg></button><button id="guideBtn" title="构图线：眼睛放在金线上，头在轮廓里动就好（G）" aria-label="构图线"><svg class="ic"><use href="#i-grid"/></svg></button><button id="fullBtn" title="全屏预览，录之前对构图（Esc 退出）" aria-label="全屏预览"><svg class="ic"><use href="#i-full"/></svg></button></div>
       <div id="fsHud"><svg class="ic"><use href="#i-mic"/></svg><div id="fsLevel"><i></i><b></b></div><span id="fsSpec"></span><span id="fsLight"></span><span style="color:var(--mut)">眼睛放金线上 · G 构图线 · Esc 退出</span></div>
     </div>
     <div id="levelRow" title="说话时最响到白线附近最好，差一点也没关系"><svg class="ic"><use href="#i-mic"/></svg><div id="meter"><i></i><b></b></div></div>
@@ -263,19 +273,22 @@
     <div class="grp">
       <div class="ctl"><span class="seg" id="cd" role="group" aria-label="倒数秒数"><button data-c="3">3 秒</button><button data-c="2">2 秒</button></span><small>倒数</small></div>
       <div class="ctl"><span class="seg" id="sizeMode" role="group" aria-label="每段长度"><button data-z="long">长段</button><button data-z="mid">中段</button></span><small>每段长度</small></div>
-      <div class="ctl"><span class="seg" id="scrollMode" role="group" aria-label="提词方式"><button data-s="1">滚动</button><button data-s="0">不动</button></span><small>稿子 <kbd>L</kbd></small></div>
+      <div class="ctl"><span class="seg" id="scrollMode" role="group" aria-label="提词方式"><button data-s="v" title="稿子跟着你的声音走：说得快就快，停下就等你">跟我</button><button data-s="1" title="按固定速度滚">匀速</button><button data-s="0">不动</button></span><small>稿子 <kbd>L</kbd></small></div>
       <div class="ctl" id="speedBox"><span class="seg" role="group" aria-label="滚动速度"><button id="slower" aria-label="慢一点">−</button><span id="speedNow"></span><button id="faster" aria-label="快一点">+</button></span><small>速度 <kbd>↑↓</kbd></small></div>
+      <div class="ctl"><span class="seg" role="group" aria-label="字号"><button id="smaller" aria-label="字小一点">A−</button><button id="bigger" aria-label="字大一点">A+</button></span><small>字号 <kbd>−</kbd> <kbd>+</kbd></small></div>
     </div>
     <div class="grp">
       <div class="ctl"><button id="prev" class="round" title="上一段（←）" aria-label="上一段"><svg class="ic"><use href="#i-prev"/></svg></button><small>上一段</small></div>
       <div class="ctl"><button id="rec" aria-label="开始录"><svg class="ic"><use href="#i-rec"/></svg></button><small id="recCap">开始 <kbd>空格</kbd></small></div>
       <div class="ctl hide" id="cancelCtl"><button id="cancel" class="round" title="取消这遍，不保存（Esc）" aria-label="取消这遍"><svg class="ic"><use href="#i-x"/></svg></button><small>取消 <kbd>Esc</kbd></small></div>
+      <div class="ctl hide" id="redoCtl"><button id="redo" class="round" title="重录：丢掉这遍，马上重新倒数（Enter）" aria-label="重录"><svg class="ic"><use href="#i-redo"/></svg></button><small>重录 <kbd>Enter</kbd></small></div>
       <div class="ctl"><button id="next" class="round" title="下一段（→）" aria-label="下一段"><svg class="ic"><use href="#i-next"/></svg></button><small>下一段</small></div>
     </div>
     <div class="grp r">
       <div class="ctl"><button id="togglePm" class="round" title="有第二块屏（随航、外接）就开到那块屏上；只有一块屏（镜像）就铺满这块屏" aria-label="提词器"><svg class="ic"><use href="#i-prompter"/></svg></button><small>提词器 <kbd>T</kbd></small></div>
       <div class="ctl"><button id="review" class="round" aria-label="回顾"><svg class="ic"><use href="#i-review"/></svg></button><small>回顾 <kbd>V</kbd></small></div>
       <div class="ctl"><button id="hold" class="round" title="离开时用：存好当前这遍，关掉摄像头和麦克风。10 分钟没操作也会自动关" aria-label="关摄像头"><svg class="ic"><use href="#i-camoff"/></svg></button><small>关摄像头</small></div>
+      <div class="ctl"><button id="keysBtn" class="round" title="全部快捷键和手势" aria-label="快捷键"><b>?</b></button><small>快捷键 <kbd>?</kbd></small></div>
     </div>
     <span id="st" role="status"></span>
   </footer>
@@ -303,6 +316,43 @@
   <div id="rvList"></div>
 </section>
 <div id="count" class="hide" aria-hidden="true"></div>
+<section id="keys" class="hide" aria-label="快捷键和手势"><div id="keysBox">
+  <h2>快捷键和手势 <small>按 ? 或 Esc 关闭。焦点在提词器那块屏上也一样用。</small></h2>
+  <div id="keysGrid">
+    <div><h3>录制</h3><dl>
+      <dt><kbd>空格</kbd></dt><dd>开始；再按一次停止并保存</dd>
+      <dt><kbd>Enter</kbd></dt><dd>重录：丢掉这遍，马上重新倒数</dd>
+      <dt><kbd>Esc</kbd> <kbd>退格</kbd></dt><dd>取消这遍，不保存</dd>
+      <dt><kbd>P</kbd></dt><dd>选最新一遍，进入下一段</dd>
+      <dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>上一段、下一段；录的时候是把稿子挪一行</dd>
+    </dl></div>
+    <div><h3>手势（对着镜头保持约一秒）</h3><dl>
+      <dt class="em">👍</dt><dd>大拇指朝上：开始录</dd>
+      <dt class="em">👎</dt><dd>大拇指朝下：重录</dd>
+      <dt class="em">🙅</dt><dd>两只前臂在胸前打叉：取消这遍</dd>
+      <dt><kbd>H</kbd></dt><dd>开关手势识别</dd>
+    </dl></div>
+    <div><h3>稿子</h3><dl>
+      <dt><kbd>+</kbd> <kbd>−</kbd></dt><dd>字大一点、小一点（开着提词器就调提词器）</dd>
+      <dt><kbd>↑</kbd> <kbd>↓</kbd></dt><dd>滚动快一点、慢一点（“跟我”时是微调）</dd>
+      <dt><kbd>L</kbd></dt><dd>稿子滚动 / 不动（滚动分“跟我”和“匀速”，在底栏选）</dd>
+      <dt>触控板</dt><dd>上下翻看稿子</dd>
+    </dl></div>
+    <div><h3>提词器</h3><dl>
+      <dt><kbd>T</kbd></dt><dd>开、关提词器</dd>
+      <dt><kbd>F</kbd></dt><dd>全屏</dd>
+      <dt><kbd>M</kbd></dt><dd>换翻转方向</dd>
+      <dt><kbd>C</kbd></dt><dd>显示、隐藏自己的画面</dd>
+    </dl></div>
+    <div><h3>画面和回看</h3><dl>
+      <dt><kbd>G</kbd></dt><dd>构图线</dd>
+      <dt><kbd>V</kbd></dt><dd>回顾全部段落</dd>
+      <dt><kbd>R</kbd></dt><dd>听中文原声</dd>
+      <dt><kbd>S</kbd></dt><dd>听标准发音</dd>
+      <dt><kbd>?</kbd></dt><dd>打开、关闭这张表</dd>
+    </dl></div>
+  </div>
+</div></section>
 
 <section id="pm" class="hide" aria-label="提词器">
   <div id="pmFlip">
@@ -322,7 +372,8 @@ const videoBps = () => { const s = S.stream.getVideoTracks()[0].getSettings(); r
 // One recorder, one stream: sound and picture share a clock. Lossless audio first; AAC or Opus only as a fallback.
 const MIMES = ['video/x-matroska;codecs=avc1,pcm', 'video/webm;codecs=vp9,pcm', 'video/webm;codecs=vp8,pcm',
                'video/mp4;codecs=avc1,mp4a.40.2', 'video/webm;codecs=vp9,opus'];
-const S = { lines: [], takes: {}, picks: {}, idx: 0, stream: null, rec: null, recording: false, counting: false, t0: 0, peak: -99, mime: '', uploading: 0, count: 3, lead: 3, ctx: null, meter: 0, run: 0, rv: { open: false, filter: 'all', i: 0, all: false } };
+let lastActive = Date.now();
+const S = { tz: 1, voice: true, lines: [], takes: {}, picks: {}, idx: 0, stream: null, rec: null, recording: false, counting: false, t0: 0, peak: -99, mime: '', uploading: 0, count: 3, lead: 3, ctx: null, meter: 0, run: 0, rv: { open: false, filter: 'all', i: 0, all: false } };
 S.scroll = true; S.speed = 1; S.size = 'long'; S.allLines = [];
 try {
   if (localStorage.getItem('coach-size') === 'mid') S.size = 'mid';
@@ -332,6 +383,7 @@ try {
 } catch {}
 const remember = (k, v) => { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch {} };
 const recall = k => { try { return localStorage.getItem(k); } catch { return null; } };
+S.voice = recall('coach-voice') !== '0'; S.tz = Math.min(1.8, Math.max(.6, +recall('coach-text-zoom') || 1)); document.documentElement.style.setProperty('--tz', S.tz);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const line = () => S.lines[S.idx];
 const plain = t => t.replace(/\{([^|}]+)\|[^}]*\}/g, '$1').replace(/\*/g, '').replace(/\s*\/+\s*/g, ' ').trim();
@@ -435,6 +487,10 @@ async function openDevices() {
   const meterId = ++S.meter;
   const an = ctx.createAnalyser(); an.fftSize = 2048; ctx.createMediaStreamSource(S.stream).connect(an);
   const buf = new Float32Array(an.fftSize);
+  const band = ctx.createBiquadFilter(); band.type = 'bandpass'; band.frequency.value = 1100; band.Q.value = .6; // where vowels carry their energy
+  const an2 = ctx.createAnalyser(); an2.fftSize = 1024; ctx.createMediaStreamSource(S.stream).connect(band).connect(an2);
+  const buf2 = new Float32Array(an2.fftSize);
+  PACE.read = () => { if (meterId !== S.meter) return -90; an2.getFloatTimeDomainData(buf2); let e = 0; for (const v of buf2) e += v * v; return 10 * Math.log10(e / buf2.length || 1e-9); };
   // A second window reads this directly, so its bar keeps moving when the main window is covered and stops drawing.
   window.coachLevel = () => {
     if (meterId !== S.meter) return null;
@@ -467,7 +523,7 @@ function setRecUi(on) {
   $('rec').classList.toggle('on', on); $('rec').setAttribute('aria-label', on ? '停止' : '开始录');
   $('rec').querySelector('use').setAttribute('href', on ? '#i-stop' : '#i-rec');
   $('recCap').innerHTML = on ? '停止 <kbd>空格</kbd>' : '开始 <kbd>空格</kbd>';
-  $('cancelCtl').classList.toggle('hide', !on);
+  $('cancelCtl').classList.toggle('hide', !on); $('redoCtl').classList.toggle('hide', !on);
 }
 const icon = n => `<svg class="ic"><use href="#i-${n}"/></svg>`;
 function renderFmt() {
@@ -512,7 +568,7 @@ function renderLine() {
   if (L.parts) {
     const n = plain(L.t).split(/\s+/).length;
     $('text').className = 'parts';
-    $('text').style.fontSize = (n > 120 ? 20 : n > 55 ? 24 : n > 35 ? 28 : 33) + 'px';
+    $('text').style.fontSize = `calc(${n > 120 ? 20 : n > 55 ? 24 : n > 35 ? 28 : 33}px * var(--tz,1))`;
     $('text').innerHTML = L.parts.map(p => `<div class="part">${marked(p.t)}<small>${esc(p.zh)}</small></div>`).join('');
   } else { $('text').className = ''; $('text').style.fontSize = ''; $('text').innerHTML = marked(L.t); }
   $('legend').classList.toggle('hide', !!L.clap);
@@ -532,7 +588,7 @@ function renderLine() {
 const F = { words: [], pos: 0, active: false, last: 0, rate: 1 };
 const CJK = /[\u4e00-\u9fff]/, CJK_TOKEN = /[\u4e00-\u9fff][，。！？：、；]*|[^\u4e00-\u9fff]+/g;
 const ZH_CHARS_PER_SEC = 3.9; // measured on one speaker's Mandarin talk, pauses included: 1427 characters in 369.2 s
-const syllables = w => Math.max(1, (w.toLowerCase().match(/[aeiouy]+/g) || []).length);
+const syllables = w => Math.max(1, (w.toLowerCase().match(/[aeiouy]+/g) || []).length + (w.match(/\d/g) || []).length); // a digit is read as a syllable
 // Wrap every spoken word in spans; a word split by a stress mark stays one word. Letters read singly (A I) count as one.
 function buildWords(box) {
   let list = [];
@@ -560,7 +616,7 @@ function buildWords(box) {
     if (prev && /^[A-Z][.,!?:]?$/.test(w.text) && /^[A-Z]+$/.test(prev.text)) { prev.spans.push(...w.spans); prev.text += w.text; }
     else merged.push(w);
   }
-  list = merged.map(w => ({ ...w, weight: syllables(w.text) + (/[.,!?:，。！？：]$/.test(w.text) ? 1.5 : 0) }));
+  list = merged.map(w => ({ ...w, syl: syllables(w.text), weight: syllables(w.text) + (/[.,!?:，。！？：]$/.test(w.text) ? 1.5 : 0) }));
   list.forEach((w, i) => w.spans.forEach(s => { s.dataset.w = i; }));
   return list;
 }
@@ -570,7 +626,64 @@ function paintWords() {
   const el = F.words[cur]?.spans[0], box = $('text');
   if (el) { const target = el.offsetTop - box.offsetTop - box.clientHeight * .22; box.scrollTop += (target - box.scrollTop) * .08; }
 }
-// The prompter runs on the clock alone. It never listens: recognition is too unreliable to hold the text back.
+// Two ways to move the text. "Follow me" listens to the voice without recognising a word: it finds when sound is
+// there and how fast the syllables come, so the text speeds up, slows down and waits with the reader. The steady
+// clock stays as the other choice and as the fallback when no microphone signal is there.
+/* pace-core */
+function makePace() {
+  const P = { floor: null, env: -90, valley: 0, peak: -90, rising: false, lastOn: -9, lastVoice: -9, lastT: null, frames: [], ons: [], count: 0, out: 0, was: 0 };
+  const WIN = 1.6, HOLD = .35;
+  // t in seconds, db = level of the voice band. Returns nothing; read with rate().
+  P.feed = (t, db) => {
+    const dt = P.lastT == null ? .016 : Math.min(.1, Math.max(.001, t - P.lastT)); P.lastT = t;
+    db = Math.max(-90, db);
+    if (P.floor == null) { P.floor = db; P.valley = db; P.env = db; }
+    P.floor = db < P.floor ? P.floor + (db - P.floor) * Math.min(1, dt * 6) : Math.min(db, P.floor + dt * .7); // the room: down fast, up slowly
+    P.env += (db - P.env) * Math.min(1, dt * 40);
+    const voiced = P.env > Math.max(P.floor + 10, -58);
+    if (voiced) P.lastVoice = t;
+    if (P.rising) { P.peak = Math.max(P.peak, P.env); if (P.env < P.peak - 2.5) { P.rising = false; P.valley = P.env; } }
+    else { P.valley = Math.min(P.valley, P.env);
+      if (voiced && P.env > P.valley + 3.5 && t - P.lastOn > .1) { P.rising = true; P.peak = P.env; P.lastOn = t; P.count++; P.ons.push(t); } }
+    P.frames.push([t, dt, voiced]);
+    while (P.frames.length && P.frames[0][0] < t - WIN) P.frames.shift();
+    while (P.ons.length && P.ons[0] < t - WIN) P.ons.shift();
+    P.dt = dt;
+  };
+  // Syllables a second to move by. k corrects this detector for this reader; base is a usual speaking rate.
+  P.rate = (k, base) => {
+    const t = P.lastT; if (t == null) return 0;
+    let want;
+    if (t - P.lastVoice > HOLD) want = 0; // a pause: the text waits
+    else {
+      let vt = 0; for (const f of P.frames) if (f[2]) vt += f[1];
+      want = vt < .6 ? (P.was || base) : Math.max(.6 * base, Math.min(2.2 * base, k * P.ons.length / vt));
+      P.was = want;
+    }
+    P.out = want === 0 ? 0 : P.out === 0 ? want : P.out + (want - P.out) * Math.min(1, P.dt * 5);
+    return P.out;
+  };
+  return P;
+}
+/* /pace-core */
+const PACE = { core: makePace(), read: null, fed: 0, mark: 0 };
+const paceLang = () => line()?.lang === 'zh' ? 'zh' : 'en';
+const paceBase = () => paceLang() === 'zh' ? 4.6 : 3.6; // syllables a second while speaking, pauses left out
+const paceK = () => Math.min(2.5, Math.max(.7, +recall('coach-pace-k-' + paceLang()) || 1.3)); // 1.3: measured on one Mandarin take, 50 onsets for 65 syllables
+// Pulled, not pushed: the prompter window calls this too, so the pace keeps running when this window is covered.
+window.coachPace = () => {
+  if (!S.voice || !PACE.read || !S.recording) return null;
+  const now = performance.now();
+  if (now - PACE.fed >= 8) { PACE.fed = now; PACE.core.feed(now / 1000, PACE.read()); PACE.rateNow = PACE.core.rate(paceK(), paceBase()); }
+  return PACE.rateNow;
+};
+// After a whole take the script says how many syllables there really were; the detector's count is corrected toward it.
+function paceLearn() {
+  const heard = PACE.core.count - PACE.mark, real = F.words.reduce((n, w) => n + w.syl, 0);
+  if (!S.voice || heard < 15 || real < 15 || F.pos < F.words.length * .85) return; // only a take read to the end measures the reader
+  const k = real / heard; if (k < .5 || k > 3) return; // stopped early, or noise: not a measure of the reader
+  remember('coach-pace-k-' + paceLang(), (paceK() * .5 + Math.min(2.5, Math.max(.7, k)) * .5).toFixed(3));
+}
 function baseRate() {
   if (line()?.lang === 'zh') return F.words.reduce((n, w) => n + w.weight, 0) / (F.words.length / ZH_CHARS_PER_SEC);
   const wpm = Object.values(S.takes).flat().map(t => t.report?.wpm).filter(Boolean).sort((a, b) => a - b);
@@ -593,8 +706,8 @@ function followStop() {
 function followTick(now) {
   const dt = Math.min(.1, (now - F.last) / 1000); F.last = now;
   if (!F.active || !S.scroll) return;
-  const w = F.words[Math.floor(F.pos)];
-  if (w) F.pos = Math.min(F.words.length - .01, F.pos + dt * F.rate * S.speed / w.weight);
+  const w = F.words[Math.floor(F.pos)], pace = window.coachPace();
+  if (w) F.pos = Math.min(F.words.length - .01, F.pos + (pace == null ? dt * F.rate * S.speed / w.weight : dt * pace * S.speed / w.syl));
   paintWords();
 }
 function nudge(d) { F.pos = Math.max(0, Math.min(F.words.length - .01, Math.floor(F.pos) + d)); paintWords(); pmSend({ k: 'nudge', d }); }
@@ -615,7 +728,7 @@ function setScroll(on) {
   renderScroll(); pmSync();
 }
 function renderScroll() {
-  document.querySelectorAll('#scrollMode button').forEach(b => b.classList.toggle('on', (b.dataset.s === '1') === S.scroll));
+  document.querySelectorAll('#scrollMode button').forEach(b => b.classList.toggle('on', b.dataset.s === (!S.scroll ? '0' : S.voice ? 'v' : '1')));
   $('speedNow').textContent = `${Math.round(S.speed * 100)}%`;
   $('speedBox').classList.toggle('hide', !S.scroll);
 }
@@ -629,7 +742,7 @@ function reportHtml(t) {
   if (!r) return '<li class="wait">检查中…</li>';
   const l = t.light, b = S.store?.light_base;
   const lit = l ? `<li class="wait">打光：脸 ${l.face}%${Math.abs(l.side) > 1 ? ` · ${l.side > 0 ? '左' : '右'}脸暗 ${Math.abs(l.side).toFixed(1)} 档` : ''}${b ? ` · 比基准${Math.abs(stops(l.face * 2.55, b.face * 2.55)) <= .25 ? '一致' : (stops(l.face * 2.55, b.face * 2.55) > 0 ? '亮 ' : '暗 ') + Math.abs(stops(l.face * 2.55, b.face * 2.55)).toFixed(1) + ' 档'}` : ''}</li>` : '';
-  return [...(r.notes || []).map(n => `<li class="bad">${esc(n)}</li>`), ...(r.good || []).map(n => `<li class="good">${esc(n)}</li>`), lit,
+  return [...(r.notes || []).map(n => `<li class="bad">${esc(n)}</li>`), ...(r.info || []).map(n => `<li class="wait">${esc(n)}</li>`), ...(r.good || []).map(n => `<li class="good">${esc(n)}</li>`), lit,
     r.heard ? `<li class="wait">机器听到：${esc(r.heard)}</li>` : ''].join('');
 }
 /* ---- face lighting: a face mesh (MediaPipe Face Landmarker, run in this browser) finds the skin; nothing leaves the page ---- */
@@ -647,6 +760,82 @@ const VISION = { lm: null, state: 'loading', why: '' };
   } catch (e) { VISION.state = 'off'; VISION.why = String(e?.message || e); }
   renderLight();
 })();
+/* ---- hand gestures: MediaPipe Gesture Recognizer, in this browser like the face mesh ---- */
+// Thumb up starts, thumb down starts over, crossed forearms cancel. A gesture counts only after it is held, and the
+// hands must leave the pose before the next one counts, so a hand that lingers never fires twice.
+const GEST = { rec: null, state: 'loading', on: recall('coach-gesture') !== '0', cur: null, since: 0, armed: true, gone: 0, busy: false };
+const GEST_NAME = { up: '👍 开始', down: '👎 重录', cross: '🙅 取消' };
+const GW = 480, gestCanvas = document.createElement('canvas');
+const gestCtx = gestCanvas.getContext('2d', { willReadFrequently: true });
+(async () => {
+  if (new URLSearchParams(location.search).has('prompter')) return; // the main window owns the camera
+  try {
+    const { FilesetResolver, GestureRecognizer } = await import('/vendor/vision_bundle.mjs');
+    const files = await FilesetResolver.forVisionTasks('/vendor/wasm');
+    const make = delegate => GestureRecognizer.createFromOptions(files, { baseOptions: { modelAssetPath: '/vendor/gesture_recognizer.task', delegate }, runningMode: 'VIDEO', numHands: 2 });
+    GEST.rec = await make('GPU').catch(() => make('CPU'));
+    GEST.state = 'ready';
+  } catch (e) { GEST.state = 'off'; }
+  renderGest();
+})();
+function renderGest() {
+  const b = $('gestBtn'); if (!b) return;
+  b.classList.toggle('on', GEST.on && GEST.state === 'ready'); b.disabled = GEST.state === 'off';
+  if (GEST.state === 'off') b.title = '手势识别没装好（模型没下载到），键盘照常用';
+}
+function toggleGest() {
+  if (GEST.state === 'off') return setSt('手势识别没装好，键盘照常用', true);
+  GEST.on = !GEST.on; remember('coach-gesture', GEST.on ? '1' : '0'); GEST.cur = null; gestBadge(null); renderGest();
+  setSt(GEST.on ? '手势已开：👍 开始，👎 重录，双手打叉取消' : '手势已关');
+}
+// Each hand becomes a line from the fingertips back along the forearm; an X is two such lines crossing at a wide angle.
+function crossed(hands) {
+  if (hands.length < 2) return false;
+  const seg = h => { const w = h[0], m = h[9], dx = m.x - w.x, dy = m.y - w.y; return [w.x + dx * 2, w.y + dy * 2, w.x - dx * 5, w.y - dy * 5, dx, dy]; };
+  const [a, b] = hands.map(seg);
+  const ang = Math.acos(Math.max(-1, Math.min(1, (a[4] * b[4] + a[5] * b[5]) / (Math.hypot(a[4], a[5]) * Math.hypot(b[4], b[5]) || 1)))) * 180 / Math.PI;
+  if (ang < 35 || ang > 145) return false;
+  const d = (a[2] - a[0]) * (b[3] - b[1]) - (a[3] - a[1]) * (b[2] - b[0]); if (!d) return false;
+  const t = ((b[0] - a[0]) * (b[3] - b[1]) - (b[1] - a[1]) * (b[2] - b[0])) / d, u = ((b[0] - a[0]) * (a[3] - a[1]) - (b[1] - a[1]) * (a[2] - a[0])) / d;
+  return t > .1 && t < 1 && u > .1 && u < 1; // not at the fingertips: steepled or clapping hands are not an X
+}
+function gestRead(r) {
+  const hands = r.landmarks || []; if (!hands.length) return null;
+  if (crossed(hands)) return 'cross';
+  const names = (r.gestures || []).map(g => g[0]).filter(g => g && g.score >= .6).map(g => g.categoryName);
+  const up = names.includes('Thumb_Up'), down = names.includes('Thumb_Down');
+  return up === down ? null : up ? 'up' : 'down';
+}
+function gestBadge(g, part = 0) {
+  const b = $('gestBadge'); b.classList.toggle('hide', !g);
+  if (g) b.innerHTML = `${GEST_NAME[g]}<i style="width:${Math.round(part * 100)}%"></i>`;
+}
+function gestFire(g) {
+  lastActive = Date.now();
+  if (g === 'up') { if (!S.recording && !S.counting) { startRec(); setSt('手势 👍：开始录'); } }
+  else if (g === 'down') redoRec();
+  else if (g === 'cross' && S.recording) { cancelRec(); setSt('手势 🙅：已取消，这一遍没有保存'); }
+}
+setInterval(() => {
+  if (!GEST.on || GEST.state !== 'ready' || GEST.busy || !S.stream || document.hidden || S.rv.open || S.uploading && !S.recording) return;
+  if ($('studio').classList.contains('hide') || !$('held').classList.contains('hide') || !$('keys').classList.contains('hide')) return;
+  const v = $('cam'); if (!v.videoWidth) return;
+  GEST.busy = true;
+  try {
+    gestCanvas.width = GW; gestCanvas.height = Math.round(GW * v.videoHeight / v.videoWidth);
+    gestCtx.drawImage(v, 0, 0, gestCanvas.width, gestCanvas.height);
+    const now = performance.now(), g = gestRead(GEST.rec.recognizeForVideo(gestCanvas, now));
+    // What a gesture would do right now; one that would do nothing is not shown at all.
+    const useful = g === 'up' ? !S.recording && !S.counting : g === 'cross' ? S.recording : !!g;
+    if (!useful) { if (!g) { if (!GEST.gone) GEST.gone = now; if (now - GEST.gone > 350) GEST.armed = true; } GEST.cur = null; gestBadge(null); return; }
+    GEST.gone = 0;
+    if (!GEST.armed) return;
+    if (g !== GEST.cur) { GEST.cur = g; GEST.since = now; }
+    const need = g === 'up' ? 700 : 1000, part = Math.min(1, (now - GEST.since) / need); // dropping a take asks for a longer hold
+    gestBadge(g, part);
+    if (part >= 1) { GEST.armed = false; GEST.cur = null; gestBadge(null); gestFire(g); }
+  } catch { /* one bad frame */ } finally { GEST.busy = false; }
+}, 150);
 const FACE_OVAL = [10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136, 172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109];
 const PATCH = { forehead: [151, 108, 337], cheekA: [50, 101, 118], cheekB: [280, 330, 347], chin: [199, 175] };
 const SKIN_LINE = 123; // degrees on a vectorscope; every skin tone sits near it under neutral light
@@ -798,8 +987,8 @@ async function startRec() {
   followStart();
   const box = $('count'); box.classList.remove('hide');
   for (let i = S.lead; i > 0; i--) { box.textContent = i; S.countNow = i; pmSync(); await sleep(1000); if (run !== S.run || !S.recording) return; }
-  box.classList.add('hide'); S.counting = false; S.countNow = 0; F.active = true;
-  setSt(S.scroll ? '请说 · ↑↓ 调速度' : '请说');
+  box.classList.add('hide'); S.counting = false; S.countNow = 0; F.active = true; PACE.mark = PACE.core.count;
+  setSt(S.scroll ? (S.voice ? '请说 · 稿子跟着你的声音走' : '请说 · ↑↓ 调速度') : '请说');
 }
 function endRecUi() {
   followStop();
@@ -812,13 +1001,22 @@ function cancelRec() {
   S.run++; S.rec.cancelled = true; S.rec.stop(); endRecUi();
   setSt('已取消，这一遍没有保存');
 }
+// One key for "that was wrong, again": the take in progress is dropped and the countdown starts over.
+async function redoRec() {
+  if ($('studio').classList.contains('hide') || !S.stream) return;
+  const was = S.recording;
+  if (was) cancelRec();
+  const go = startRec();
+  if (was) setSt('重录：上一遍没有保存');
+  await go;
+}
 async function stopRec() {
   if (!S.recording || S.counting) return;
   const rec = S.rec;
   $('rec').disabled = true; setSt('收尾中，再静一下');
   await sleep(STOP_GRACE); // keep the room tone after the last word
   if (rec !== S.rec || rec.state === 'inactive') return; // cancelled during the wait
-  rec.stop(); endRecUi();
+  paceLearn(); rec.stop(); endRecUi();
 }
 async function upload(blob, id, mime, devices, attempt = 1) {
   S.uploading++; setSt('正在存到硬盘…');
@@ -884,9 +1082,22 @@ $('guideBtn').classList.toggle('on', !document.body.classList.contains('noguide'
 for (const id of ['secLight', 'secDev', 'secTakes']) { const d = $(id), k = 'coach-' + id; if (recall(k)) d.open = recall(k) === '1'; d.addEventListener('toggle', () => remember(k, d.open ? '1' : '0')); }
 $('strip').addEventListener('click', e => { if (e.target.dataset.i) go(+e.target.dataset.i); });
 $('rec').onclick = () => S.recording ? stopRec() : startRec();
-$('cancel').onclick = cancelRec;
+$('cancel').onclick = cancelRec; $('redo').onclick = e => { e.currentTarget.blur(); redoRec(); };
+$('smaller').onclick = e => { textSize(-1); e.currentTarget.blur(); }; $('bigger').onclick = e => { textSize(1); e.currentTarget.blur(); };
+$('keysBtn').onclick = e => { e.currentTarget.blur(); toggleKeys(); }; $('keys').onclick = () => toggleKeys(false);
+$('gestBtn').onclick = e => { e.currentTarget.blur(); toggleGest(); };
+// Text size: the prompter when one is showing, this page's script otherwise.
+function applyZoom() { document.documentElement.style.setProperty('--tz', S.tz); }
+function textSize(dir) {
+  const key = dir > 0 ? '+' : '-';
+  if (PM.here) return pmKey(key);
+  if (S.pmRemote) return pmCh.postMessage({ k: 'pmKey', key });
+  S.tz = Math.min(1.8, Math.max(.6, +((S.tz || 1) + dir * .1).toFixed(1))); remember('coach-text-zoom', S.tz); applyZoom();
+  setSt(`字号 ${Math.round(S.tz * 100)}%`);
+}
+function toggleKeys(on = $('keys').classList.contains('hide')) { $('keys').classList.toggle('hide', !on); }
 $('sizeMode').addEventListener('click', e => { if (e.target.dataset.z) { setSize(e.target.dataset.z); e.target.blur(); } });
-$('scrollMode').addEventListener('click', e => { if (e.target.dataset.s) { setScroll(e.target.dataset.s === '1'); e.target.blur(); } });
+$('scrollMode').addEventListener('click', e => { const m = e.target.dataset.s; if (!m) return; if (m !== '0') { S.voice = m === 'v'; remember('coach-voice', S.voice ? '1' : '0'); } setScroll(m !== '0'); e.target.blur(); });
 $('slower').onclick = e => { setSpeed(-.1); e.target.blur(); }; $('faster').onclick = e => { setSpeed(.1); e.target.blur(); };
 $('micNow').onchange = $('camNow').onchange = switchDevice;
 navigator.mediaDevices.addEventListener('devicechange', () => listDevices().catch(() => {}));
@@ -904,7 +1115,7 @@ async function hold(auto) {
 }
 $('hold').onclick = () => hold(); $('camOffBtn').onclick = () => hold();
 // Walked away: after a quiet spell the camera turns itself off. Never during a take or while a take is saving.
-const IDLE_MIN = 10; let lastActive = Date.now();
+const IDLE_MIN = 10;
 for (const ev of ['pointermove', 'pointerdown', 'keydown', 'wheel']) addEventListener(ev, () => { lastActive = Date.now(); }, { passive: true });
 setInterval(() => { if (S.stream && !S.recording && !S.counting && !S.uploading && Date.now() - lastActive > IDLE_MIN * 60e3) hold(true); }, 30e3);
 $('resume').onclick = async () => {
@@ -988,6 +1199,8 @@ addEventListener('keydown', e => {
   handleKey(e);
 });
 function handleKey(e) {
+  if (!$('keys').classList.contains('hide')) { if (e.key === 'Escape' || e.key === '?' || e.key === '/') toggleKeys(false); return; }
+  if (e.key === '?' || e.key === '/') { toggleKeys(true); return; }
   if (S.rv.open) { if (e.key === 'Escape') closeReview(); return; }
   if (e.target.matches?.("select") || $('studio').classList.contains('hide') || !$('held').classList.contains('hide')) return;
   if (e.key === 'Escape' || e.key === 'Backspace') { cancelRec(); return; }
@@ -995,6 +1208,9 @@ function handleKey(e) {
   if (e.key === 't' || e.key === 'T') { togglePrompter(); return; }
   if (e.key === 'l' || e.key === 'L') { setScroll(!S.scroll); return; }
   if (e.key === 'g' || e.key === 'G') { toggleGuide(); return; }
+  if (e.key === 'h' || e.key === 'H') { toggleGest(); return; }
+  if (e.key === 'Enter') { e.preventDefault(); e.target.blur?.(); redoRec(); return; }
+  if ('+=-_'.includes(e.key)) { textSize(e.key === '+' || e.key === '=' ? 1 : -1); return; }
   if (PM_KEYS.has(e.key.toLowerCase())) { if (PM.here) pmKey(e.key); else pmSend({ k: 'pmKey', key: e.key }); return; }
   if (e.code === 'Space') { e.preventDefault(); e.target.blur?.(); S.recording ? stopRec() : startRec(); }
   else if (e.key === 'ArrowUp') { e.preventDefault(); setSpeed(.1); }
@@ -1029,7 +1245,7 @@ const pmHtml = L => L.parts ? L.parts.map(p => `<p>${marked(p.t)}</p>`).join(' '
 function pmSync() {
   if (PM_WINDOW || !S.lines.length || !F.words.length) return;
   const L = line();
-  pmSend({ k: 'state', spec: specNow(), tone: [L.m, L.d].filter(Boolean).join('　'), html: pmHtml(L), num: `第 ${S.idx + 1} / ${S.lines.length} 段 · ${L.chapter || ''}`, rec: S.recording, count: S.countNow || 0, active: F.active, rate: baseRate(), speed: S.speed, scroll: S.scroll, pos: F.pos,
+  pmSend({ k: 'state', spec: specNow(), tone: [L.m, L.d].filter(Boolean).join('　'), html: pmHtml(L), num: `第 ${S.idx + 1} / ${S.lines.length} 段 · ${L.chapter || ''}`, rec: S.recording, count: S.countNow || 0, active: F.active, rate: baseRate(), speed: S.speed, scroll: S.scroll, voice: S.voice, pos: F.pos,
     sec: S.recording ? (performance.now() - S.t0) / 1000 - S.lead : 0, status: $('st').textContent, warn: $('st').className === 'warn',
     devices: S.stream ? `${S.stream.getAudioTracks()[0]?.label} · ${S.stream.getVideoTracks()[0]?.label}` : '' });
 }
@@ -1056,7 +1272,7 @@ function pmApply(m) {
   }
   const starting = m.rec && !PM.rec; // m.pos is 0 at a real start and the live spot if this window joined late
   const layoutChanged = fresh || PM.scroll !== m.scroll;
-  Object.assign(PM, { rec: m.rec, active: m.active, rate: m.rate, speed: m.speed, scroll: m.scroll, t0: performance.now() - m.sec * 1000 });
+  Object.assign(PM, { rec: m.rec, active: m.active, rate: m.rate, speed: m.speed, scroll: m.scroll, voice: m.voice, t0: performance.now() - m.sec * 1000 });
   if (fresh || !m.rec) PM.pos = 0;
   if (starting) { PM.pos = m.pos; PM.peek = 0; }
   document.body.classList.toggle('tall', /竖屏/.test(m.spec || ''));
@@ -1065,7 +1281,7 @@ function pmApply(m) {
   pmAttachCam();
   $('pmCount').textContent = m.count || ''; $('pmCount').classList.toggle('hide', !m.count);
   const foot = $('pmFoot');
-  const help = `触控板上下翻看　G 构图线　空格 开始 / 停止　Esc 取消　P 选最新一遍　←→ 换段　↑↓ 速度　M 翻转（${FLIP_NAME[PM.flip]}）　C ${PM.cam ? '关' : '开'}画面　L ${PM.scroll ? '改不滚动' : '改滚动'}　+ − 字号　F 全屏　T 关提词器`;
+  const help = `空格 开始 / 停止　Enter 重录　Esc 取消　P 选这遍　+ − 字号　↑↓ 速度　M 翻转（${FLIP_NAME[PM.flip]}）　👍 开始　👎 重录　🙅 取消　? 全部快捷键`;
   foot.className = m.warn ? 'warn' : '';
   foot.textContent = m.warn ? m.status : m.rec ? '' : `${m.status ? m.status + '　' : ''}${help}${m.devices ? '　｜ ' + m.devices : ''}`;
   if (layoutChanged) pmLayout();
@@ -1123,8 +1339,9 @@ function pmFrame(now) {
   const dt = Math.min(.5, (now - PM.last) / 1000); PM.last = now;
   if ($('pm').classList.contains('hide') || !PM.words.length) return;
   if (PM.active && PM.scroll) {
-    const w = PM.words[Math.floor(PM.pos)];
-    if (w) PM.pos = Math.min(PM.words.length - .01, PM.pos + dt * PM.rate * PM.speed / w.weight);
+    const w = PM.words[Math.floor(PM.pos)]; let pace = null;
+    if (PM.voice) try { pace = (PM_WINDOW ? window.opener?.coachPace : window.coachPace)?.() ?? null; } catch {}
+    if (w) PM.pos = Math.min(PM.words.length - .01, PM.pos + (pace == null ? dt * PM.rate * PM.speed / w.weight : dt * pace * PM.speed / w.syl));
   }
   let level = null;
   try { level = PM_WINDOW ? window.opener?.coachLevel?.() : window.coachLevel?.(); } catch {}
@@ -1227,9 +1444,10 @@ if (PM_WINDOW) {
   document.body.classList.add('pmWindow');
   $('setup').classList.add('hide'); $('pm').classList.remove('hide');
   $('pmFlip').dataset.flip = PM.flip;
-  $('pm').addEventListener('click', () => pmFull());
+  $('pm').addEventListener('click', () => pmFull()); $('keys').onclick = () => toggleKeys(false);
   addEventListener('keydown', e => {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === '?' || e.key === '/' || (e.key === 'Escape' && !$('keys').classList.contains('hide'))) { e.preventDefault(); return toggleKeys(e.key === 'Escape' ? false : undefined); }
     if (PM_KEYS.has(e.key.toLowerCase())) return pmKey(e.key);
     e.preventDefault();
     pmCh.postMessage({ k: 'key', key: e.key, code: e.code });

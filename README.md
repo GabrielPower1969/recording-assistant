@@ -51,7 +51,11 @@ The model downloads once from Hugging Face. After that, audio is transcribed loc
 | Key | What it does |
 |---|---|
 | Space | Start or stop a take |
+| Enter | Start over: drop the take in progress and count down again |
 | Esc | Cancel this take without saving |
+| + − | Text size: the teleprompter when one is showing, the script on the page otherwise |
+| H | Hand gestures on or off |
+| ? | The full list of keys and gestures, on whichever screen has the focus |
 | P | Pick the latest take and go to the next segment |
 | ← → | Change segment when idle; move the reading position while recording |
 | ↑ ↓ | Change scroll speed |
@@ -60,6 +64,31 @@ The model downloads once from Hugging Face. After that, audio is transcribed loc
 | G | Framing guide: grid, head-and-shoulders outline, eye line. Never recorded |
 | ⛶ on the preview | Full-screen preview, to set up framing before a take. Esc exits |
 | V | Review all segments and play the picked takes |
+
+### Hand gestures
+
+Hold the gesture toward the camera for about a second. A bar on the preview fills while it counts.
+
+| Gesture | What it does |
+|---|---|
+| 👍 thumb up | Start a take |
+| 👎 thumb down | Start over |
+| 🙅 forearms crossed | Cancel this take |
+
+The hands are found by MediaPipe Gesture Recognizer, in the browser, on this machine. The hands have to leave
+the pose before the next gesture counts.
+
+### The text follows your voice
+
+The scroll setting has three choices: **follow me**, steady, and still. "Follow me" never recognises words. It
+listens for when you are speaking and how fast the syllables come, so the text speeds up and slows down with
+you and waits while you pause. After each take read to the end it corrects itself against the syllable count
+of the script. ↑ ↓ still trims the speed.
+
+### Small differences from the script are fine
+
+A take that differs from the script by a few words is marked as information, not as a problem. Only a large
+gap (most of a sentence missing) asks you to listen again.
 | R / S | Play the reference clip / the standard pronunciation (English) |
 
 The teleprompter runs on a clock at your own pace. It never follows your voice, because speech recognition is not reliable enough to hold the text back.

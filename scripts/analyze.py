@@ -143,7 +143,7 @@ def analyze(path: Path, line, whisper=None):
         return clap_report(path)
     levels, dur = pcm(path)
     speech = [i for i, v in enumerate(levels) if v > QUIET_DB]
-    rep = {"ok": True, "duration": round(dur, 2), "notes": [], "good": []}
+    rep = {"ok": True, "duration": round(dur, 2), "notes": [], "info": [], "good": []}
     if not speech:
         rep.update(ok=False)
         rep["notes"].append("没录到声音，检查麦克风选择")
@@ -180,8 +180,11 @@ def analyze(path: Path, line, whisper=None):
         if (line or {}).get("lang") == "zh":
             share = zh_match(text, heard)
             rep["heard"], rep["match"] = heard, round(share, 2)
-            if share < .8:
+            # A few changed words are the reader's call and never ask for another take; only a large gap is raised.
+            if share < .5:
                 rep["notes"].append(f"机器听写和稿子差得多，请回听：听到“{heard}”")
+            elif share < .8:
+                rep["info"].append("和稿子有几处不一样，意思对就不用重录")
             else:
                 rep["good"].append("机器听写与稿子大致一致")
             return rep
@@ -193,7 +196,8 @@ def analyze(path: Path, line, whisper=None):
         rep["heard"] = heard
         rep["missing"], rep["extra"] = missing, extra
         if missing or extra:
-            rep["notes"].append("机器听写和稿子不一样，请回听：" +
+            small = len(missing) + len(extra) <= max(2, round(n * .12))
+            rep["info" if small else "notes"].append(("和稿子差几个词，意思对就不用重录：" if small else "机器听写和稿子不一样，请回听：") +
                                 (f"没听到 {' '.join(missing)}" if missing else "") +
                                 ("；" if missing and extra else "") +
                                 (f"多出 {' '.join(extra)}" if extra else ""))

@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Fetch the face model for the lighting check: MediaPipe Face Landmarker (Google, Apache-2.0).
+"""Fetch the models for the lighting check and the hand gestures: MediaPipe Face Landmarker and Gesture Recognizer
+(Google, Apache-2.0).
 
 usage: fetch_vision.py [--quiet]
 
 Downloads once into assets/vendor/, checks each file against a pinned SHA-256, and never runs anything
 downloaded on this side: the files are served to the page, which runs them in the browser. The recording
-works without them; only the lighting check is off.
+works without them; only the lighting check and the hand gestures are off.
 """
 import hashlib
 import sys
@@ -15,6 +16,7 @@ from pathlib import Path
 VENDOR = Path(__file__).resolve().parent.parent / "assets" / "vendor"
 LIB = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21/"
 MODEL = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"
+GESTURE = "https://storage.googleapis.com/mediapipe-models/gesture_recognizer/gesture_recognizer/float16/1/gesture_recognizer.task"
 FILES = {
     "vision_bundle.mjs": (LIB + "vision_bundle.mjs", "40f4123dfcd75cfa58add046919cc6f52fde66f009ff582997c09ba54c6ba27c"),
     "wasm/vision_wasm_internal.js": (LIB + "wasm/vision_wasm_internal.js", "4a97e2520ba506c680ecd6ba6acfb146888afa0e2746d57f205352bc6ebb82eb"),
@@ -22,6 +24,7 @@ FILES = {
     "wasm/vision_wasm_nosimd_internal.js": (LIB + "wasm/vision_wasm_nosimd_internal.js", "927def7b465c51b86e4b3060f93646aca4e27121f4b8fc0483786e407ea9cf1f"),
     "wasm/vision_wasm_nosimd_internal.wasm": (LIB + "wasm/vision_wasm_nosimd_internal.wasm", "3821ea9b1f7fb8c549ef2a064ef5c85750bf375c545a49fd6eea0df44a95f1f4"),
     "face_landmarker.task": (MODEL, "64184e229b263107bc2b804c6625db1341ff2bb731874b0bcc2fe6544e0bc9ff"),
+    "gesture_recognizer.task": (GESTURE, "97952348cf6a6a4915c2ea1496b4b37ebabc50cbbf80571435643c455f2b0482"),
 }
 
 

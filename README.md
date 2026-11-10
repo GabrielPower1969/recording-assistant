@@ -66,7 +66,7 @@ The model downloads once from Hugging Face. After that, audio is transcribed loc
 | M / K / L | In the teleprompter: flip the text / show yourself / scroll on or off |
 | G | Framing guide: grid, head-and-shoulders outline, eye line. Never recorded |
 | ⛶ on the preview | Full-screen preview, to set up framing before a take. Esc exits |
-| V | Review all segments and play the picked takes |
+| V | Review what was recorded: one row a segment, open a row for its other takes, delete or clean up in one click |
 
 ### Hand gestures
 
@@ -88,6 +88,12 @@ listens for when you are speaking and how fast the syllables come, so the text s
 you and waits while you pause. After each take read to the end it corrects itself against the syllable count
 of the script. ↑ ↓ still trims the speed, and every change of speed or text size shows its new value on the
 page and on the teleprompter glass.
+
+### Deleting a take means "again"
+
+The bin on a take in the side panel moves it to the Trash and starts the countdown for a new take at once.
+In the review, the bin only deletes. "Clean up" there keeps one take a segment (the picked one, else the latest)
+and moves the rest to the Trash. With nothing recorded, the review is empty.
 
 ### One take per segment
 

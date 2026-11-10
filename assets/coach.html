@@ -192,6 +192,18 @@
   #rvVideo { width:100%; max-height:66vh; background:#000; border-radius:10px; display:block; }
   #rvNow { font-size:22px; font-weight:600; margin-top:12px; line-height:1.35; } #rvNowSub { color:var(--mut); margin-top:4px; font-size:14px; }
   #rvList { overflow:auto; border-left:1px solid var(--line); min-height:0; }
+  #rv.empty { grid-template-columns:1fr; } #rv.empty #rvStage { display:none; } #rv.empty #rvList { border-left:0; }
+  #rvEmpty { padding:18vh 20px; text-align:center; color:var(--mut); font-size:17px; line-height:1.9; }
+  #rvClean { color:var(--gold); border-color:var(--gold); } #rvBack { color:var(--bad); border-color:var(--bad); }
+  .rvRow { border-bottom:1px solid var(--line); padding:8px 10px 10px; } .rvRow.cur { background:var(--card2); }
+  .rvMain { display:grid; grid-template-columns:30px minmax(0,1fr); gap:8px; align-items:start; width:100%; text-align:left; background:none; border:0; padding:2px 0 6px; border-radius:6px; }
+  .rvMain .n { font-size:20px; font-weight:800; color:var(--acc); line-height:1.2; } .rvMain .tx { font-size:14px; line-height:1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .rvMain .tx small { display:block; color:var(--mut); font-size:12px; }
+  .rvMeta { display:flex; gap:6px; align-items:center; flex-wrap:wrap; padding-left:38px; } .rvMeta .tag { font-size:11.5px; border-radius:6px; padding:2px 6px; background:var(--card); color:var(--mut); } .rvMeta .tag.ok { color:#9ee8bd; } .rvMeta .tag.warn { color:#ffcf8a; }
+  .rvMeta button, .rvTake button { padding:3px 8px; font-size:12px; display:inline-flex; align-items:center; gap:4px; } .rvMeta .ic, .rvTake .ic { width:14px; height:14px; }
+  .rvMeta button[data-delall], .rvTake button[data-del] { color:var(--bad); margin-left:auto; } .rvTake button[data-del] { margin-left:0; }
+  .rvTakes { margin:8px 0 0 38px; display:flex; flex-direction:column; gap:4px; }
+  .rvTake { display:flex; gap:6px; align-items:center; } .rvTake .rvPlay { flex:1; text-align:left; justify-content:flex-start; } .rvTake.cur .rvPlay { border-color:var(--acc); } .rvTake b { color:#9ee8bd; } .rvTake i { color:#ffcf8a; font-style:normal; }
   .row { display:grid; grid-template-columns:34px minmax(0,1fr) auto; gap:8px; align-items:center; width:100%; text-align:left; padding:9px 12px; background:none; border:0; border-bottom:1px solid var(--line); border-radius:0; }
   .row:hover { background:var(--card); } .row.cur { background:var(--card2); }
   .row .n { color:var(--mut); font-size:12px; } .row .tx { font-size:14px; line-height:1.35; }
@@ -326,9 +338,9 @@
 <section id="rv" class="layer hide" aria-label="回顾">
   <div id="rvTop">
     <strong>回顾</strong><span id="rvSum"></span>
-    <span class="seg" id="rvFilter" role="group" aria-label="筛选"><button data-f="all">全部</button><button data-f="picked">已选</button><button data-f="todo">没选的</button></span>
-    <button id="rvPlayAll">从头连播已选</button>
-    <button id="rvBack">回去录这段</button>
+    <button id="rvPlayAll">从头连播</button>
+    <button id="rvClean" class="hide"></button>
+    <button id="rvBack">重录这一段</button>
     <button id="rvClose">关闭 <kbd>Esc</kbd></button>
   </div>
   <div id="rvStage">
@@ -407,7 +419,7 @@ const videoBps = () => { const s = S.stream.getVideoTracks()[0].getSettings(); r
 const MIMES = ['video/x-matroska;codecs=avc1,pcm', 'video/webm;codecs=vp9,pcm', 'video/webm;codecs=vp8,pcm',
                'video/mp4;codecs=avc1,mp4a.40.2', 'video/webm;codecs=vp9,opus'];
 let lastActive = Date.now();
-const S = { tz: 1, voice: true, lines: [], takes: {}, picks: {}, idx: 0, stream: null, rec: null, recording: false, counting: false, t0: 0, peak: -99, mime: '', uploading: 0, count: 3, lead: 3, ctx: null, meter: 0, run: 0, rv: { open: false, filter: 'all', i: 0, all: false } };
+const S = { tz: 1, voice: true, lines: [], takes: {}, picks: {}, idx: 0, stream: null, rec: null, recording: false, counting: false, t0: 0, peak: -99, mime: '', uploading: 0, count: 3, lead: 3, ctx: null, meter: 0, run: 0, rv: { open: false, id: null, take: null, all: false, wide: new Set() } };
 S.scroll = true; S.speed = 1; S.size = 'long'; S.allLines = [];
 try {
   if (localStorage.getItem('coach-size') === 'mid') S.size = 'mid';
@@ -1000,7 +1012,7 @@ function renderTakes(force) {
     <div class="take ${S.picks[L.id] === t.name ? 'picked' : ''}">
       <div class="hd"><span>第 ${t.name.match(/_(\d+)\./)[1]} 遍${t.report?.duration ? ` · ${t.report.duration} 秒` : ''}</span>
         <button data-pick="${esc(t.name)}" title="选这遍（P 选最新一遍）">${icon('check')}${S.picks[L.id] === t.name ? '已选' : '选这遍'}</button>
-        <button data-trash="${esc(t.name)}" title="删除：移到废纸篓，可以放回" aria-label="删除这遍">${icon('trash')}</button>${S.store?.mac ? `<button data-reveal="${esc(t.name)}" title="在 Finder 中显示" aria-label="在 Finder 中显示">${icon('find')}</button>` : ''}</div>
+        <button data-trash="${esc(t.name)}" title="删除并马上重录（移到废纸篓，可以放回）" aria-label="删除这遍并重录">${icon('trash')}</button>${S.store?.mac ? `<button data-reveal="${esc(t.name)}" title="在 Finder 中显示" aria-label="在 Finder 中显示">${icon('find')}</button>` : ''}</div>
       <video controls preload="metadata" src="/take/${esc(t.name)}"></video>
       <ul>${reportHtml(t)}</ul>
     </div>`).join('');
@@ -1111,9 +1123,11 @@ async function takesClick(e) {
   if (old) { const r = await api('/api/empty-old-trash', { method: 'POST', body: '{}' }); await refresh(); renderLine(); setSt(`${r.moved} 遍已移到废纸篓，需要时可以从废纸篓放回`); return; }
   if (trash) {
     const n = trash.match(/_(\d+)\./)[1];
-    if (S.picks[L.id] === trash && !confirm(`第 ${n} 遍是这一段选中的。删除后，这一段就没有选中的遍数了。确定删除吗？`)) return;
+    document.querySelectorAll('#takes video').forEach(v => { v.pause(); v.removeAttribute('src'); v.load(); });
     const r = await api('/api/trash', { method: 'POST', body: JSON.stringify({ name: trash }) }); await refresh(); renderLine();
-    setSt(r.where === 'trash' ? `第 ${n} 遍已移到废纸篓，需要时可以从废纸篓放回` : `第 ${n} 遍已移到会话的 takes/.trash 文件夹`);
+    // Deleting a take says "not good enough", so the next take starts at once. It went to the Trash and can be put back.
+    if (S.stream && !S.recording && !S.counting) { const go = startRec(); setSt(`第 ${n} 遍已移到废纸篓，重录开始`); await go; }
+    else setSt(r.where === 'trash' ? `第 ${n} 遍已移到废纸篓，需要时可以从废纸篓放回` : `第 ${n} 遍已移到会话的 takes/.trash 文件夹`);
   }
 }
 $('takes').addEventListener('click', takesClick); $('storeBox').addEventListener('click', takesClick);
@@ -1215,35 +1229,40 @@ $('resume').onclick = async () => {
   catch (e) { $('heldErr').textContent = `打不开设备：${e.name || e.message}`; }
 };
 
-/* ---- review ---- */
+/* ---- review: only what was recorded. One row a segment; open a row to see its other takes ---- */
 const pickedTake = id => { const n = S.picks[id]; return (S.takes[id] || []).find(t => t.name === n); };
 const lastTake = id => (S.takes[id] || []).at(-1);
-function rvRows() {
-  const f = S.rv.filter;
-  return S.lines.map((l, i) => ({ l, i })).filter(({ l }) => f === 'all' || (f === 'picked' ? S.picks[l.id] : !S.picks[l.id]));
-}
+const keptTake = id => pickedTake(id) || lastTake(id); // the one a clean-up leaves
+const takeNo = t => t.name.match(/_(\d+)\./)[1];
+const rvRows = () => S.allLines.filter(l => !l.clap && (S.takes[l.id] || []).length);
+const rvExtra = () => rvRows().flatMap(l => S.takes[l.id].filter(t => t !== keptTake(l.id)));
 function renderReview() {
-  const done = S.lines.filter(l => S.picks[l.id]).length, some = S.lines.filter(l => !S.picks[l.id] && (S.takes[l.id] || []).length).length;
-  $('rvSum').textContent = `已选 ${done} · 录了没选 ${some} · 没录 ${S.lines.length - done - some}`;
-  document.querySelectorAll('#rvFilter button').forEach(b => b.classList.toggle('on', b.dataset.f === S.rv.filter));
-  $('rvPlayAll').disabled = !done;
-  $('rvList').innerHTML = rvRows().map(({ l, i }) => {
-    const n = (S.takes[l.id] || []).length, p = pickedTake(l.id);
-    const bad = p?.report?.notes?.length;
-    const tag = p ? (bad ? `<span class="tag warn">已选 · ${bad} 条提示</span>` : '<span class="tag ok">已选</span>') : n ? `<span class="tag">录了 ${n} 遍</span>` : '<span class="tag">没录</span>';
-    return `<button class="row ${i === S.rv.i ? 'cur' : ''}" data-i="${i}"><span class="n">${i + 1}</span><span class="tx">${esc(plain(l.t))}</span>${tag}</button>`;
-  }).join('');
+  const rows = rvRows(), extra = rvExtra().length, total = rows.reduce((n, l) => n + S.takes[l.id].length, 0);
+  $('rv').classList.toggle('empty', !rows.length);
+  $('rvSum').textContent = rows.length ? `录了 ${rows.length} 段，共 ${total} 遍${S.store?.takes_gb != null ? ` · 占 ${S.store.takes_gb} GB` : ''}` : '';
+  $('rvClean').classList.toggle('hide', !extra); $('rvClean').textContent = `一键清理：每段只留一遍（删 ${extra} 遍）`;
+  $('rvPlayAll').classList.toggle('hide', rows.length < 2); $('rvBack').classList.toggle('hide', !rows.length);
+  $('rvList').innerHTML = rows.length ? rows.map((l, i) => {
+    const list = S.takes[l.id], keep = keptTake(l.id), open = S.rv.wide.has(l.id) && list.length > 1, bad = keep.report?.notes?.length;
+    const one = t => `<div class="rvTake ${S.rv.take === t.name ? 'cur' : ''}"><button class="rvPlay" data-id="${esc(l.id)}" data-take="${esc(t.name)}">第 ${takeNo(t)} 遍${t.report?.duration ? ` · ${Math.round(t.report.duration)} 秒` : ''}${S.picks[l.id] === t.name ? ' · <b>已选</b>' : t === keep ? ' · 留这遍' : ''}${t.report?.notes?.length ? ` · <i>${t.report.notes.length} 条提示</i>` : ''}</button><button data-pick="${esc(t.name)}" data-id="${esc(l.id)}" title="选这遍">${icon('check')}</button><button data-del="${esc(t.name)}" title="删除这一遍（移到废纸篓）">${icon('trash')}</button></div>`;
+    return `<div class="rvRow ${S.rv.id === l.id ? 'cur' : ''}">
+      <button class="rvMain" data-id="${esc(l.id)}"><span class="n">${i + 1}</span><span class="tx"><small>${esc(l.chapter || '')}${l.of ? ' · 短段' : l.covers ? ' · 长段' : ''}</small>${esc(plain(l.t))}</span></button>
+      <div class="rvMeta"><span class="tag ${S.picks[l.id] ? 'ok' : ''}">${S.picks[l.id] ? '已选' : '没选'} · 第 ${takeNo(keep)} 遍${keep.report?.duration ? ` · ${Math.round(keep.report.duration)} 秒` : ''}</span>${bad ? `<span class="tag warn">${bad} 条提示</span>` : ''}
+        ${list.length > 1 ? `<button data-wide="${esc(l.id)}">${open ? '收起' : `展开 ${list.length} 遍`}</button>` : ''}<button data-delall="${esc(l.id)}" title="删掉这一段的全部录音（移到废纸篓）">${icon('trash')}${list.length > 1 ? `全部 ${list.length} 遍` : ''}</button></div>
+      ${open ? `<div class="rvTakes">${list.slice().reverse().map(one).join('')}</div>` : ''}</div>`;
+  }).join('') : '<div id="rvEmpty">还没有录音。<br>关掉这个页面，按空格开始录。</div>';
 }
-function rvShow(i, autoplay) {
-  S.rv.i = i; remember('coach-review', i);
-  const L = S.lines[i], t = pickedTake(L.id) || lastTake(L.id), v = $('rvVideo');
-  $('rvNow').textContent = plain(L.t);
-  $('rvNowSub').textContent = t ? `第 ${t.name.match(/_(\d+)\./)[1]} 遍${S.picks[L.id] === t.name ? '（已选）' : '（最新一遍，没选）'}${t.report?.duration ? ` · ${t.report.duration} 秒` : ''}` : '这段还没录';
-  renderReview();
-  document.querySelector('#rvList .cur')?.scrollIntoView({ block: 'nearest' });
+function rvShow(id, autoplay, takeName) {
+  const rows = rvRows(), L = rows.find(l => l.id === id) || rows[0], v = $('rvVideo');
   S.rv.stopAt = null;
-  if (!t) { v.removeAttribute('src'); v.load(); return; }
-  v.src = `/take/${t.name}`;
+  if (!L) { S.rv.id = S.rv.take = null; remember('coach-review', null); v.removeAttribute('src'); v.load(); $('rvNow').textContent = $('rvNowSub').textContent = ''; return renderReview(); }
+  const t = S.takes[L.id].find(x => x.name === takeName) || keptTake(L.id);
+  S.rv.id = L.id; S.rv.take = t.name; remember('coach-review', L.id);
+  $('rvNow').innerHTML = marked(L.t);
+  $('rvNowSub').textContent = `${L.chapter || ''} · 第 ${takeNo(t)} 遍${S.picks[L.id] === t.name ? '（已选）' : ''}${t.report?.duration ? ` · ${t.report.duration} 秒` : ''}${t.report?.notes?.length ? ' · ' + t.report.notes.join('；') : ''}`;
+  renderReview();
+  document.querySelector('#rvList .rvRow.cur')?.scrollIntoView({ block: 'nearest' });
+  if (v.getAttribute('src') !== `/take/${t.name}`) v.src = `/take/${t.name}`; else if (autoplay) { v.currentTime = 0; v.play().catch(() => {}); }
   const r = t.report || {};
   v.onloadedmetadata = () => {
     // Skip the countdown and the quiet tail, so playback runs line to line.
@@ -1252,10 +1271,11 @@ function rvShow(i, autoplay) {
     if (autoplay) v.play().catch(() => {});
   };
 }
+const rvStopAll = () => { S.rv.all = false; $('rvPlayAll').textContent = '从头连播'; };
 function rvNext() {
-  const j = S.lines.findIndex((l, i) => i > S.rv.i && S.picks[l.id]);
-  if (j < 0) { S.rv.all = false; $('rvPlayAll').textContent = '从头连播已选'; return; }
-  rvShow(j, true);
+  const rows = rvRows(), j = rows.findIndex(l => l.id === S.rv.id);
+  if (j < 0 || j + 1 >= rows.length) return rvStopAll();
+  rvShow(rows[j + 1].id, true);
 }
 (function rvWatch() {
   const v = $('rvVideo');
@@ -1266,19 +1286,41 @@ $('rvVideo').addEventListener('ended', () => { if (S.rv.all) rvNext(); });
 function openReview() {
   if (S.recording) return;
   document.querySelectorAll('#takes video').forEach(v => v.pause());
-  S.rv.open = true; S.rv.all = false; $('rvPlayAll').textContent = '从头连播已选';
+  S.rv.open = true; rvStopAll();
   if (PM.here) $('pm').classList.add('hide'); // review needs the normal page
-  $('rv').classList.remove('hide'); rvShow(S.idx);
+  $('rv').classList.remove('hide');
+  const here = line().id, rows = rvRows(); // the segment on screen, or the long or short one that holds it
+  rvShow((rows.find(l => l.id === here) || rows.find(l => l.covers?.includes(here) || l.of === here) || rows[0])?.id);
 }
-function closeReview() { remember('coach-review', null); S.rv.open = false; S.rv.all = false; $('rvVideo').pause(); $('rv').classList.add('hide'); if (PM.here) { $('pm').classList.remove('hide'); pmLayout(); } renderLine(); }
+function closeReview() { remember('coach-review', null); S.rv.open = false; rvStopAll(); $('rvVideo').pause(); $('rv').classList.add('hide'); if (PM.here) { $('pm').classList.remove('hide'); pmLayout(); } renderLine(); }
+// Back to the recording page on a given segment, switching between long and short when it lives in the other one.
+function rvGo(id) {
+  closeReview();
+  let i = S.lines.findIndex(l => l.id === id);
+  if (i < 0) { S.size = S.size === 'long' ? 'mid' : 'long'; S.lines = viewLines(); remember('coach-size', S.size); i = S.lines.findIndex(l => l.id === id); }
+  go(Math.max(0, i));
+}
+async function rvTrash(names, done) {
+  rvStopAll(); const v = $('rvVideo'); v.pause(); v.removeAttribute('src'); v.load(); // a file being played cannot be moved cleanly
+  for (const name of names) await api('/api/trash', { method: 'POST', body: JSON.stringify({ name }) }).catch(() => {});
+  await refresh(); rvShow(S.rv.id); toast(done);
+}
 $('review').onclick = openReview; $('rvClose').onclick = closeReview;
-$('rvBack').onclick = () => { const i = S.rv.i; closeReview(); go(i); };
-$('rvList').addEventListener('click', e => { const r = e.target.closest('.row'); if (r) { S.rv.all = false; $('rvPlayAll').textContent = '从头连播已选'; rvShow(+r.dataset.i, true); } });
-$('rvFilter').addEventListener('click', e => { if (e.target.dataset.f) { S.rv.filter = e.target.dataset.f; renderReview(); } });
+$('rvBack').onclick = () => { if (S.rv.id) rvGo(S.rv.id); };
+$('rvClean').onclick = () => { const x = rvExtra(); rvTrash(x.map(t => t.name), `清理了 ${x.length} 遍，已移到废纸篓`); };
+$('rvList').addEventListener('click', async e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const d = b.dataset;
+  if (d.wide) { S.rv.wide.has(d.wide) ? S.rv.wide.delete(d.wide) : S.rv.wide.add(d.wide); return renderReview(); }
+  if (d.del) return rvTrash([d.del], '已删除这一遍，移到了废纸篓');
+  if (d.delall) { const list = S.takes[d.delall] || []; return rvTrash(list.map(t => t.name), `已删除这一段的 ${list.length} 遍，移到了废纸篓`); }
+  if (d.pick) { await api('/api/pick', { method: 'POST', body: JSON.stringify({ id: d.id, name: S.picks[d.id] === d.pick ? null : d.pick }) }); await refresh(); return rvShow(S.rv.id, false, S.rv.take); }
+  if (d.id) { rvStopAll(); rvShow(d.id, true, d.take); }
+});
 $('rvPlayAll').onclick = () => {
-  if (S.rv.all) { S.rv.all = false; $('rvVideo').pause(); $('rvPlayAll').textContent = '从头连播已选'; return; }
-  const j = S.lines.findIndex(l => !l.clap && S.picks[l.id]); if (j < 0) return;
-  S.rv.all = true; $('rvPlayAll').textContent = '停止连播'; rvShow(j, true);
+  if (S.rv.all) { rvStopAll(); $('rvVideo').pause(); return; }
+  const rows = rvRows(); if (!rows.length) return;
+  S.rv.all = true; $('rvPlayAll').textContent = '停止连播'; rvShow(rows[0].id, true);
 };
 $('prev').onclick = () => go(S.idx - 1); $('next').onclick = () => go(S.idx + 1);
 $('playRef').onclick = playRef; $('say').onclick = say;
@@ -1539,7 +1581,7 @@ async function enterStudio() {
   if (recall('coach-pm') === 'here') pmHere(true);
   else pmCh.postMessage({ k: 'ping' }); // a prompter window survives this page's reload and says hello back
   const rv = recall('coach-review');
-  if (rv != null && S.lines[+rv]) { openReview(); rvShow(+rv); }
+  if (rv != null && rvRows().some(l => l.id === rv)) { openReview(); rvShow(rv); }
 }
 $('start').onclick = async () => {
   $('err').textContent = '';

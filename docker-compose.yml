@@ -8,6 +8,8 @@ services:
       - ./sessions:/data
     environment:
       - SESSION=${SESSION:-demo}
+      - RA_MEMORY=/data/.recording-coach.json   # the project list lives with the data
+      - RA_DEFAULT_DIR=/data
     # A new session starts from the demo script; replace /data/<session>/lines.json with your own.
     command: >
       sh -c 'mkdir -p "/data/$$SESSION" &&

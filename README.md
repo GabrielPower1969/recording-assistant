@@ -46,6 +46,20 @@ python3 scripts/serve.py sessions/demo --whisper-python .venv/bin/python
 
 The model downloads once from Hugging Face. After that, audio is transcribed locally.
 
+### One address for every project (Mac)
+
+```bash
+scripts/install_service.sh
+```
+
+The coach then starts at login and <http://localhost:8765/> always opens. Its first page lists every recording project on this computer, the one used last at the top. Add a project once, from the command line or with **添加项目…** on that page:
+
+```bash
+python3 scripts/serve.py path/to/talk/zh path/to/talk/en
+```
+
+Each folder is one **version** of the project, for example the Chinese reading and the English dub. Takes, picks and position stay in their own folder. **B** or the version switch at the bottom moves between them; **总目录** at the top goes back to the list. The list is kept in `~/.recording-coach.json`. A new empty folder defaults to `~/Downloads/recording-coach/`, and **换文件夹…** moves a version elsewhere.
+
 ## Recording
 
 | Key | What it does |
@@ -67,6 +81,7 @@ The model downloads once from Hugging Face. After that, audio is transcribed loc
 | M / K / L | In the teleprompter: flip the text / show yourself / scroll on or off |
 | G | Framing guide: grid, head-and-shoulders outline, eye line. Never recorded |
 | ⛶ on the preview | Full-screen preview, to set up framing before a take. Esc exits |
+| B | Switch to the next version of this project (for example Chinese ↔ English) |
 | V | Review what was recorded: one row a segment, open a row for its other takes, delete or clean up in one click |
 
 ### Hand gestures
@@ -149,6 +164,8 @@ Each session is a folder with a `lines.json`: a list of segments.
 
 Marks in `t`: `*word*` for stress, ` / ` for a pause, ` // ` for a longer pause, `{word|sounds like}` for a reading aid. In a Chinese line, an English word is followed by its meaning in full-width brackets, `volunteer（志愿者）`: the prompter shows it small and dim, it takes no prompter time and the missed-word check ignores it, while exports and subtitles keep it.
 
+In a Chinese segment, an English term with no meaning written after it gets one automatically, the first time it appears: the page learns `term（meaning）` pairs from the other segments and from an optional `glossary.json` beside `lines.json` (`{"coffee chat": "咖啡交流会"}`).
+
 Optional fields: `zh` (translation), `p` (pronunciation note), `names` (names the transcript may mishear), `target` (original length in seconds), `ref` (a clip in `ref/`), `parts` (show the segment line by line), `lang: "zh"` (Chinese segment), `covers` and `anySize` (long and medium segment views). [SKILL.md](SKILL.md) describes them all.
 
 ## Lighting
@@ -170,6 +187,10 @@ The first take you pick becomes the baseline, or press **以现在为准**. Each
 The most common reason takes look different from day to day is automatic exposure and white balance in the camera. Set both to manual in the camera's own software.
 
 The model (about 23 MB) downloads once on first start into `assets/vendor/`, checked against pinned SHA-256 hashes. Without it the lighting check is off and recording still works. To fetch it by hand: `python3 scripts/fetch_vision.py`.
+
+## Day and night
+
+The button at the top right cycles through automatic (follows the system), day and night. The look follows Braun and Bang & Olufsen hi-fi: warm paper and oak by day, smoked aluminium by night, one orange record button.
 
 ## Turning the camera off
 
@@ -201,6 +222,7 @@ This writes one `.wav` and one `.mp4` per picked segment, cut to the spoken span
 - Video is high-bitrate H.264 from the browser, not lossless. The browser recorder has no lossless video option.
 - A/V offset is stored per microphone and camera pair, and defaults to 0 for a new pair. It is not measured automatically.
 - Tested in Chrome. Other browsers are untested.
+- Laid out for Mac, Windows and iPad screens (landscape and portrait); phones are not supported.
 - So far the native Mac run has been tested end to end with simulated devices. The Docker setup has not been run yet, so please report any problems.
 
 ## Backup and restore
@@ -223,7 +245,10 @@ Clone this repository to `.claude/skills/recording-coach`. Claude reads [SKILL.m
 
 **录音助手：** 对着镜头按稿子逐段读，其他交给软件。本地网页提供提词器，声音和画面用同一个时钟录制，每遍立刻存盘并自动检查，最后导出选中的遍数。所有数据都留在本机，不上传。
 
-- **运行：** `docker compose up -d`，然后用 Chrome 打开 <http://localhost:8765/>。
+- **运行：** `docker compose up -d`，然后用 Chrome 打开 <http://localhost:8765/>。Mac 上运行 `scripts/install_service.sh`，开机自启，这个地址永远能打开。
+- **总目录：** 首页列出这台电脑上所有录音项目，最近用的排最前。一个项目可以有几个版本（比如中文、英文），每个版本一个文件夹，按 B 切换，顶部“总目录”返回。设置都记在 `~/.recording-coach.json`。
+- **日夜模式：** 右上角按钮在自动、白天、黑夜之间切换。
+- **英文词释义：** 中文稿里的英文词会自动补上中文意思，也可以写在 `glossary.json` 里。
 - **写稿：** 在 `sessions/<名字>/lines.json` 写稿，格式见 `examples/demo/lines.json`。
 - **玻璃提词器：** 按 T，按 M 换翻转。有第二块屏时会自动开到那块屏上。
 - **构图：** 按 G 开关构图线，线不进录像。

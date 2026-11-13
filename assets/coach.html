@@ -500,9 +500,51 @@
   #strip i.pick { background:var(--glass-fg); } #strip i.cur { outline:2px solid var(--by); outline-offset:2px; }
   #done.ok b::before { background:var(--by); box-shadow:0 0 12px var(--by); }
 
+
+  /* ---------- 2026-11-13 round two: top bar in three parts, a one-layer progress strip, one row of round keys ---------- */
+  /* top bar: back to the list on the left, the project in the middle, version and theme on the right */
+  #topbar { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:12px; }
+  #topbar .tbL, #topbar .tbR { display:flex; align-items:center; gap:10px; min-width:0; }
+  #topbar .tbR { justify-content:flex-end; }
+  #crumbProj { justify-self:center; text-align:center; font-size:17px; letter-spacing:.06em; max-width:36vw; }
+  /* the version is chosen at the top right only; the one in the bottom bar stays in the page for the script */
+  #verBox { display:none !important; }
+  .ctl > small { height:17px; line-height:17px; display:flex; align-items:center; gap:3px; } /* same caption line as the tool keys */
+  /* progress: one row of pills on the housing. Grey = not recorded, pale blue = recorded, blue = picked,
+     yellow and taller with its number = where you are */
+  #strip { counter-reset:seg; align-items:center; gap:3px; height:20px; margin:12px 16px 4px; padding:0; border-radius:0; background:none; box-shadow:none; }
+  #strip i { counter-increment:seg; height:8px; border-radius:999px; background:color-mix(in srgb,var(--fg) 13%,transparent); box-shadow:none; outline:0; transition:background .15s; }
+  #strip i:hover { background:color-mix(in srgb,var(--fg) 30%,transparent); }
+  #strip i.has { background:color-mix(in srgb,var(--bb) 42%,transparent); }
+  #strip i.pick { background:var(--bb); box-shadow:none; }
+  #strip i.cur { outline:0; height:20px; min-width:30px; background:var(--by); box-shadow:0 1px 3px var(--shade2); display:grid; place-items:center; }
+  #strip i.cur::after { content:counter(seg); font:700 11px/1 var(--geo); color:#26282A; font-style:normal; }
+  /* the bottom bar: every switch the same height, so the labels under them line up */
+  #foot .grp:first-child { align-items:flex-start; }
+  .seg, #projSel { height:36px; box-sizing:border-box; }
+  .seg button { height:30px; display:inline-flex; align-items:center; }
+  /* tools: round keys with their name under them, like back, record and next, all on one row */
+  #foot .grp:nth-child(2), #foot .grp.r { align-items:flex-end; align-self:end; }
+  #foot .grp.r { gap:14px; row-gap:8px; justify-content:flex-end; flex-wrap:wrap; }
+  .tool { height:auto; padding:0; gap:5px; flex-direction:column; align-items:center; background:none; border:0; box-shadow:none; font-size:11px; font-weight:600; letter-spacing:.06em; color:var(--plate-mut); font-family:var(--geo); }
+  .tool:hover:not(:disabled), .tool:active:not(:disabled) { background:none; box-shadow:none; transform:none; }
+  .tool > .ic { width:50px; height:50px; padding:14px; box-sizing:border-box; border-radius:50%; color:#26282A; border:1px solid #9c9fa1;
+    background:radial-gradient(circle at 34% 26%,#ffffffd9 0,transparent 42%),var(--dial);
+    box-shadow:0 1px 0 #ffffffa0 inset,0 -3px 5px #00000026 inset,0 3px 8px var(--shade2),0 0 0 4px color-mix(in srgb,var(--plate-lo) 55%,transparent); overflow:visible; }
+  .tool:hover:not(:disabled) > .ic { background:radial-gradient(circle at 34% 26%,#fff 0,transparent 46%),var(--dial); }
+  .tool:active:not(:disabled) > .ic { box-shadow:inset 0 2px 6px #0000004d,0 0 0 4px color-mix(in srgb,var(--plate-lo) 55%,transparent); transform:translateY(1px); }
+  .tool > span { white-space:nowrap; }
+  .tool > span, .tool > kbd { line-height:1.5; }
+  .tool { display:inline-grid; grid-template-columns:auto auto; grid-template-rows:50px 17px; column-gap:4px; row-gap:5px; justify-items:center; } /* the caption line is always there, so every key sits at the same height */
+  .tool > .ic { grid-column:1 / -1; }
+  .tool > kbd { font-size:10px; padding:0 4px; align-self:center; }
+  .tool.on { padding:0; transform:none; background:none; box-shadow:none; }
+  .tool.on > .ic { background:radial-gradient(circle at 34% 26%,#fff7cc 0,transparent 40%),radial-gradient(circle at 50% 60%,var(--by) 0,var(--by-dk) 100%); border-color:var(--by-dk); }
+  .tool.on::before { display:none; }
+
   /* screens: Windows and Mac laptops, iPad in either direction */
-  @media (max-width:1280px) { :root { --side:300px; } #main { padding:6px 24px 10px; } .grp { gap:12px; } .tool { padding:0 11px; height:40px; } }
-  @media (max-width:1060px) { :root { --side:270px; } #foot { padding:8px 12px 6px; gap:8px 10px; } .tool span { display:none; } .tool { padding:0 12px; } .ctl > small { font-size:10.5px; letter-spacing:.06em; }
+  @media (max-width:1280px) { :root { --side:300px; } #main { padding:6px 24px 10px; } .grp { gap:12px; } #foot .grp.r { gap:12px; } }
+  @media (max-width:1060px) { :root { --side:270px; } #foot { padding:8px 12px 6px; gap:8px 10px; } .tool span { display:none; } #camTools kbd { display:none; } #camTools button { padding:6px 2px; } .ctl > small { font-size:10.5px; letter-spacing:.06em; }
     #foot { grid-template-columns:auto 1fr; } #foot .grp:nth-child(2) { grid-column:1; } #foot .grp.r { grid-column:2; } }
   @media (max-width:860px) { :root { --side:240px; } #main { padding:4px 16px 8px; margin-left:8px; } #side { padding:10px; margin-right:8px; } #foot { margin:0 8px 8px; } #strip { margin:8px 8px 4px; }
     #camTools button span { display:none; } .ctl > small kbd { display:none; }
@@ -513,7 +555,7 @@
 </style>
 </head>
 <body>
-<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="i-rec" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></symbol><symbol id="i-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></symbol><symbol id="i-prev" viewBox="0 0 24 24"><path d="M19 20 9 12l10-8z"/><path d="M5 19V5"/></symbol><symbol id="i-next" viewBox="0 0 24 24"><path d="m5 4 10 8-10 8z"/><path d="M19 5v14"/></symbol><symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol><symbol id="i-prompter" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4M7 8h10M7 12h6"/></symbol><symbol id="i-review" viewBox="0 0 24 24"><path d="M3 5h12M3 10h12M3 15h7"/><path d="m15 13 6 3.5-6 3.5z"/></symbol><symbol id="i-camoff" viewBox="0 0 24 24"><path d="m2 2 20 20M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m5 0h4a2 2 0 0 1 2 2v3.3l1 1L22 7v10"/></symbol><symbol id="i-pause" viewBox="0 0 24 24"><path d="M9 4H6v16h3zM18 4h-3v16h3z"/></symbol><symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></symbol><symbol id="i-full" viewBox="0 0 24 24"><path d="M8 3H3v5M21 8V3h-5M16 21h5v-5M3 16v5h5"/></symbol><symbol id="i-exitfull" viewBox="0 0 24 24"><path d="M3 8h5V3M16 3v5h5M21 16h-5v5M8 21v-5H3"/></symbol><symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v4"/></symbol><symbol id="i-cam" viewBox="0 0 24 24"><path d="m23 7-7 5 7 5z"/><rect x="1" y="5" width="15" height="14" rx="2"/></symbol><symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol><symbol id="i-disk" viewBox="0 0 24 24"><path d="M22 12H2M5.5 5.1 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.8 4H7.2a2 2 0 0 0-1.7 1.1zM6 16h.01M10 16h.01"/></symbol><symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></symbol><symbol id="i-find" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol><symbol id="i-film" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M7 3v18M17 3v18M2 8h5M2 16h5M17 8h5M17 16h5"/></symbol><symbol id="i-redo" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></symbol><symbol id="i-hand" viewBox="0 0 24 24"><path d="M7 11v8a2 2 0 0 0 2 2h6.5a3 3 0 0 0 2.9-2.2l1.5-5.6A2 2 0 0 0 18 10.7h-4V6a2 2 0 0 0-2-2l-2.3 6.2A2 2 0 0 1 7.8 11.5zM3 11h4v10H3z"/></symbol><symbol id="i-home" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></symbol><symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol><symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></symbol><symbol id="i-auto" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></symbol><symbol id="i-devices" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></symbol></svg>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="i-rec" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></symbol><symbol id="i-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></symbol><symbol id="i-prev" viewBox="0 0 24 24"><path d="M19 20 9 12l10-8z"/><path d="M5 19V5"/></symbol><symbol id="i-next" viewBox="0 0 24 24"><path d="m5 4 10 8-10 8z"/><path d="M19 5v14"/></symbol><symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol><symbol id="i-prompter" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4M7 8h10M7 12h6"/></symbol><symbol id="i-review" viewBox="0 0 24 24"><path d="M3 5h12M3 10h12M3 15h7"/><path d="m15 13 6 3.5-6 3.5z"/></symbol><symbol id="i-camoff" viewBox="0 0 24 24"><path d="m2 2 20 20M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m5 0h4a2 2 0 0 1 2 2v3.3l1 1L22 7v10"/></symbol><symbol id="i-pause" viewBox="0 0 24 24"><path d="M9 4H6v16h3zM18 4h-3v16h3z"/></symbol><symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></symbol><symbol id="i-full" viewBox="0 0 24 24"><path d="M8 3H3v5M21 8V3h-5M16 21h5v-5M3 16v5h5"/></symbol><symbol id="i-exitfull" viewBox="0 0 24 24"><path d="M3 8h5V3M16 3v5h5M21 16h-5v5M8 21v-5H3"/></symbol><symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v4"/></symbol><symbol id="i-cam" viewBox="0 0 24 24"><path d="m23 7-7 5 7 5z"/><rect x="1" y="5" width="15" height="14" rx="2"/></symbol><symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol><symbol id="i-disk" viewBox="0 0 24 24"><path d="M22 12H2M5.5 5.1 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.8 4H7.2a2 2 0 0 0-1.7 1.1zM6 16h.01M10 16h.01"/></symbol><symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></symbol><symbol id="i-find" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol><symbol id="i-film" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M7 3v18M17 3v18M2 8h5M2 16h5M17 8h5M17 16h5"/></symbol><symbol id="i-redo" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></symbol><symbol id="i-hand" viewBox="0 0 24 24"><path d="M7 11v8a2 2 0 0 0 2 2h6.5a3 3 0 0 0 2.9-2.2l1.5-5.6A2 2 0 0 0 18 10.7h-4V6a2 2 0 0 0-2-2l-2.3 6.2A2 2 0 0 1 7.8 11.5zM3 11h4v10H3z"/></symbol><symbol id="i-home" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></symbol><symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol><symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></symbol><symbol id="i-auto" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></symbol><symbol id="i-keys" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></symbol><symbol id="i-devices" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></symbol></svg>
 <section id="setup">
   <div id="setupTop"><h1><img class="mark" src="/brand/mark-96.png" alt="">录音教练</h1><button class="themeBtn" title="白天 / 黑夜 / 跟随系统"></button></div>
   <p>一段一段连着读，同时录声音和画面，存在这台电脑上，不上传。每录完一遍，机器检查音量、留白、语速和有没有读漏。语气好不好，你自己听。</p>
@@ -539,7 +581,7 @@
 <section id="studio" class="hide">
   <div id="strip" aria-label="全部段落的进度"></div>
   <main id="main">
-    <div id="topbar"><img class="mark" src="/brand/mark-96.png" alt=""><button id="homeBtn" title="回到全部录音项目（总目录）"><svg class="ic"><use href="#i-home"/></svg>总目录</button><span id="crumbProj"></span><span class="seg verMode" id="topVer" role="group" aria-label="录哪个版本"></span><span class="sp"></span><button class="themeBtn" title="白天 / 黑夜 / 跟随系统"></button></div>
+    <div id="topbar"><span class="tbL"><img class="mark" src="/brand/mark-96.png" alt=""><button id="homeBtn" title="回到全部录音项目（总目录）"><svg class="ic"><use href="#i-home"/></svg>总目录</button></span><span id="crumbProj"></span><span class="tbR"><span class="seg verMode" id="topVer" role="group" aria-label="录哪个版本（B）"></span><button class="themeBtn" title="白天 / 黑夜 / 跟随系统"></button></span></div>
     <div id="num"></div>
     <div id="text"></div>
     <div id="legend"><b>橙褐色字</b> 读重一点（只有半个词上色，重音就在那个音节）　<i>｜</i> 换口气，停一下　<i>｜｜</i> 停久一点　<span style="color:var(--rt)">上方小字</span> 这个词的读音　<span style="color:var(--link)">‿</span> 连读，前后两个词连起来说</div>
@@ -601,7 +643,7 @@
       <button id="openFolder" class="tool" title="在 Finder 中打开存录像的文件夹"><svg class="ic"><use href="#i-folder"/></svg><span>打开录音文件夹</span><kbd>O</kbd></button>
       <button id="review" class="tool" title="回顾录过的段：回看、删除、一键清理"><svg class="ic"><use href="#i-review"/></svg><span>回顾</span><kbd>V</kbd></button>
       <button id="hold" class="tool" title="离开时用：存好当前这遍，关掉摄像头和麦克风。10 分钟没操作也会自动关"><svg class="ic"><use href="#i-camoff"/></svg><span>关摄像头</span></button>
-      <button id="keysBtn" class="tool" title="全部快捷键和手势"><span>快捷键</span><kbd>?</kbd></button>
+      <button id="keysBtn" class="tool" title="全部快捷键和手势"><svg class="ic"><use href="#i-keys"/></svg><span>快捷键</span><kbd>?</kbd></button>
     </div>
     <span id="st" role="status"></span>
   </footer>

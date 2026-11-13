@@ -40,7 +40,7 @@ A local page for reading a script to camera. `README.md` is the user manual. `SK
 9. The camera turns off after 10 idle minutes, never during a take or an upload.
 10. One folder per version (one language, one cut). Takes, picks and position never mix between versions; switching (key B) only changes which folder the page talks to.
 11. Every setting the user changes is remembered: project list and last version in `~/.recording-coach.json`, position per folder, theme and current project in the browser.
-12. Colours come only from the tokens on `:root` (light) and their dark set. The look is FlowGT Recorder's "Faceplate" (aluminium plate, cream paper, off-white keys, dark glass, red only for recording). Never mark a group with a coloured stripe on one side; use labels, hairlines and material. Restyling never moves the layout.
+12. Colours come only from the tokens on `:root` (light) and their dark set. The look is FlowGT Recorder's "Faceplate" (aluminium plate, cream paper, dark glass) with a Bauhaus layer on top: round convex keys, rounded corners, red = record, yellow = move on, blue = chosen. Never mark a group with a coloured stripe on one side; use labels, hairlines and material. Restyling never moves the layout.
 
 ## How to verify
 

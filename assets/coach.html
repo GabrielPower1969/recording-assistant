@@ -382,6 +382,120 @@
   #pmFoot.warn { color:#ff8a76; font-weight:600; font-size:20px; }
   #pmCount { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:26vw; font-weight:800; background:#000a; pointer-events:none; }
 
+  /* ---------- Bauhaus layer (2026-11-13): Braun and B&O shapes on the faceplate ----------
+     Circles and soft corners instead of square keys: transport keys are round, convex and lit from the top left
+     (Braun ET 66, SK 4), the back and forward keys are B&O aluminium dials, switches and tools are pills.
+     The three Bauhaus primaries are accents with one job each: red records, yellow moves on, blue marks what is
+     chosen. Sections carry a circle, a square or a triangle, never a stripe. */
+  :root { --by:#F2B705; --by-dk:#C99400; --bb:#1F5FA8; --bb-lt:#4E86C9; --geo:Futura,"Avenir Next",Avenir,"Century Gothic","Trebuchet MS",var(--font-ui);
+    --r-panel:22px; --r-card:14px; --r-key:12px; --dial:repeating-radial-gradient(circle at 50% 50%,#ffffff1f 0 1px,transparent 1px 3px),conic-gradient(from 210deg,#f4f5f5,#b9bcbe 18%,#eceeee 34%,#a9acae 52%,#f2f3f3 68%,#b5b8ba 84%,#f4f5f5); }
+  :root[data-theme="dark"] { --bb:#6E9FDA; }
+  @media (prefers-color-scheme:dark) { :root:not([data-theme="light"]) { --bb:#6E9FDA; } }
+
+  /* type: geometric for titles, numbers and labels */
+  #setupTop h1, #crumbProj, #num, .ctl > small, .sec > summary, #projHead b, .field label, #coach dt, #keysGrid h3, #rvTop strong, #done b, #toast, #count, #speedNow, #time { font-family:var(--geo); }
+  #setupTop h1 { font-weight:700; letter-spacing:.04em; }
+
+  /* every surface gets soft corners */
+  button { border-radius:var(--r-key); }
+  select { border-radius:var(--r-key); }
+  kbd { border-radius:5px; }
+  #setup { border-radius:var(--r-panel); }
+  #main, #side, #foot { border-radius:var(--r-panel); }
+  .proj, ol.tips, .take, #avBox, #editBox, #keysBox { border-radius:var(--r-card); }
+  #camWrap { border-radius:16px; border-width:6px; }
+  #strip { border-radius:999px; padding:6px 12px; } #strip i { border-radius:999px; }
+  #bar, #fsLevel, #pmLevel { border-radius:999px; }
+  .chips span, .rvMeta .tag, .row .tag { border-radius:999px; padding:2px 9px; }
+  #toast, #done { border-radius:24px; }
+  #rvVideo { border-radius:14px; }
+  #editAreas textarea { border-radius:12px; }
+
+  /* the screws become four small round bosses: the panel corners are round now */
+  #setup { background:var(--screws) 16px 16px/16px 16px no-repeat,var(--screws) calc(100% - 16px) 16px/16px 16px no-repeat,var(--screws) 16px calc(100% - 16px)/16px 16px no-repeat,var(--screws) calc(100% - 16px) calc(100% - 16px)/16px 16px no-repeat,var(--alu); }
+  #foot { background:var(--screws) 12px 12px/14px 14px no-repeat,var(--screws) calc(100% - 12px) 12px/14px 14px no-repeat,var(--screws) 12px calc(100% - 12px)/14px 14px no-repeat,var(--screws) calc(100% - 12px) calc(100% - 12px)/14px 14px no-repeat,var(--alu); }
+
+  /* the title carries the three shapes */
+  #setupTop h1::after { content:""; width:66px; height:16px; margin-left:4px; flex:none; background:
+    radial-gradient(circle,var(--rec) 0 7px,transparent 7.6px) 0 0/16px 16px no-repeat,
+    linear-gradient(var(--bb),var(--bb)) 25px 1px/14px 14px no-repeat,
+    conic-gradient(from 150deg at 50% 0,var(--by) 0 60deg,transparent 60deg) 48px 1px/16px 15px no-repeat; }
+
+  /* manual: numbers in circles, the first in yellow */
+  ol.tips li::before { border-radius:50%; width:22px; height:22px; top:.25em; }
+  ol.tips li:first-child::before { background:var(--by); color:#26282A; }
+
+  /* projects: a round reel on the left, a blue ring when chosen */
+  .proj { padding:12px 16px; }
+  .proj::before { width:30px; height:30px; border-radius:50%; opacity:1; background:
+    radial-gradient(circle,var(--card) 0 3px,var(--fg2) 3.5px 5px,transparent 5.5px),
+    repeating-conic-gradient(var(--fg2) 0 12deg,transparent 12deg 60deg),
+    radial-gradient(circle,transparent 0 13px,var(--fg2) 13.5px 14.5px,transparent 15px); -webkit-mask:radial-gradient(circle,#000 0 15px,transparent 15.5px); mask:radial-gradient(circle,#000 0 15px,transparent 15.5px); }
+  .proj.on { border-color:var(--bb); box-shadow:0 0 0 2px var(--bb),0 6px 16px var(--shade); background:var(--card); }
+  .proj.on::before { background:
+    radial-gradient(circle,var(--card) 0 3px,var(--bb) 3.5px 5px,transparent 5.5px),
+    repeating-conic-gradient(var(--bb) 0 12deg,transparent 12deg 60deg),
+    radial-gradient(circle,transparent 0 13px,var(--bb) 13.5px 14.5px,transparent 15px); }
+
+  /* main keys: Braun yellow, round-ended */
+  #start, #held #resume, #avClap, #editSave { border-radius:999px; color:#26282A; border:1px solid var(--by-dk);
+    background:radial-gradient(120% 140% at 30% 0,#ffe27a 0,var(--by) 45%,var(--by-dk) 100%); box-shadow:inset 0 1px 0 #fff8,inset 0 -2px 3px #0000002a,0 4px 12px #c9940040; }
+  #start:hover:not(:disabled), #held #resume:hover:not(:disabled), #avClap:hover:not(:disabled), #editSave:hover:not(:disabled) { background:radial-gradient(120% 140% at 30% 0,#ffe995 0,var(--by) 55%,var(--by-dk) 100%); }
+  #start { padding:14px 30px; }
+
+  /* switches: a rounded slot with pill keys; the chosen one stands up with a blue lamp */
+  .seg { border-radius:999px; padding:3px; }
+  .seg button { border-radius:999px; padding:5px 12px; }
+  .seg button.on { padding-left:22px; box-shadow:inset 0 1px 0 #fff,inset 0 -2px 3px #0000001a,0 2px 4px var(--key-shade); }
+  .seg button.on::before { left:9px; width:7px; height:7px; margin-top:-3.5px; background:var(--bb); box-shadow:0 0 0 2px #1f5fa826; }
+
+  /* tools: pills; on = pressed with a yellow lamp */
+  .tool { border-radius:999px; padding:0 15px; }
+  .tool.on::before, #camTools button.on::before { top:50%; left:9px; width:7px; height:7px; margin:-3.5px 0 0; border-radius:50%; background:var(--by); box-shadow:0 0 6px var(--by); }
+  .tool.on { padding-left:22px; }
+  #camTools button { border-radius:999px; } #camTools button.on::before { top:3px; left:50%; margin:0 0 0 -3px; width:6px; height:6px; }
+
+  /* transport: round, convex keys. Back and forward are B&O dials, REC is the red Braun button, next is yellow */
+  .round { width:50px; height:50px; border-radius:50%; color:#26282A; border:1px solid #9c9fa1;
+    background:radial-gradient(circle at 34% 26%,#ffffffd9 0,transparent 42%),var(--dial);
+    box-shadow:0 1px 0 #ffffffa0 inset,0 -3px 5px #00000026 inset,0 3px 8px var(--shade2),0 0 0 4px color-mix(in srgb,var(--plate-lo) 55%,transparent); }
+  .round:hover:not(:disabled) { background:radial-gradient(circle at 34% 26%,#fff 0,transparent 46%),var(--dial); }
+  .round:active:not(:disabled) { box-shadow:inset 0 2px 6px #0000004d,0 0 0 4px color-mix(in srgb,var(--plate-lo) 55%,transparent); transform:translateY(1px); }
+  #next { border-color:var(--by-dk); background:radial-gradient(circle at 34% 26%,#fff7cc 0,transparent 40%),radial-gradient(circle at 50% 60%,var(--by) 0,var(--by-dk) 100%); }
+  #next:hover:not(:disabled) { background:radial-gradient(circle at 34% 26%,#fffbe0 0,transparent 46%),radial-gradient(circle at 50% 60%,#ffc928 0,var(--by-dk) 100%); }
+  #cancel { color:#A8301C; } #redo { color:#26282A; }
+  #rec { width:76px; height:76px; border-radius:50%; color:#fff; border:0;
+    background:radial-gradient(circle at 34% 26%,#ffb4a3 0,#f2694f 22%,var(--rec) 48%,#a92c18 100%);
+    box-shadow:inset 0 2px 1px #ffffff55,inset 0 -5px 8px #00000040,0 0 0 6px var(--plate-hi),0 0 0 7px var(--plate-lo),0 8px 18px #e2452d55; }
+  #rec .ic { width:26px; height:26px; filter:none; }
+  #rec.on { color:var(--rec); transform:none; background:radial-gradient(circle at 34% 26%,#fff 0,var(--key) 45%,var(--key-down) 100%);
+    box-shadow:inset 0 3px 8px #0000002a,0 0 0 6px var(--rec),0 0 0 7px #a92c18,0 0 28px #e2452d88; animation:recPulse 1.6s ease-in-out infinite; }
+  #rec.on .ic { width:24px; height:24px; }
+  @keyframes recPulse { 50% { box-shadow:inset 0 3px 8px #0000002a,0 0 0 6px var(--rec),0 0 0 7px #a92c18,0 0 44px #e2452dbb; } }
+  @media (prefers-reduced-motion:reduce) { #rec.on { animation:none; } }
+
+  /* sections: a printed shape before each name */
+  .sec > summary::before { content:""; flex:none; width:12px; height:12px; }
+  #secLight > summary::before { display:none; } /* its status lamp is the circle */
+  #secDev > summary::before { background:var(--bb); }
+  #secTakes > summary::before { background:var(--rec); clip-path:polygon(50% 0,100% 100%,0 100%); }
+  .sec > summary > .ic { display:none; }
+  #lightDot { width:12px; height:12px; }
+
+  /* meter: a row of round lamps behind glass */
+  #meter { height:14px; border-radius:999px; }
+  #meter::after { background:radial-gradient(circle at 50% 50%,transparent 0 3px,var(--glass) 3.6px) 0 0/9px 14px; }
+  #levelRow .ic { color:var(--plate-mut); }
+
+  /* takes and review: round-ended keys, the chosen take ringed in blue */
+  .take button, .rvMeta button, .rvTake button, #storeRow button, #lightFoot button, .folderBtn, #homeBtn, .themeBtn, #tools button { border-radius:999px; }
+  .take.picked { border-color:var(--bb); box-shadow:0 0 0 2px var(--bb); }
+  .take.picked button[data-pick] { background:var(--bb); border-color:var(--bb); color:#fff; }
+  .rvRow.cur { box-shadow:inset 0 0 0 2px var(--bb); border-radius:12px; }
+  .rvMeta .tag.ok, .row .tag.ok { background:var(--bb); border-color:var(--bb); color:#fff; }
+  #strip i.pick { background:var(--glass-fg); } #strip i.cur { outline:2px solid var(--by); outline-offset:2px; }
+  #done.ok b::before { background:var(--by); box-shadow:0 0 12px var(--by); }
+
   /* screens: Windows and Mac laptops, iPad in either direction */
   @media (max-width:1280px) { :root { --side:300px; } #main { padding:6px 24px 10px; } .grp { gap:12px; } .tool { padding:0 11px; height:40px; } }
   @media (max-width:1060px) { :root { --side:270px; } #foot { padding:8px 12px 6px; gap:8px 10px; } .tool span { display:none; } .tool { padding:0 12px; } .ctl > small { font-size:10.5px; letter-spacing:.06em; }

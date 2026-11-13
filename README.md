@@ -192,7 +192,7 @@ The model (about 23 MB) downloads once on first start into `assets/vendor/`, che
 
 ## Day and night
 
-The button at the top right cycles through automatic (follows the system), day and night. The look follows Braun and Bang & Olufsen hi-fi: warm paper and oak by day, smoked aluminium by night, one orange record button.
+The button at the top right cycles through automatic (follows the system), day and night. The look is the front panel of a reel-to-reel recorder, shared with FlowGT Recorder: a brushed aluminium plate on a cream housing, the script on cream paper, off-white square keys, dark glass for the progress strip, level meter and messages. Red is used only for recording. Groups are marked by printed labels and hairlines, never by a coloured bar.
 
 ## Turning the camera off
 

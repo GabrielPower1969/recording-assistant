@@ -595,6 +595,10 @@ class Handler(BaseHTTPRequestHandler):
         s, u = self.session, urlparse(self.path)
         if u.path in ("/", "/coach.html"):
             return self._file(HERE.parent / "assets" / "coach.html", "text/html; charset=utf-8")
+        if m := re.match(r"^/brand/([a-z0-9-]+\.png)$", u.path):
+            return self._file(HERE.parent / "assets" / "brand" / m.group(1), "image/png")
+        if u.path == "/favicon.ico":
+            return self._file(HERE.parent / "assets" / "brand" / "icon-32.png", "image/png")
         if m := re.match(r"^/vendor/((?:wasm/)?[A-Za-z0-9_.-]+)$", u.path):
             if m.group(1) in fetch_vision.FILES:
                 kind = {".mjs": "text/javascript", ".js": "text/javascript", ".wasm": "application/wasm"}

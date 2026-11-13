@@ -1,5 +1,7 @@
 # Recording Assistant
 
+<img src="assets/brand/logo-256.png" width="128" alt="Recording Assistant icon: an aluminium tape recorder">
+
 Read a script to camera, line by line, and let the software handle the rest. A local web page gives you a teleprompter, records sound and picture on one clock, saves every take to disk at once, and checks it. When you are done, it exports the takes you picked.
 
 **The idea:** people focus on expression. Software handles levels, silence, timing and formats, and only warns you about problems that cannot be fixed later.

@@ -14,6 +14,7 @@ A local page for reading a script to camera. `README.md` is the user manual. `SK
 
 | Path | What it is |
 |---|---|
+| `assets/brand/` | The icon, copied from FlowGT Recorder and only scaled (see its README): tab icon, page mark, iPad home icon |
 | `assets/coach.html` | The whole interface, one file. Served fresh on each request, so a refresh picks up edits |
 | `scripts/serve.py` | Local HTTP server: saves takes, keeps picks and position, queues analysis. `Hub` holds every project, `Versions` the folders of one project; requests carry `?p=<project>&v=<version>` |
 | `scripts/install_service.sh` | Keeps the server running at login on a Mac |

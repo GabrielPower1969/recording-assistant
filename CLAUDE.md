@@ -14,6 +14,8 @@ A local page for reading a script to camera. `README.md` is the user manual. `SK
 
 | Path | What it is |
 |---|---|
+| `design/` | Design assets for other projects: `DESIGN.md` (rules), `tokens.css` (generated), `screenshots/`, and `README.md` listing every file with a raw GitHub link |
+| `scripts/export_tokens.py` | Copies the token block of `assets/coach.html` (between `tokens:start` and `tokens:end`) to `design/tokens.css`; `--check` fails when stale |
 | `assets/brand/` | The icon, copied from FlowGT Recorder and only scaled (see its README): tab icon, page mark, iPad home icon |
 | `assets/coach.html` | The whole interface, one file. Served fresh on each request, so a refresh picks up edits |
 | `scripts/serve.py` | Local HTTP server: saves takes, keeps picks and position, queues analysis. `Hub` holds every project, `Versions` the folders of one project; requests carry `?p=<project>&v=<version>` |
@@ -45,5 +47,7 @@ A local page for reading a script to camera. `README.md` is the user manual. `SK
 ## How to verify
 
 Run Chrome headless with `--headless=new --use-fake-device-for-media-stream --use-fake-ui-for-media-stream`, drive it over CDP, record a take and check the file and report. Fake devices cannot prove real A/V offset, a real glass rig or a real trackpad.
+
+After changing a colour, radius or font run `python3 scripts/export_tokens.py`; after changing the look also update `design/DESIGN.md` and retake `design/screenshots/` in the same commit.
 
 Update this file in the same commit as any change to the architecture.

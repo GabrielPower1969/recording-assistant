@@ -10,10 +10,12 @@
 <script>try { const t = localStorage.getItem('coach-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch {}</script>
 <style>
 
-  /* Look "Faceplate": the front panel of a reel-to-reel recorder, as in FlowGT Recorder (design/tokens.css).
-     A brushed aluminium plate on a cream housing, cream paper for the script, off-white square keys, dark glass
-     for read-outs, one red for recording. Groups are told apart by silkscreen labels, hairlines and material,
-     never by a coloured bar. Day on :root, night under prefers-color-scheme and [data-theme="dark"]. */
+  /* tokens:start — copied to design/tokens.css by scripts/export_tokens.py; edit here, then run it */
+  /* Look "Faceplate + Bauhaus": the front panel of a reel-to-reel recorder (as in FlowGT Recorder) with Braun and
+     B&O shapes. A brushed aluminium plate on a cream housing, cream paper for the script, round convex keys, dark
+     glass for read-outs. Red records, yellow moves on, blue marks what is chosen. Groups are told apart by labels,
+     hairlines, material and a circle / square / triangle, never by a coloured bar down one side.
+     Day on :root, night under prefers-color-scheme and [data-theme="dark"]. Explained in design/DESIGN.md. */
   :root { --side:340px; color-scheme:light;
     --bg:#ECE9DF; --card:#F4F2EA; --card2:#E9E6DB; --well:#C9CCCE; --fg:#26282A; --fg2:#4F5255; --mut:#5A5C5E; --line:#D5D2C6; --line2:#BDBCB5;
     --plate:#D5D7D8; --plate-hi:#E6E8E9; --plate-lo:#AEB1B3; --plate-ink:#26282A; --plate-mut:#4F5255; --brush:#ffffff2e;
@@ -47,6 +49,12 @@
     --lit:#EE9B2F; --font-mono:"JetBrains Mono","SF Mono",ui-monospace,Menlo,Consolas,monospace;
     --alu:repeating-linear-gradient(90deg,var(--brush) 0 1px,transparent 1px 2px),linear-gradient(180deg,var(--plate-hi),var(--plate) 38%,color-mix(in srgb,var(--plate) 70%,var(--plate-lo)));
     --screws:radial-gradient(circle at 50% 45%,var(--hi) 0 1px,var(--screw) 1.5px 3px,var(--screw-lo) 3.5px 4px,transparent 4.6px); }
+  /* Bauhaus accents and shapes: red records, yellow moves on, blue marks what is chosen */
+  :root { --by:#F2B705; --by-dk:#C99400; --bb:#1F5FA8; --bb-lt:#4E86C9; --geo:Futura,"Avenir Next",Avenir,"Century Gothic","Trebuchet MS",var(--font-ui);
+    --r-panel:22px; --r-card:14px; --r-key:12px; --dial:repeating-radial-gradient(circle at 50% 50%,#ffffff1f 0 1px,transparent 1px 3px),conic-gradient(from 210deg,#f4f5f5,#b9bcbe 18%,#eceeee 34%,#a9acae 52%,#f2f3f3 68%,#b5b8ba 84%,#f4f5f5); }
+  :root[data-theme="dark"] { --bb:#6E9FDA; }
+  @media (prefers-color-scheme:dark) { :root:not([data-theme="light"]) { --bb:#6E9FDA; } }
+  /* tokens:end */
 
   * { box-sizing:border-box; }
   html, body { height:100%; }
@@ -387,10 +395,6 @@
      (Braun ET 66, SK 4), the back and forward keys are B&O aluminium dials, switches and tools are pills.
      The three Bauhaus primaries are accents with one job each: red records, yellow moves on, blue marks what is
      chosen. Sections carry a circle, a square or a triangle, never a stripe. */
-  :root { --by:#F2B705; --by-dk:#C99400; --bb:#1F5FA8; --bb-lt:#4E86C9; --geo:Futura,"Avenir Next",Avenir,"Century Gothic","Trebuchet MS",var(--font-ui);
-    --r-panel:22px; --r-card:14px; --r-key:12px; --dial:repeating-radial-gradient(circle at 50% 50%,#ffffff1f 0 1px,transparent 1px 3px),conic-gradient(from 210deg,#f4f5f5,#b9bcbe 18%,#eceeee 34%,#a9acae 52%,#f2f3f3 68%,#b5b8ba 84%,#f4f5f5); }
-  :root[data-theme="dark"] { --bb:#6E9FDA; }
-  @media (prefers-color-scheme:dark) { :root:not([data-theme="light"]) { --bb:#6E9FDA; } }
 
   /* type: geometric for titles, numbers and labels */
   #setupTop h1, #crumbProj, #num, .ctl > small, .sec > summary, #projHead b, .field label, #coach dt, #keysGrid h3, #rvTop strong, #done b, #toast, #count, #speedNow, #time { font-family:var(--geo); }

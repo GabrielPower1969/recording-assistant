@@ -63,6 +63,18 @@ description: 本地录音教练：逐句提词，同时录声音和摄像头画�
    **回顾（V）：** 列出全部句子和状态，点一句就从开口处播放，也能连播所有已选的遍数，再跳回去重录。
 5. **导出：** 每个版本分开导：`python3 scripts/export.py <这个版本的文件夹> <输出目录>`，每段一个 wav、一个 mp4，加 `manifest.json`。段内每行的时间由录音和稿子对齐得到，再用于字幕和画面。
 
+## 设计资产
+
+外观、配色、图标和效果图都在仓库的 `design/` 里，别的项目要用这个外观或展示录音教练，直接引用这些文件：
+
+- 资产清单（每个文件的用途、尺寸和固定链接）：`design/README.md`，https://raw.githubusercontent.com/GabrielPower1969/recording-assistant/main/design/README.md
+- 设计说明：`design/DESIGN.md`（方向、配色、字体、间距、组件规则；第一条是卡片不加侧边彩条）
+- 设计变量：`design/tokens.css`，白天、黑夜两套。它由 `assets/coach.html` 里 `tokens:start` 到 `tokens:end` 那一段生成，改了颜色就跑 `python3 scripts/export_tokens.py`
+- 效果图：`design/screenshots/`（白天、黑夜；首页、录制前、录制中、存好、快捷键表）
+- 图标：`assets/brand/`（16 到 256 像素）
+
+改外观时，`DESIGN.md`、`tokens.css`、效果图要在同一个提交里一起更新。
+
 ## 为什么这样设计
 - **同步：** 声音和画面进同一个 MediaRecorder，共用时钟。声音优先无损 PCM。画面目标 50 Mbps H.264，高质量但不是数学无损：浏览器录制器没有无损视频选项。不用两路分开录再对齐。
 - **声画校准（设备栏）：** “👏 拍手自动校准”连拍三次，取中位数，按“麦克风|摄像头”存进 `calibration.json`（`runs` 留最近 8 次，拍手录像量完就进废纸篓）；`−10 / +10` 手动微调，边播边生效；页面回看用 WebAudio 把声音推后这个量，录像本身不动，导出时再移画面。换相机（包括直连和 Virtual Camera 两种接法）就是另一组，没校准时设备栏是金色提示。拍手搜索窗是声音前 0.2 秒到后 0.8 秒，够虚拟相机用。

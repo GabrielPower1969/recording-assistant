@@ -194,6 +194,18 @@ The model (about 23 MB) downloads once on first start into `assets/vendor/`, che
 
 The button at the top right cycles through automatic (follows the system), day and night. The look is the front panel of a reel-to-reel recorder, shared with FlowGT Recorder: a brushed aluminium plate on a cream housing, the script on cream paper, round convex keys in the manner of Braun and B&O (an aluminium dial for back and forward, a red Braun button for record, Braun yellow for next), pill-shaped switches, generous rounded corners and the three Bauhaus primaries as accents (red records, yellow moves on, blue marks what is chosen), dark glass for the progress strip, level meter and messages. Red is used only for recording. Groups are marked by printed labels and hairlines, never by a coloured bar.
 
+## Design assets
+
+The look, its tokens, the icon and rendered screens are in [`design/`](design/README.md), for other projects to link
+or reuse. [`design/README.md`](https://raw.githubusercontent.com/GabrielPower1969/recording-assistant/main/design/README.md) lists every file with its size, its use and a permanent link.
+
+- [`design/DESIGN.md`](design/DESIGN.md): direction, colours, type, space and component rules (rule one: no coloured stripe down the side of a card)
+- [`design/tokens.css`](design/tokens.css): day and night tokens, generated from the page by `python3 scripts/export_tokens.py`
+- [`design/screenshots/`](design/screenshots): the list page, the recording page before, during and after a take, and the key sheet, in day and night
+- [`assets/brand/`](assets/brand): the icon from 16 to 256 px
+
+![The recording page during a take, day](design/screenshots/recording-light.png)
+
 ## Turning the camera off
 
 **关摄像头** on the preview or in the bottom bar saves the current take and turns the camera and microphone off. After 10 minutes with no input the page does this by itself, never during a take.
@@ -250,6 +262,7 @@ Clone this repository to `.claude/skills/recording-coach`. Claude reads [SKILL.m
 - **运行：** `docker compose up -d`，然后用 Chrome 打开 <http://localhost:8765/>。Mac 上运行 `scripts/install_service.sh`，开机自启，这个地址永远能打开。
 - **总目录：** 首页列出这台电脑上所有录音项目，最近用的排最前。一个项目可以有几个版本（比如中文、英文），每个版本一个文件夹，按 B 切换，顶部“总目录”返回。设置都记在 `~/.recording-coach.json`。
 - **日夜模式：** 右上角按钮在自动、白天、黑夜之间切换。
+- **设计资产：** 设计说明、设计变量、效果图和图标都在 `design/`，清单和固定链接见 `design/README.md`。
 - **英文词释义：** 中文稿里的英文词会自动补上中文意思，也可以写在 `glossary.json` 里。
 - **写稿：** 在 `sessions/<名字>/lines.json` 写稿，格式见 `examples/demo/lines.json`。
 - **玻璃提词器：** 按 T，按 M 换翻转。有第二块屏时会自动开到那块屏上。

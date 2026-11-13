@@ -44,8 +44,10 @@ Everything else is ink, paper, aluminium and glass.
    things are is a habit.
 9. One control, one place. The version switch (Chinese / English) lives only at the top right; the copy in the
    bottom bar is hidden.
-10. Keys in a row share one key size and one caption line, so their tops and labels align to the pixel. A key
-   without a shortcut still keeps the empty caption line.
+10. Keys in a row share one key size, one caption line and one cell width, so their tops, labels and centres are
+   evenly spaced to the pixel: tools 72 px apart, transport keys 84 px apart (idle and while recording). A caption
+   that does not fit its cell is shortened ("文件夹", the tooltip keeps the full name), never allowed to widen it.
+   The shortcut letter is a small cap on the key's top right, the same place on every key.
 11. A read-out has one layer. No track inside a track, no outline around a fill.
 
 ## Type
@@ -79,7 +81,7 @@ Labels printed on the plate are 11 to 12.5 px, bold, letter-spaced 0.1 to 0.14 e
 | REC | red radial gradient, highlight at top left, 6 px plate ring; recording: white face, red ring, pulsing glow (off with reduced motion) |
 | Next / main key | Braun yellow radial gradient, ink text |
 | Switch | rounded slot (`--well`, inset), 36 px high like the project select, holding pill keys; the chosen pill stands up with a blue lamp |
-| Tool | the same round 50 px dial key as back and forward, with the name and key cap on the caption line under it; on = the key turns yellow. Tools sit on the transport row and align with it |
+| Tool | the same round 50 px dial key as back and forward in a 72 px cell, name on the caption line under it, shortcut cap on the key's top right; on = the key turns yellow. Tools sit on the transport row and align with it |
 | Top bar | three parts on a grid: back to the list (with the icon) on the left, the project name centred, the version switch and the theme key on the right |
 | Progress strip | one row of pills straight on the housing, one per segment: grey = not recorded, pale blue = recorded, blue = picked; the current one is yellow, taller and carries its number (CSS counter). Click a pill to go there |
 | Section | printed name with a circle, square or triangle before it, hairline above, chevron at the end |
@@ -104,7 +106,7 @@ layer was added on 2026-11-13 after the first faceplate was judged too square.
 - **硬规矩：** 卡片、提示框、主容器都**不加侧边彩色竖条**。分组用小标题、细线、材质，或圆、方、三角。
 - **一处一个：** 中/英切换只在右上角；顶栏左边返回总目录、中间项目名、右边版本和主题。
 - **进度条只有一层：** 灰色是没录，浅蓝是录过，蓝色是已选，当前段是黄色、更高、带段号。
-- **一排键一样大：** 右下角工具键和上一段、下一段一样是圆键，名字在键下面，没有快捷键的也留一行。
+- **一排键一样大、等间距：** 右下角工具键和上一段、下一段一样是圆键，每个键的格子一样宽（工具键 72 像素，走带键 84 像素），圆心等距；名字在键下面，快捷键字母在键的右上角，名字太长就缩短，不撑宽格子。
 - **形状：** 走带键是圆的；开关和工具键是胶囊形；面板圆角 22，卡片 14，按键 12。
 - **字体：** 正文 Inter / 苹方；标题、标签、数字用 Futura / Avenir；会变的数字和路径用等宽字体。
 - **白天、黑夜两套都是设计出来的，不是反色。** 提词器始终黑底，不跟主题。

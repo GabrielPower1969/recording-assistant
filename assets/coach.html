@@ -542,8 +542,19 @@
   .tool.on > .ic { background:radial-gradient(circle at 34% 26%,#fff7cc 0,transparent 40%),radial-gradient(circle at 50% 60%,var(--by) 0,var(--by-dk) 100%); border-color:var(--by-dk); }
   .tool.on::before { display:none; }
 
+
+  /* equal spacing: every key of a row sits in a cell of the same width, so centres are evenly spaced whatever the
+     caption says. The shortcut letter is a small cap on the key's top right, the same place on every key. */
+  #foot .grp:nth-child(2) { gap:0; }
+  #foot .grp:nth-child(2) > .ctl { width:84px; }
+  #foot .grp.r { gap:0; row-gap:8px; }
+  .tool { width:72px; grid-template-columns:1fr; position:relative; }
+  .tool > span { grid-column:1; max-width:72px; overflow:hidden; text-overflow:ellipsis; }
+  .tool > kbd { position:absolute; top:-3px; right:5px; z-index:1; font-size:10px; line-height:15px; min-width:16px; padding:0 3px; text-align:center;
+    color:#26282A; background:var(--key); border:1px solid var(--key-edge); border-radius:5px; box-shadow:0 1px 2px var(--shade2); }
+
   /* screens: Windows and Mac laptops, iPad in either direction */
-  @media (max-width:1280px) { :root { --side:300px; } #main { padding:6px 24px 10px; } .grp { gap:12px; } #foot .grp.r { gap:12px; } }
+  @media (max-width:1280px) { :root { --side:300px; } #main { padding:6px 24px 10px; } .grp { gap:12px; } }
   @media (max-width:1060px) { :root { --side:270px; } #foot { padding:8px 12px 6px; gap:8px 10px; } .tool span { display:none; } #camTools kbd { display:none; } #camTools button { padding:6px 2px; } .ctl > small { font-size:10.5px; letter-spacing:.06em; }
     #foot { grid-template-columns:auto 1fr; } #foot .grp:nth-child(2) { grid-column:1; } #foot .grp.r { grid-column:2; } }
   @media (max-width:860px) { :root { --side:240px; } #main { padding:4px 16px 8px; margin-left:8px; } #side { padding:10px; margin-right:8px; } #foot { margin:0 8px 8px; } #strip { margin:8px 8px 4px; }
@@ -640,7 +651,7 @@
     </div>
     <div class="grp r">
       <button id="togglePm" class="tool" title="提词器：有第二块屏（随航、外接）就开到那块屏上；只有一块屏就铺满这块屏。Shift+T 强制开在这块屏"><svg class="ic"><use href="#i-prompter"/></svg><span>提词器</span><kbd>T</kbd></button>
-      <button id="openFolder" class="tool" title="在 Finder 中打开存录像的文件夹"><svg class="ic"><use href="#i-folder"/></svg><span>打开录音文件夹</span><kbd>O</kbd></button>
+      <button id="openFolder" class="tool" title="在 Finder 中打开存录像的文件夹"><svg class="ic"><use href="#i-folder"/></svg><span>文件夹</span><kbd>O</kbd></button>
       <button id="review" class="tool" title="回顾录过的段：回看、删除、一键清理"><svg class="ic"><use href="#i-review"/></svg><span>回顾</span><kbd>V</kbd></button>
       <button id="hold" class="tool" title="离开时用：存好当前这遍，关掉摄像头和麦克风。10 分钟没操作也会自动关"><svg class="ic"><use href="#i-camoff"/></svg><span>关摄像头</span></button>
       <button id="keysBtn" class="tool" title="全部快捷键和手势"><svg class="ic"><use href="#i-keys"/></svg><span>快捷键</span><kbd>?</kbd></button>

@@ -210,6 +210,19 @@ or reuse. [`design/README.md`](https://raw.githubusercontent.com/GabrielPower196
 
 **关摄像头** on the preview or in the bottom bar saves the current take and turns the camera and microphone off. After 10 minutes with no input the page does this by itself, never during a take.
 
+## Many projects
+
+The home page lists every project. With dozens of them, use the row above the list:
+
+- **Search** by project name, group, version or folder (`/` focuses the box, Enter opens the first hit, Esc clears it).
+- **Order** by last used, date created, last take, name, progress or disk space, newest or oldest first.
+- **Groups**: file projects under a folder of the list, for example every story of one app. Use `serve.py ... --group "My app"` or the "分组" button on a row. A group folds; its header shows how many projects it holds and how many segments are chosen.
+- Each row shows chosen / total segments per version, the number of takes and their size. Its four actions: group, rename, remove (off the list only, no file is touched), delete (the takes move to the Trash and can be put back; the script stays in its folder).
+
+## Sound as a separate file
+
+With "另存无损声音" ticked on the recording page (the default), every take also gets `<version>/audio/<take>.wav` beside the video. Lossless sound is copied bit for bit. Untick it when you only need the video. Deleting a take sends its WAV to the Trash with it.
+
 ## Where takes are stored
 
 Each take is saved in `<session>/takes/`. The recording page shows this folder, the size of the session and the free disk space. On a Mac, **打开文件夹** opens the folder and **定位** shows one take in Finder.

@@ -20,12 +20,13 @@ A local page for reading a script to camera. `README.md` is the user manual. `SK
 | `assets/coach.html` | The whole interface, one file. Served fresh on each request, so a refresh picks up edits |
 | `scripts/serve.py` | Local HTTP server: saves takes, keeps picks and position, queues analysis. `Hub` holds every project, `Versions` the folders of one project; requests carry `?p=<project>&v=<version>` |
 | `scripts/install_service.sh` | Keeps the server running at login on a Mac |
-| `~/.recording-coach.json` | The project list: each project's version folders and the version last used, newest first. `RA_MEMORY` moves it (compose puts it in `/data`) |
+| `~/.recording-coach.json` | The project list: each project's version folders, the version last used, `created`, and `group` (the folder of the list it is filed under; `serve.py --group`). `RA_MEMORY` moves it (compose puts it in `/data`) |
 | `scripts/analyze.py` | Per-take checks: level, clipping, pace, transcript against script |
 | `scripts/export.py` | Cuts, levels and writes the picked takes |
 | `sessions/<s>/light.json` | Lighting baseline: the first picked take's face measurement, or set by hand |
 | `scripts/fetch_vision.py` | Downloads the face model into `assets/vendor/` (git-ignored), pinned by SHA-256 |
 | `examples/demo/` | Demo script, copied into a new session |
+| `<version>/audio/` | Optional: each take's sound alone, `<take>.wav`, written by the server right after the take is saved (the page's "另存无损声音" box, on by default). PCM is copied bit for bit |
 | `sessions/` | User data, git-ignored: `lines.json`, `takes/`, `reports/`, `picks.json`, `calibration.json` |
 | `<version>/session.json` · `glossary.json` | Optional: the version's display name; English terms and their Chinese meanings for the auto gloss |
 
@@ -43,6 +44,8 @@ A local page for reading a script to camera. `README.md` is the user manual. `SK
 10. One folder per version (one language, one cut). Takes, picks and position never mix between versions; switching (key B) only changes which folder the page talks to.
 11. Every setting the user changes is remembered: project list and last version in `~/.recording-coach.json`, position per folder, theme and current project in the browser.
 12. Colours come only from the tokens on `:root` (light) and their dark set. The look is FlowGT Recorder's "Faceplate" (aluminium plate, cream paper, dark glass) with a Bauhaus layer on top: round convex keys, rounded corners, red = record, yellow = move on, blue = chosen. Never mark a group with a coloured stripe on one side; use labels, hairlines and material. Restyling never moves the layout.
+13. The list of projects is searched, ordered and folded in the page only; the server sends every project with its group, dates and per-version counts (`Session.summary`, which reads no take). Deleting a project moves its takes and sound files to the Trash in one folder and takes it off the list; the script stays.
+14. The video file is the take. The separate WAV is an extra: it follows its take to the Trash, and a failure to write it never fails the take.
 
 ## How to verify
 

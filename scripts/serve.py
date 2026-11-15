@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Recording coach: local-only server. Saves every take to disk as soon as it stops, then analyses it.
 
-usage: serve.py [<version-dir> ...] [--name PROJECT] [--host 127.0.0.1] [--port 8765] [--whisper-python PATH] [--no-whisper]
+usage: serve.py [<version-dir> ...] [--name PROJECT] [--group FOLDER] [--host 127.0.0.1] [--port 8765] [--whisper-python PATH] [--no-whisper]
 
 One address for every recording project on this computer: http://localhost:8765/ lists the projects, the most
 recently used first, and inside a project switches between its versions (say recording/zh and recording/en).
@@ -116,20 +116,50 @@ def now():
     return time.strftime("%Y-%m-%d %H:%M:%S")
 
 
-def register(folders, name=None):
-    """Put a project on the list (or bring it back to the top) and make it the current one. Returns its name."""
+def register(folders, name=None, group=None):
+    """Put a project on the list (or bring it back to the top) and make it the current one. Returns its name.
+    `group` files it under a folder of the list (say every story of one app)."""
     folders = [str(f.expanduser().resolve()) for f in folders]
     data = read_memory()
     same = next((p for p in data["projects"] if sorted(p.get("folders", [])) == sorted(folders)), None)
     if same is None:
-        same = {"name": name or project_name([Path(f) for f in folders]), "folders": folders}
+        same = {"name": name or project_name([Path(f) for f in folders]), "folders": folders, "created": now()}
         data["projects"].append(same)
     elif name:
         same["name"] = name
+    if group is not None:
+        same["group"] = clean_group(group)
     same["used"] = now()
     data["current"] = same["name"]
     write_memory(data)
     return same["name"]
+
+
+def clean_group(text):
+    """The name of a folder of the list: one short line, or "" for none."""
+    return re.sub(r"\s+", " ", str(text or "")).strip()[:40]
+
+
+def folder_created(roots):
+    """When a project that carries no date of its own began: its oldest folder."""
+    times = [r.stat().st_birthtime if hasattr(r.stat(), "st_birthtime") else r.stat().st_mtime for r in roots if r.exists()]
+    return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(min(times))) if times else ""
+
+
+def to_wav(take: Path, out: Path):
+    """The take's sound alone, beside the video. Lossless sound (PCM) is copied bit for bit; a compressed track is
+    decoded to 24-bit. Returns True when the file is there."""
+    out.parent.mkdir(parents=True, exist_ok=True)
+    codec = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "a:0", "-show_entries", "stream=codec_name",
+                            "-of", "csv=p=0", str(take)], capture_output=True, text=True).stdout.strip()
+    part = out.with_suffix(".part.wav")
+    r = subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(take), "-vn", "-map", "0:a:0",
+                        "-c:a", "copy" if codec.startswith("pcm_") else "pcm_s24le", str(part)], capture_output=True)
+    if r.returncode != 0 or not part.exists():
+        part.unlink(missing_ok=True)
+        return False
+    part.replace(out)
+    return True
 
 
 def choose_folder(start: Path, prompt="录音存到哪个文件夹？"):
@@ -211,6 +241,8 @@ class Session:
         self.takes = root / "takes"
         self.reports = root / "reports"
         self.trash = root / "takes" / ".trash"
+        self.audio = root / "audio"  # optional: each take's sound alone, <take>.wav
+        self.want_audio = set()  # takes whose page asked for the sound file
         for d in (self.takes, self.reports, self.trash):
             d.mkdir(parents=True, exist_ok=True)
         self.lock = threading.Lock()
@@ -275,6 +307,9 @@ class Session:
             tmp.write_text(json.dumps(picks, ensure_ascii=False, indent=1), "utf-8")
             tmp.replace(self.root / "picks.json")
 
+    def set_all_picks_none(self):
+        (self.root / "picks.json").unlink(missing_ok=True)
+
     def state(self):
         takes, pairs = {}, self.pairs()
         for f in sorted(self.takes.iterdir()):
@@ -288,6 +323,7 @@ class Session:
                 "av": pairs.get(f"{d.get('mic', '')}|{d.get('cam', '')}", {}).get("offset"),  # seconds the picture runs late
                 "light": d.get("light"),
                 "name": f.name,
+                "audio": (self.audio / (f.stem + ".wav")).is_file(),
                 "size": f.stat().st_size,
                 "report": json.loads(rep.read_text("utf-8")) if rep.exists() else None,
             })
@@ -295,10 +331,25 @@ class Session:
         return {"lines": self.lines(), "takes": takes, "picks": self.picks(), "whisper": bool(self.whisper),
                 "free_gb": round(shutil.disk_usage(self.root).free / 1e9, 1),
                 "root": str(self.root), "takes_gb": gb(self.takes.iterdir()), "mac": ON_MAC,
+                "audio_n": sum(1 for f in self.audio.iterdir() if f.suffix == ".wav") if self.audio.is_dir() else 0,
                 "old_trash": {"count": sum(1 for f in self.trash.iterdir() if SAFE_FILE.match(f.name)),
                               "gb": gb(self.trash.iterdir())},
                 "position": json.loads(pos.read_text("utf-8")) if pos.exists() else None,
                 "light_base": self.light_base(), "pairs": pairs, "glossary": self.glossary()}
+
+    def summary(self):
+        """What the list of projects shows for this folder, without reading any take."""
+        try:
+            raw = json.loads((self.root / "lines.json").read_text("utf-8")) if (self.root / "lines.json").exists() else []
+        except ValueError:
+            raw = []
+        ids = {l.get("id") for l in raw if isinstance(l, dict)}
+        files = [f for f in self.takes.iterdir() if f.is_file() and SAFE_FILE.match(f.name)]
+        last = max((f.stat().st_mtime for f in files), default=0)
+        return {"lines": len(ids), "picked": sum(1 for k in self.picks() if k in ids),
+                "recorded": len({f.stem.rsplit("_", 1)[0] for f in files} & ids), "takes": len(files),
+                "gb": round(sum(f.stat().st_size for f in files) / 1e9, 2),
+                "last": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(last)) if last else ""}
 
     def glossary(self):
         """{"English term": "中文意思"}: shown in brackets after the term in Chinese lines (the page also learns every
@@ -350,6 +401,13 @@ class Session:
             f = self.jobs.get()
             line_id = f.stem.rsplit("_", 1)[0]
             line = next((l for l in self.lines() if l["id"] == line_id), None)
+            if f.name in self.want_audio:
+                self.want_audio.discard(f.name)
+                try:
+                    if line_id != "_clap" and f.exists():
+                        to_wav(f, self.audio / (f.stem + ".wav"))
+                except Exception as e:  # the sound file is an extra: the take itself is already safe
+                    print(f"{f.name}: no separate sound file ({e})", file=sys.stderr)
             try:
                 rep = analyze.analyze(f, line, self.whisper)
             except Exception as e:  # a bad report must never lose or block a take
@@ -401,8 +459,9 @@ def slug(text, taken):
 class Versions:
     """One project: the folders the page switches between, in the order given. Each one is a Session of its own."""
 
-    def __init__(self, hub, key, name, roots, active=None, used=""):
+    def __init__(self, hub, key, name, roots, active=None, used="", group="", created=""):
         self.hub, self.key, self.name, self.used = hub, key, name, used
+        self.group, self.created = clean_group(group), created or folder_created(roots)
         self.by_key = {}
         for r in roots:
             self.by_key[slug(r.name, self.by_key)] = hub.session_for(r)
@@ -418,8 +477,7 @@ class Versions:
         return next(k for k, v in self.by_key.items() if v is s)
 
     def listing(self):
-        return [{"key": k, "name": version_name(s.root), "root": str(s.root), "lines": len(s.lines()),
-                 "takes": sum(1 for f in s.takes.iterdir() if SAFE_FILE.match(f.name))} for k, s in self.by_key.items()]
+        return [{"key": k, "name": version_name(s.root), "root": str(s.root), **s.summary()} for k, s in self.by_key.items()]
 
     def move(self, key, new_root: Path):
         """Recordings of this version go to another folder from now on. Takes already made stay where they are.
@@ -475,7 +533,7 @@ class Hub:
                     continue
                 name = p.get("name") or project_name(roots)
                 key = slug(name, projects)
-                projects[key] = Versions(self, key, name, roots, p.get("active"), p.get("used", ""))
+                projects[key] = Versions(self, key, name, roots, p.get("active"), p.get("used", ""), p.get("group", ""), p.get("created", ""))
             if not projects:  # someone new: recordings go to Downloads
                 projects["download"] = Versions(self, "download", project_name([DEFAULT_DIR]), [DEFAULT_DIR])
             self.projects = projects
@@ -486,7 +544,8 @@ class Hub:
         with self.lock:
             self.projects = dict(sorted(self.projects.items(), key=lambda kv: kv[1].used, reverse=True))  # newest on top
             write_memory({"current": self.projects[self.current].name, "projects": [
-                {"name": v.name, "folders": [str(s.root) for s in v.by_key.values()], "active": v.active, "used": v.used}
+                {"name": v.name, "folders": [str(s.root) for s in v.by_key.values()], "active": v.active, "used": v.used,
+                 "created": v.created, **({"group": v.group} if v.group else {})}
                 for v in self.projects.values()]})
             self.mtime = MEMORY.stat().st_mtime if MEMORY.exists() else None
 
@@ -520,8 +579,55 @@ class Hub:
                     self.current = next(iter(self.projects))
                 self.save()
 
+    def set_group(self, keys, group):
+        """File projects under a folder of the list ("" takes them out). Only the list changes."""
+        with self.lock:
+            for k in keys:
+                if k in self.projects:
+                    self.projects[k].group = clean_group(group)
+            self.save()
+
+    def rename(self, key, name):
+        name = re.sub(r"\s+", " ", str(name or "")).strip()[:60]
+        with self.lock:
+            if key in self.projects and name and all(v.name != name for v in self.projects.values()):
+                self.projects[key].name = name
+                self.save()
+                self.refresh(force=True)
+                return True
+        return False
+
+    def discard(self, key):
+        """A project the reader no longer wants: its takes (and sound files) go to the Trash, where they can be put
+        back, and it leaves the list. The script, wording and reports stay in the folder. Returns takes moved,
+        or None when there is no Trash to move them to."""
+        with self.lock:
+            p = self.projects.get(key)
+            if p is None:
+                return 0
+            moved = 0
+            for s in p.by_key.values():
+                files = [f for f in s.takes.iterdir() if f.is_file() and SAFE_FILE.match(f.name)]
+                files += [f for f in s.audio.iterdir() if f.suffix == ".wav"] if s.audio.is_dir() else []
+                if not files:
+                    continue
+                if not ON_MAC or not SYSTEM_TRASH.is_dir():
+                    return None
+                box = s.root / f"{p.name} · {version_name(s.root)} · 删除的录音"
+                box.mkdir(exist_ok=True)
+                for f in files:
+                    shutil.move(f, box / f.name)
+                    moved += f.suffix != ".wav"
+                if not to_system_trash(box):
+                    return None
+                s.set_all_picks_none()
+            if len(self.projects) > 1:
+                self.forget(key)
+            return moved
+
     def listing(self):
-        return [{"key": k, "name": v.name, "used": v.used, "versions": v.listing()} for k, v in self.projects.items()]
+        return [{"key": k, "name": v.name, "used": v.used, "created": v.created, "group": v.group,
+                 "versions": v.listing()} for k, v in self.projects.items()]
 
 
 HUB: Hub = None
@@ -638,6 +744,8 @@ class Handler(BaseHTTPRequestHandler):
         (s.reports / (final.stem + ".devices.json")).write_text(json.dumps(
             {"mic": q.get("mic", [""])[0], "cam": q.get("cam", [""])[0], "light": clean_light(q.get("light", [""])[0])},
             ensure_ascii=False), "utf-8")
+        if q.get("audio", [""])[0] == "1":
+            s.want_audio.add(final.name)
         s.jobs.put(final)
         self.versions.use(self.versions.key_of(s))
         self._json({"name": name})
@@ -693,6 +801,9 @@ class Handler(BaseHTTPRequestHandler):
                 if where == "folder":
                     shutil.move(s.takes / name, s.trash / name)
                 (s.reports / (Path(name).stem + ".json")).unlink(missing_ok=True)
+                wav = s.audio / (Path(name).stem + ".wav")
+                if wav.is_file() and not to_system_trash(wav):  # the sound file follows its take
+                    shutil.move(wav, s.trash / wav.name)
                 line_id = Path(name).stem.rsplit("_", 1)[0]
                 if s.picks().get(line_id) == name:
                     s.set_pick(line_id, None)
@@ -717,6 +828,18 @@ class Handler(BaseHTTPRequestHandler):
         if u.path == "/api/project/forget":
             HUB.forget(str(body.get("p", "")))
             return self._json({"ok": True})
+        if u.path == "/api/project/group":
+            keys = [str(k) for k in body.get("keys", [])] if isinstance(body.get("keys"), list) else [str(body.get("p", ""))]
+            HUB.set_group(keys, body.get("group", ""))
+            return self._json({"ok": True})
+        if u.path == "/api/project/rename":
+            ok = HUB.rename(str(body.get("p", "")), body.get("name"))
+            return self._json({"ok": ok} if ok else {"error": "这个名字用不了（空的，或已经有同名项目）"}, 200 if ok else 400)
+        if u.path == "/api/project/discard":
+            moved = HUB.discard(str(body.get("p", "")))
+            if moved is None:
+                return self._json({"error": "这台机器没有废纸篓，录音没有动。请在文件夹里自己处理。"}, 400)
+            return self._json({"ok": True, "moved": moved})
         if u.path == "/api/folder":
             # {path}: record this version into that folder from now on; no path opens the Mac's folder chooser.
             key = self.versions.key_of(s)
@@ -735,6 +858,10 @@ class Handler(BaseHTTPRequestHandler):
             return self._json({"ok": True, "root": str(new.root)})
         if u.path == "/api/reveal" and ON_MAC:
             name = body.get("name")
+            if name == "audio":
+                s.audio.mkdir(exist_ok=True)
+                subprocess.run(["open", str(s.audio)], check=False)
+                return self._json({"ok": True})
             if name is None:
                 subprocess.run(["open", str(s.takes)], check=False)
                 return self._json({"ok": True})
@@ -749,6 +876,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("folders", type=Path, nargs="*", help="one folder per version of one project, e.g. recording/zh recording/en")
     ap.add_argument("--name", help="what the list calls this project (default: the folder that holds the versions)")
+    ap.add_argument("--group", help="the folder of the list this project is filed under, e.g. the app its stories belong to")
     ap.add_argument("--port", type=int, default=8765)
     ap.add_argument("--host", default="127.0.0.1", help="use 0.0.0.0 only inside a container whose port is published to localhost")
     ap.add_argument("--whisper-python", default=os.environ.get("COACH_WHISPER_PY"))
@@ -759,7 +887,7 @@ def main():
         for f in a.folders:
             if not (f / "lines.json").exists():
                 print(f"{f}: no lines.json yet; the page shows this folder empty until the script is put there", flush=True)
-        print(f"Project on the list: {register(a.folders, a.name)}", flush=True)
+        print(f"Project on the list: {register(a.folders, a.name, a.group)}", flush=True)
     try:
         server = ThreadingHTTPServer((a.host, a.port), Handler)
     except OSError:  # a coach is already running here: it reads the list on its next request

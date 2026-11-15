@@ -103,6 +103,34 @@
     radial-gradient(circle,var(--card2) 0 2px,var(--fg) 2.5px 6px,transparent 6.6px) 0 0/18px 18px no-repeat,
     radial-gradient(circle,var(--card2) 0 2px,var(--fg) 2.5px 3.5px,transparent 4px) 16px 0/18px 18px no-repeat; }
   .proj .forget { border:0; background:transparent; box-shadow:none; color:var(--mut); font-size:12px; padding:2px 6px; } .proj .forget:hover { color:var(--bad); background:transparent; }
+  /* the list of projects: search, order, folders that fold */
+  #projTools { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:0 0 10px; }
+  #projTools .search { flex:1; min-width:200px; display:flex; align-items:center; gap:8px; height:36px; padding:0 12px; border-radius:999px; background:var(--card); border:1px solid var(--line2); box-shadow:inset 0 1px 2px var(--shade); color:var(--mut); }
+  #projTools .search:focus-within { border-color:var(--bb); box-shadow:0 0 0 2px color-mix(in srgb,var(--bb) 35%,transparent); }
+  #projTools .search .ic { width:16px; height:16px; flex:none; }
+  #projQ { flex:1; min-width:0; border:0; outline:0; background:transparent; font:inherit; font-size:14px; color:var(--fg); }
+  #projTools select, #projTools button { height:36px; box-sizing:border-box; padding:0 12px; font-size:13px; border-radius:999px; white-space:nowrap; }
+  #projCount { font-size:12px; color:var(--plate-mut); margin:0 2px 8px; font-variant-numeric:tabular-nums; }
+  #projList.many { max-height:56vh; overflow:auto; padding:2px 4px 2px 2px; margin-right:-4px; }
+  .pgrp { display:flex; flex-direction:column; gap:8px; }
+  .grpHd { display:flex; align-items:center; gap:10px; width:100%; text-align:left; padding:7px 10px 7px 6px; border:0; background:transparent; box-shadow:none; color:var(--plate-ink); border-bottom:1px solid color-mix(in srgb,var(--plate-lo) 80%,transparent); border-radius:0; }
+  .grpHd:hover { background:color-mix(in srgb,var(--hi) 30%,transparent); }
+  .grpHd .ic { width:15px; height:15px; flex:none; }
+  .grpHd .tri { width:0; height:0; flex:none; border-left:7px solid var(--plate-ink); border-top:5px solid transparent; border-bottom:5px solid transparent; transition:transform .12s; margin-left:4px; }
+  .grpHd[aria-expanded=true] .tri { transform:rotate(90deg); }
+  .grpHd b { font-size:13px; font-weight:750; letter-spacing:.08em; }
+  .grpHd small { flex:1; font-size:12px; color:var(--plate-mut); font-variant-numeric:tabular-nums; }
+  .grpBody { display:flex; flex-direction:column; gap:8px; padding-left:18px; margin-bottom:6px; }
+  .pgrp.shut .grpBody { display:none; }
+  .proj .meta .bar { display:inline-block; vertical-align:middle; width:54px; height:5px; border-radius:3px; margin:0 6px 1px 4px; background:var(--line2); overflow:hidden; }
+  .proj .meta .bar i { display:block; height:100%; background:var(--bb); }
+  .proj .meta .bar.full i { background:var(--ok-tx); }
+  .proj .meta mark { background:color-mix(in srgb,var(--by) 60%,transparent); color:inherit; border-radius:2px; }
+  .proj b mark { background:color-mix(in srgb,var(--by) 60%,transparent); color:inherit; border-radius:2px; }
+  .proj .acts { display:flex; gap:2px; flex:none; opacity:.55; } .proj:hover .acts, .proj:focus-within .acts { opacity:1; }
+  .proj .acts button { border:0; background:transparent; box-shadow:none; color:var(--mut); font-size:12px; padding:3px 7px; border-radius:999px; }
+  .proj .acts button:hover { color:var(--fg); background:var(--card2); } .proj .acts button[data-discard]:hover { color:var(--bad); }
+  #projNone { padding:18px; text-align:center; color:var(--plate-mut); font-size:13.5px; }
   .field { display:flex; gap:12px; align-items:center; margin:10px 0; }
   .field label { width:64px; flex:none; font-size:12.5px; font-weight:700; letter-spacing:.12em; color:var(--plate-mut); }
   .field select { flex:1; min-width:0; }
@@ -137,7 +165,7 @@
   #homeBtn .ic { width:16px; height:16px; }
   #crumbProj { font-size:15px; font-weight:700; letter-spacing:.04em; max-width:40vw; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   #topbar .sep { color:var(--mut); } #topbar .sp { flex:1; }
-  .themeBtn { display:inline-flex; align-items:center; gap:6px; padding:6px 12px; font-size:13px; }
+  .themeBtn { display:inline-flex; align-items:center; gap:6px; padding:6px 12px; font-size:13px; white-space:nowrap; flex:none; }
   .themeBtn .ic { width:16px; height:16px; }
   #num { order:-2; color:var(--mut); font-size:12px; letter-spacing:.12em; font-weight:600; }
   #coach { order:-1; margin:8px 0 6px; display:grid; grid-template-columns:auto 1fr; gap:6px 14px; font-size:15px; line-height:1.55; }
@@ -251,7 +279,9 @@
   .take ul { list-style:none; margin:7px 0 0; padding:0; font-size:12.5px; line-height:1.5; }
   .take li.bad { color:var(--bad-tx); } .take li.good { color:var(--ok-tx); } .take li.wait { color:var(--mut); }
   #keepRow { display:flex; align-items:center; gap:8px; font-size:13px; margin-top:auto; cursor:pointer; padding:8px 2px; color:var(--plate-ink); border-top:1px solid color-mix(in srgb,var(--plate-lo) 80%,transparent); box-shadow:inset 0 1px 0 var(--hi); }
-  #keepRow input { width:16px; height:16px; accent-color:var(--fg); } #keepRow + #storeBox #storeRow { margin-top:2px; }
+  #audioRow { display:flex; align-items:center; gap:8px; font-size:13px; cursor:pointer; padding:0 2px 8px; color:var(--plate-ink); }
+  #audioRow input { width:16px; height:16px; accent-color:var(--fg); } #audioRow button { margin-left:auto; padding:3px 8px; font-size:12px; border-radius:999px; }
+  #keepRow input { width:16px; height:16px; accent-color:var(--fg); } #audioRow + #storeBox #storeRow { margin-top:2px; }
   #storeRow { display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--plate-mut); margin-top:auto; padding-top:8px; border-top:1px solid color-mix(in srgb,var(--plate-lo) 80%,transparent); }
   #storeRow .txt { flex:1; min-width:0; font-variant-numeric:tabular-nums; } #storeRow.low { color:var(--bad); font-weight:600; }
   #storeRow button { padding:4px 8px; font-size:12px; display:inline-flex; gap:4px; align-items:center; }
@@ -557,6 +587,7 @@
   @media (max-width:1280px) { :root { --side:300px; } #main { padding:6px 24px 10px; } .grp { gap:12px; } }
   @media (max-width:1060px) { :root { --side:270px; } #foot { padding:8px 12px 6px; gap:8px 10px; } .tool span { display:none; } #camTools kbd { display:none; } #camTools button { padding:6px 2px; } .ctl > small { font-size:10.5px; letter-spacing:.06em; }
     #foot { grid-template-columns:auto 1fr; } #foot .grp:nth-child(2) { grid-column:1; } #foot .grp.r { grid-column:2; } }
+    #topbar { grid-template-columns:auto minmax(0,1fr) auto; } #crumbProj { max-width:100%; min-width:0; } }
   @media (max-width:860px) { :root { --side:240px; } #main { padding:4px 16px 8px; margin-left:8px; } #side { padding:10px; margin-right:8px; } #foot { margin:0 8px 8px; } #strip { margin:8px 8px 4px; }
     #camTools button span { display:none; } .ctl > small kbd { display:none; }
     #setup { margin:0; border-radius:0; padding:22px 18px; } #crumbProj { max-width:30vw; } }
@@ -570,7 +601,14 @@
 <section id="setup">
   <div id="setupTop"><h1><img class="mark" src="/brand/mark-96.png" alt="">录音教练</h1><button class="themeBtn" title="白天 / 黑夜 / 跟随系统"></button></div>
   <p>一段一段连着读，同时录声音和画面，存在这台电脑上，不上传。每录完一遍，机器检查音量、留白、语速和有没有读漏。语气好不好，你自己听。</p>
-  <div id="projHead"><b>录音项目</b><small>最近用的在最上面。这个地址一直能打开：<code>http://localhost:8765/</code></small><button id="projAdd" class="folderBtn" title="选一个项目文件夹：里面有 lines.json，或有 zh / en 这样的子文件夹">添加项目…</button></div>
+  <div id="projHead"><b>录音项目</b><small>这个地址一直能打开：<code>http://localhost:8765/</code></small><button id="projAdd" class="folderBtn" title="选一个项目文件夹：里面有 lines.json，或有 zh / en 这样的子文件夹">添加项目…</button></div>
+  <div id="projTools">
+    <label class="search" title="按项目名、分组、版本或文件夹找（/ 聚焦）"><svg class="ic"><use href="#i-find"/></svg><input id="projQ" type="search" placeholder="搜索项目、分组、文件夹…" autocomplete="off" spellcheck="false"></label>
+    <select id="projSort" aria-label="排序" title="按什么排"><option value="used">最近使用</option><option value="created">创建日期</option><option value="last">最后录音</option><option value="name">名称</option><option value="progress">完成进度</option><option value="gb">占用空间</option></select>
+    <button id="projDir" title="倒序 / 正序"></button>
+    <button id="projFold" title="全部分组折叠或展开"></button>
+  </div>
+  <div id="projCount"></div>
   <div id="projList"></div>
   <div class="field hide" id="setupVerRow"><label>版本</label><span class="seg verMode" role="group" aria-label="录哪个版本"></span><small class="mut">中文和英文各存一个文件夹，互不混</small></div>
   <div class="field"><label>存到</label><code id="setupRoot" class="root"></code><button id="setupFolder" class="folderBtn" title="换一个文件夹存这个版本的录音">换文件夹…</button></div>
@@ -630,7 +668,7 @@
       </div>
     </div></details>
     <details class="sec" id="secTakes" open><summary><svg class="ic"><use href="#i-film"/></svg>这一段的录音 <small id="takesSum"></small></summary><div class="body"><div id="takes"></div></div></details>
-    <label id="keepRow" title="每段只留最新录的一遍，之前的自动移到废纸篓（可以放回）。清空废纸篓才真正腾出硬盘。"><input type="checkbox" id="keepLast"> 每段只留最后一遍</label><div id="storeBox"><div id="storeRow"><svg class="ic"><use href="#i-disk"/></svg><span class="txt"></span><button data-reveal="" title="在 Finder 中打开录像文件夹"><svg class="ic"><use href="#i-folder"/></svg>打开</button><button data-folder="1" class="folderBtn" title="换一个文件夹存这个版本的录音">换文件夹</button></div><div id="storeRoot" class="root"></div><div id="storeOld"></div></div>
+    <label id="keepRow" title="每段只留最新录的一遍，之前的自动移到废纸篓（可以放回）。清空废纸篓才真正腾出硬盘。"><input type="checkbox" id="keepLast"> 每段只留最后一遍</label><label id="audioRow" title="每录完一遍，除了录像，再把声音单独存一个无损 WAV，放在这个版本的 audio 文件夹，和录像同名。只要声音时直接拿它用。"><input type="checkbox" id="saveAudio"> 另存无损声音（audio 文件夹）<button data-reveal="audio" class="hide" title="在 Finder 中打开 audio 文件夹"><svg class="ic"><use href="#i-folder"/></svg>打开</button></label><div id="storeBox"><div id="storeRow"><svg class="ic"><use href="#i-disk"/></svg><span class="txt"></span><button data-reveal="" title="在 Finder 中打开录像文件夹"><svg class="ic"><use href="#i-folder"/></svg>打开</button><button data-folder="1" class="folderBtn" title="换一个文件夹存这个版本的录音">换文件夹</button></div><div id="storeRoot" class="root"></div><div id="storeOld"></div></div>
   </aside>
   <footer id="foot">
     <div class="grp">
@@ -875,12 +913,49 @@ async function setVersion(key) {
   toast(`${verName()} · 共 ${S.lines.length} 段 · 已选定 ${S.lines.filter(isDone).length} 段`);
 }
 const projName = () => (S.projects.find(p => p.key === S.p) || {}).name || '';
+const HUBV = { q: '', sort: recall('coach-hub-sort') || 'used', asc: recall('coach-hub-asc') === '1', shut: new Set(JSON.parse(recall('coach-hub-shut') || '[]')) };
+const NOGRP = '未分组';
+const projSum = p => p.versions.reduce((a, v) => ({ lines: a.lines + (v.lines || 0), picked: a.picked + (v.picked || 0), takes: a.takes + (v.takes || 0), gb: a.gb + (v.gb || 0), last: v.last > a.last ? v.last : a.last }), { lines: 0, picked: 0, takes: 0, gb: 0, last: '' });
+const hubKey = { used: p => p.used || '', created: p => p.created || '', last: p => projSum(p).last, name: p => p.name, progress: p => { const t = projSum(p); return t.lines ? t.picked / t.lines : 0; }, gb: p => projSum(p).gb };
+const hubCmp = (a, b) => (typeof a === 'string' ? a.localeCompare(b, 'zh-Hans-CN', { numeric: true }) : a - b) * (HUBV.asc ? 1 : -1);
+const hubHit = (text, q) => { const t = esc(text); if (!q) return t; const i = String(text).toLowerCase().indexOf(q); return i < 0 ? t : esc(String(text).slice(0, i)) + '<mark>' + esc(String(text).slice(i, i + q.length)) + '</mark>' + esc(String(text).slice(i + q.length)); };
+function renderHub() {
+  const q = HUBV.q.trim().toLowerCase(), key = hubKey[HUBV.sort] || hubKey.used;
+  const shown = S.projects.filter(p => !q || [p.name, p.group, ...p.versions.flatMap(v => [v.name, v.root])].some(x => String(x || '').toLowerCase().includes(q)));
+  const groups = new Map();
+  for (const p of shown.slice().sort((a, b) => hubCmp(key(a), key(b)))) { const g = p.group || NOGRP; if (!groups.has(g)) groups.set(g, []); groups.get(g).push(p); }
+  // Folders keep the order of their first project, so a folder moves with the project that leads it; loose projects come last.
+  const order = [...groups.keys()].filter(g => g !== NOGRP).concat(groups.has(NOGRP) ? [NOGRP] : []);
+  if (HUBV.sort === 'name') order.sort((a, b) => a === NOGRP ? 1 : b === NOGRP ? -1 : hubCmp(a, b));
+  const row = p => { const t = projSum(p); return `<div class="proj ${p.key === S.p ? 'on' : ''}" data-proj="${esc(p.key)}" role="button" tabindex="0" title="${esc(p.versions.map(v => v.name + '：' + v.root).join('\n'))}">
+    <b>${hubHit(p.name, q)}</b><span class="meta">${p.versions.map(v => `${esc(v.name)}<span class="bar ${v.lines && v.picked >= v.lines ? 'full' : ''}"><i style="width:${v.lines ? Math.round(100 * v.picked / v.lines) : 0}%"></i></span>${v.picked}/${v.lines} 段`).join('　')}${t.takes ? ` · ${t.takes} 遍 · ${t.gb.toFixed(t.gb < 10 ? 2 : 1)} GB` : ''}<br>${p.used ? `上次 ${esc(p.used.slice(0, 16))}` : '还没打开过'}${p.created ? ` · 创建 ${esc(p.created.slice(0, 10))}` : ''}${q && !p.name.toLowerCase().includes(q) ? ` · ${hubHit((p.versions.find(v => v.root.toLowerCase().includes(q)) || {}).root || p.group || '', q)}` : ''}</span>
+    <span class="acts"><button data-group="${esc(p.key)}" title="放进一个分组（比如同一个 App 的所有故事），或从分组拿出来">分组</button><button data-rename="${esc(p.key)}" title="改这个项目在列表里的名字，文件夹不动">改名</button>${S.projects.length > 1 ? `<button data-forget="${esc(p.key)}" title="只从这个列表拿掉，文件不动">移除</button>` : ''}<button data-discard="${esc(p.key)}" title="把这个项目的录音移到废纸篓（可以放回），并从列表拿掉">删除</button></span></div>`; };
+  const flat = order.length === 1 && order[0] === NOGRP;
+  $('projList').innerHTML = !shown.length ? `<div id="projNone">没有找到“${esc(HUBV.q)}”。</div>` : flat ? groups.get(NOGRP).map(row).join('') : order.map(g => {
+    const ps = groups.get(g), t = ps.map(projSum).reduce((a, x) => ({ lines: a.lines + x.lines, picked: a.picked + x.picked, gb: a.gb + x.gb }), { lines: 0, picked: 0, gb: 0 });
+    const shut = !q && HUBV.shut.has(g);
+    return `<div class="pgrp ${shut ? 'shut' : ''}"><button class="grpHd" data-grp="${esc(g)}" aria-expanded="${!shut}"><span class="tri"></span>${icon('folder')}<b>${hubHit(g, q)}</b><small>${ps.length} 个项目 · 已选 ${t.picked}/${t.lines} 段${t.gb ? ` · ${t.gb.toFixed(1)} GB` : ''}</small></button><div class="grpBody">${ps.map(row).join('')}</div></div>`;
+  }).join('');
+  $('projList').classList.toggle('many', shown.length > 8);
+  const all = S.projects.map(projSum).reduce((a, x) => a + x.gb, 0);
+  $('projCount').textContent = `${q ? `找到 ${shown.length} / ` : ''}${S.projects.length} 个项目${flat ? '' : ` · ${order.filter(g => g !== NOGRP).length} 个分组`}${all ? ` · 录音共 ${all.toFixed(1)} GB` : ''}`;
+  $('projSort').value = HUBV.sort;
+  $('projDir').textContent = HUBV.sort === 'name' ? (HUBV.asc ? 'A → Z' : 'Z → A') : HUBV.sort === 'progress' || HUBV.sort === 'gb' ? (HUBV.asc ? '↑ 从少到多' : '↓ 从多到少') : (HUBV.asc ? '↑ 旧的在前' : '↓ 新的在前');
+  const names = order.filter(g => g !== NOGRP || !flat), allShut = names.length && names.every(g => HUBV.shut.has(g));
+  $('projFold').textContent = allShut ? '全部展开' : '全部折叠'; $('projFold').classList.toggle('hide', flat); $('projFold').dataset.all = allShut ? '1' : '';
+  $('projTools').classList.toggle('hide', S.projects.length < 2 && !q);
+}
+const hubSave = () => { remember('coach-hub-sort', HUBV.sort); remember('coach-hub-asc', HUBV.asc ? '1' : '0'); remember('coach-hub-shut', JSON.stringify([...HUBV.shut])); };
+$('projQ').addEventListener('input', e => { HUBV.q = e.target.value; renderHub(); });
+$('projQ').addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Escape') { e.target.value = ''; HUBV.q = ''; renderHub(); e.target.blur(); } if (e.key === 'Enter') { const first = $('projList').querySelector('.proj'); if (first) setProject(first.dataset.proj); } });
+$('projSort').addEventListener('change', e => { HUBV.sort = e.target.value; HUBV.asc = HUBV.sort === 'name'; hubSave(); renderHub(); e.target.blur(); });
+$('projDir').addEventListener('click', () => { HUBV.asc = !HUBV.asc; hubSave(); renderHub(); });
+$('projFold').addEventListener('click', e => { const gs = [...new Set(S.projects.map(p => p.group || NOGRP))]; if (e.currentTarget.dataset.all) HUBV.shut.clear(); else gs.forEach(g => HUBV.shut.add(g)); hubSave(); renderHub(); });
+document.addEventListener('keydown', e => { if (e.key === '/' && !$('setup').classList.contains('hide') && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || '')) { e.preventDefault(); e.stopPropagation(); $('projQ').focus(); } }, true);
 function renderProj() {
-  const tally = p => p.versions.map(v => `${v.name} ${v.takes} 遍`).join(' · ');
-  $('projList').innerHTML = S.projects.map(p => `<div class="proj ${p.key === S.p ? 'on' : ''}" data-proj="${esc(p.key)}" role="button" tabindex="0">
-    <b>${esc(p.name)}</b><span class="meta">${esc(tally(p))}${p.used ? ` · 上次 ${esc(p.used.slice(0, 16))}` : ''}<br>${esc(p.versions.map(v => v.root).join('　'))}</span>
-    ${S.projects.length > 1 ? `<button class="forget" data-forget="${esc(p.key)}" title="从这个列表拿掉，文件不动">移除</button>` : ''}</div>`).join('');
-  $('projSel').innerHTML = S.projects.map(p => `<option value="${esc(p.key)}"${p.key === S.p ? ' selected' : ''}>${esc(p.name)}</option>`).join('');
+  renderHub();
+  { const opt = p => `<option value="${esc(p.key)}"${p.key === S.p ? ' selected' : ''}>${esc(p.name)}</option>`, gs = [...new Set(S.projects.map(p => p.group || ''))];
+    $('projSel').innerHTML = gs.length < 2 && !gs[0] ? S.projects.map(opt).join('') : gs.map(g => `<optgroup label="${esc(g || NOGRP)}">${S.projects.filter(p => (p.group || '') === g).map(opt).join('')}</optgroup>`).join(''); }
   $('projSel').disabled = S.recording || S.counting;
   document.title = `录音 · ${[projName(), S.versions.length > 1 ? verName() : ''].filter(Boolean).join(' · ')}`;
   $('crumbProj').textContent = projName();
@@ -913,10 +988,37 @@ async function forgetProject(key) {
   if (key === S.p) S.p = null;
   await refresh();
 }
+async function groupProject(key) {
+  const p = S.projects.find(x => x.key === key); if (!p) return;
+  const have = [...new Set(S.projects.map(x => x.group).filter(Boolean))];
+  const g = prompt(`把“${p.name}”放进哪个分组？${have.length ? `\n现有分组：${have.join('、')}` : ''}\n留空 = 不分组。`, p.group || ''); if (g == null) return;
+  await api('/api/project/group', { method: 'POST', body: JSON.stringify({ p: key, group: g }) }); await refresh();
+}
+async function renameProject(key) {
+  const p = S.projects.find(x => x.key === key); if (!p) return;
+  const name = prompt('这个项目在列表里叫什么？（文件夹不动）', p.name); if (!name || name.trim() === p.name) return;
+  const r = await fetch(withV('/api/project/rename'), { method: 'POST', body: JSON.stringify({ p: key, name }) }).then(x => x.json()).catch(() => null);
+  if (r?.error) { toast(r.error); return; }
+  if (key === S.p) { S.p = null; remember('coach-p', null); }
+  await refresh();
+}
+async function discardProject(key) {
+  const p = S.projects.find(x => x.key === key); if (!p) return;
+  const t = projSum(p);
+  if (!t.takes) return forgetProject(key);
+  if (!confirm(`删除“${p.name}”？\n\n${t.takes} 遍录音（${t.gb.toFixed(2)} GB）和另存的声音会移到废纸篓，可以从废纸篓放回。\n稿子留在原文件夹，项目从列表拿掉。`)) return;
+  const r = await fetch(withV('/api/project/discard'), { method: 'POST', body: JSON.stringify({ p: key }) }).then(x => x.json()).catch(() => null);
+  if (!r || r.error) { toast(r?.error || '没删成，录音没有动'); return; }
+  if (key === S.p) { S.p = null; remember('coach-p', null); }
+  await refresh(); toast(`已把 ${r.moved} 遍录音移到废纸篓`);
+}
+function foldGroup(g) { if (HUBV.shut.has(g)) HUBV.shut.delete(g); else HUBV.shut.add(g); hubSave(); renderHub(); }
 document.addEventListener('click', e => {
-  const b = e.target.closest?.('[data-forget], [data-proj], #projAdd'); if (!b) return;
+  const b = e.target.closest?.('[data-forget], [data-discard], [data-group], [data-rename], [data-grp], [data-proj], #projAdd'); if (!b) return;
   e.stopPropagation();
-  if (b.dataset.forget) forgetProject(b.dataset.forget); else if (b.dataset.proj) setProject(b.dataset.proj); else addProject();
+  const d = b.dataset;
+  if (d.forget) forgetProject(d.forget); else if (d.discard) discardProject(d.discard); else if (d.group) groupProject(d.group); else if (d.rename) renameProject(d.rename);
+  else if (d.grp) foldGroup(d.grp); else if (d.proj) setProject(d.proj); else addProject();
 }, true);
 $('projSel').addEventListener('change', e => { setProject(e.target.value); e.target.blur(); });
 // Back to the list of projects. The camera stays on, so coming back is instant; a reload now opens the list.
@@ -1473,9 +1575,10 @@ $('lightBase').onclick = async () => {
 };
 function renderStore() {
   const st = S.store || {}, old = st.old_trash || {}, row = $('storeRow');
-  row.querySelector('.txt').textContent = `${S.versions.length > 1 ? verName() : '本会话'} ${st.takes_gb ?? '?'} GB · 硬盘剩 ${st.free_gb ?? '?'} GB`;
+  row.querySelector('.txt').textContent = `${S.versions.length > 1 ? verName() : '本会话'} ${st.takes_gb ?? '?'} GB${st.audio_n ? ` · 声音 ${st.audio_n} 个` : ''} · 硬盘剩 ${st.free_gb ?? '?'} GB`;
   row.title = `录像存在 ${st.root || ''}/takes`; row.classList.toggle('low', st.free_gb < 5);
   row.querySelector('button').classList.toggle('hide', !st.mac);
+  $('audioRow').querySelector('button').classList.toggle('hide', !st.mac);
   $('storeOld').innerHTML = st.mac && old.count ? `<button data-old="1">${icon('trash')}之前移走的 ${old.count} 遍（${old.gb} GB）移到废纸篓</button>` : '';
 }
 function renderTakes(force) {
@@ -1487,7 +1590,7 @@ function renderTakes(force) {
   $('takesSum').textContent = list.length ? `${list.length} 遍` : '';
   box.innerHTML = (list.length ? '' : '<div id="takesEmpty">还没录。按空格开始。</div>') + list.slice().reverse().map(t => `
     <div class="take ${S.picks[L.id] === t.name ? 'picked' : ''}">
-      <div class="hd"><span>第 ${t.name.match(/_(\d+)\./)[1]} 遍${t.report?.duration ? ` · ${t.report.duration} 秒` : ''}</span>
+      <div class="hd"><span>第 ${t.name.match(/_(\d+)\./)[1]} 遍${t.report?.duration ? ` · ${t.report.duration} 秒` : ''}${t.audio ? ' · 有 WAV' : ''}</span>
         <button data-pick="${esc(t.name)}" title="选这遍，进入下一段（P 选最新一遍）">${icon('check')}${S.picks[L.id] === t.name ? '已选这遍' : '选这遍'}</button>
         <button data-trash="${esc(t.name)}" title="删除并马上重录（移到废纸篓，可以放回）" aria-label="删除这遍并重录">${icon('trash')}删掉重录</button>${S.store?.mac ? `<button data-reveal="${esc(t.name)}" title="在 Finder 中显示" aria-label="在 Finder 中显示">${icon('find')}</button>` : ''}</div>
       <video controls preload="metadata" src="${esc(withV(`/take/${t.name}`))}"></video>
@@ -1602,7 +1705,7 @@ async function upload(blob, id, mime, devices, attempt = 1) {
   S.uploading++; setSt('正在存到硬盘…');
   try {
     const type = mime.split(';')[0];
-    const r = await fetch(withV(`/api/take?id=${encodeURIComponent(id)}&${devices}`), { method: 'PUT', headers: { 'Content-Type': type }, body: blob });
+    const r = await fetch(withV(`/api/take?id=${encodeURIComponent(id)}&${devices}${S.saveAudio && id !== '_clap' ? '&audio=1' : ''}`), { method: 'PUT', headers: { 'Content-Type': type }, body: blob });
     if (!r.ok) throw new Error(r.status);
     const saved = (await r.json()).name;
     S.uploading--; setSt('已存好，机器正在检查');
@@ -1673,7 +1776,7 @@ async function takesClick(e) {
     else setSt(r.where === 'trash' ? `第 ${n} 遍已移到废纸篓，需要时可以从废纸篓放回` : `第 ${n} 遍已移到会话的 takes/.trash 文件夹`);
   }
 }
-$('takes').addEventListener('click', takesClick); $('storeBox').addEventListener('click', takesClick);
+$('takes').addEventListener('click', takesClick); $('storeBox').addEventListener('click', takesClick); $('audioRow').addEventListener('click', e => { if (e.target.closest('button')) { e.preventDefault(); takesClick(e); } });
 // Full-screen preview, to set up framing before a take. The overlay is page-only, as in the small preview.
 $('fullBtn').addEventListener('click', e => { e.currentTarget.blur(); document.fullscreenElement ? document.exitFullscreen() : $('camStage').requestFullscreen().catch(() => {}); });
 document.addEventListener('fullscreenchange', () => { const on = document.fullscreenElement === $('camStage'); $('fullBtn').querySelector('use').setAttribute('href', on ? '#i-exitfull' : '#i-full'); $('fullBtn').title = on ? '退出全屏（Esc）' : '全屏预览，录之前对构图（Esc 退出）'; });
@@ -1682,6 +1785,8 @@ $('guideBtn').classList.toggle('on', !document.body.classList.contains('noguide'
 for (const id of ['secLight', 'secDev', 'secTakes']) { const d = $(id), k = 'coach-' + id; if (recall(k)) d.open = recall(k) === '1'; d.addEventListener('toggle', () => remember(k, d.open ? '1' : '0')); }
 $('strip').addEventListener('click', e => { if (e.target.dataset.i) go(+e.target.dataset.i); });
 $('rec').onclick = () => S.recording ? stopRec() : startRec();
+S.saveAudio = recall('coach-save-audio') !== '0'; $('saveAudio').checked = S.saveAudio;
+$('saveAudio').onchange = e => { S.saveAudio = e.target.checked; remember('coach-save-audio', S.saveAudio ? '1' : '0'); e.target.blur(); toast(S.saveAudio ? '每遍另存一个无损声音文件（audio 文件夹）' : '只存录像，不另存声音'); };
 S.keepLast = recall('coach-keep-last') !== '0'; $('keepLast').checked = S.keepLast;
 $('keepLast').onchange = e => { S.keepLast = e.target.checked; remember('coach-keep-last', S.keepLast ? '1' : '0'); e.target.blur(); toast(S.keepLast ? '每段只留最后一遍' : '每一遍都留着'); };
 $('cancel').onclick = cancelRec; $('redo').onclick = e => { e.currentTarget.blur(); redoRec(); };

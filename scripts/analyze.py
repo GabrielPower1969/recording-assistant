@@ -176,7 +176,14 @@ def analyze(path: Path, line, whisper=None):
         with tempfile.TemporaryDirectory() as tmp:
             wav = Path(tmp) / "check.wav"
             run("ffmpeg", "-v", "error", "-y", "-i", str(path), "-map", "0:a:0", "-ac", "1", "-ar", "16000", str(wav))
-            heard = whisper.transcribe(wav, (line or {}).get("lang", "en"))
+            try:
+                heard = whisper.transcribe(wav, (line or {}).get("lang", "en"))
+            except Exception as e:  # transcription is optional: level, clipping and pace above still stand
+                heard = None
+                rep["whisper_error"] = str(e)
+                rep["good"].append("这遍没有做听写比对（转写环境没准备好），音量和节奏照常检查了")
+        if heard is None:
+            return rep
         if (line or {}).get("lang") == "zh":
             share = zh_match(text, heard)
             rep["heard"], rep["match"] = heard, round(share, 2)

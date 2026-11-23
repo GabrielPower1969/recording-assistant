@@ -22,8 +22,9 @@ description: 本地录音教练：逐句提词，同时录声音和摄像头画�
 2. **一个网址进所有项目（2026-11-12 定）：** `http://localhost:8765/` 是这台电脑上全部录音项目的总目录，最近用的在最上面；点一个项目进去，里面再切版本。录音页底栏也有“项目”下拉。链接可以直接指到某个项目和版本：`http://localhost:8765/?p=<项目>&v=<版本>`。
    **一直开着：** Mac 上装一次就行，登录时自动启动，停了自动重启：
    ```bash
-   scripts/install_service.sh --whisper-python <装了 mlx_whisper 的 python>   # 卸载：--uninstall；日志 ~/Library/Logs/recording-coach.log
+   scripts/install_service.sh --whisper-python ~/media-env/py/bin/python   # 卸载：--uninstall；日志 ~/Library/Logs/recording-coach.log
    ```
+   **环境（2026-11-24）：** 听写和千问 TTS 都用共用环境 `menv`（`~/media-env/py`，有 mlx_whisper 和 mlx_audio）。`tts.py` 默认指的 doodlive `.venv-voice`、服务现在用的 flowgt `.venv` 都是指向它的链接；缺包装进 `~/media-env/py` 并记进 `hours/scripts/media-env/requirements.lock`，不要另建环境。
    **把项目加进总目录（只要一次）：**
    ```bash
    python3 scripts/serve.py <版本文件夹> [<版本文件夹> ...] [--name 项目名]

@@ -1601,7 +1601,7 @@ function renderTakes(force) {
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 async function startRec() {
   if (S.recording || S.counting || !line()) return;
-  S.counting = true; window.speechSynthesis?.cancel(); $('ref').pause(); banner(null);
+  S.counting = true; window.speechSynthesis?.cancel(); S.tts?.pause(); $('ref').pause(); banner(null);
   document.querySelectorAll('#takes video').forEach(v => v.pause());
   const run = ++S.run; S.lead = S.count;
   const chunks = [];
@@ -1743,8 +1743,20 @@ function go(i) {
   api('/api/position', { method: 'POST', body: JSON.stringify({ id: line().id }) }).catch(() => {});
 }
 function playRef() { if (!line().ref) return; $('ref').currentTime = 0; $('ref').play(); }
-function say() {
-  const L = line(); if (L.clap || L.lang === 'zh' || !window.speechSynthesis) return;
+async function say() {
+  const L = line(); if (L.clap) return;
+  speechSynthesis?.cancel(); S.tts?.pause();
+  // tts/<id>.mp3 (Qwen3-TTS, scripts/tts.py) only while the line still has the text it was made from; an edited line uses browser speech
+  const key = withV('/tts/manifest.json');
+  if (S.ttsKey !== key) { S.ttsKey = key; S.ttsMf = await fetch(key).then(r => r.ok ? r.json() : {}).catch(() => ({})); }
+  const norm = t => plain(t).replace(/\s+/g, ' ').trim();
+  if (S.ttsMf[L.id] !== norm(L.t)) return sayBrowser(L);
+  const a = S.tts = new Audio(withV(`/tts/${encodeURIComponent(L.id)}.mp3`)); let fell = false;
+  const fallback = () => { if (!fell && S.tts === a) { fell = true; sayBrowser(L); } };
+  a.onerror = fallback; a.play().catch(fallback); // a tts/<id>.mp3 from scripts/tts.py wins over browser speech
+}
+function sayBrowser(L) {
+  if (!window.speechSynthesis || L.lang === 'zh') return;
   const u = new SpeechSynthesisUtterance(plain(L.t)); u.lang = 'en-GB'; u.rate = .95;
   const v = speechSynthesis.getVoices().find(v => /^en[-_]NZ/i.test(v.lang)) || speechSynthesis.getVoices().find(v => /^en[-_](GB|AU)/i.test(v.lang));
   if (v) u.voice = v; speechSynthesis.cancel(); speechSynthesis.speak(u);

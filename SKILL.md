@@ -29,6 +29,8 @@ description: 本地录音教练：逐句提词，同时录声音和摄像头画�
    python3 scripts/serve.py <版本文件夹> [<版本文件夹> ...] [--name 项目名]
    ```
    已经有教练在跑时，这条命令只把项目登记进列表就退出，网页刷新就看到；没在跑时它自己开服务。也可以在总目录点“添加项目…”选项目文件夹（里面有 `lines.json`，或有 `zh` / `en` 这样带 `lines.json` 的子文件夹，或有 `recording/` 装着它们）。项目名默认取装版本的那个文件夹（`recording/zh` + `recording/en` → 项目文件夹名）。“移除”只是从列表拿掉，文件不动。改了 `serve.py` 要重启服务：`launchctl kickstart -k gui/$(id -u)/local.recording-coach`。
+   **录前试听 TTS（2026-11-23 加，用千问）：** 登记好之后跑 `python3 scripts/tts.py <版本文件夹>`，用本机 Qwen3-TTS（mlx-audio，CustomVoice-8bit，默认声音 `ryan`）每段生成 `tts/<id>.mp3`，台词原文记在 `tts/manifest.json`。全程本机，不发任何东西，**不另下模型**：用 Hugging Face 缓存里已有的模型和装了 mlx-audio 的 Python（环境变量 `QWEN_TTS_PYTHON`、`QWEN_TTS_MODEL` 可改，语音模型集中到一个文件夹后改这两个）；和 doodlive 共用 GPU 锁。6 段约 80 秒。页面“听标准发音（S）”只在台词和 manifest 一致时放千问版；在页面上改过的段（E）自动改用浏览器普通朗读，保证及时，重跑脚本后（只重做改过的段，`--force` 全部重做）又换回千问版。
+   **双击打开（2026-11-23 加）：** 跑 `python3 scripts/launcher.py <项目文件夹> <项目名> [版本]`，在项目总目录生成 `录音台-<项目名>.command`；双击即开 Chrome 到这个项目和版本，服务没开会先拉起。每个新项目登记后都顺手生成它和 TTS。
    **一个版本一个文件夹（2026-11-12 定）。** 同一份稿子有中文版、英文版时，放在项目里两个文件夹，例如 `recording/zh` 和 `recording/en`，一起传给服务。每个文件夹各有自己的 `lines.json`、录音、选择、位置和声画校准，绝不混在一起。页面上有“版本”切换（底栏和开始页都有，快捷键 `B`），按钮名来自文件夹里 `session.json` 的 `name`，没有就按文件夹名：`zh` → 中文版，`en` → 英文版，其余用文件夹名。
    **存在哪：** 开始页和右栏底部都写着当前版本存在哪个文件夹，旁边“换文件夹…”：Mac 上弹出系统的选文件夹窗口，容器里改为输入完整路径。新文件夹是空的，就把这个版本的稿子、改词、校准和位置一起带过去；已经录的留在原文件夹。换了文件夹，版本名不变（写进新文件夹的 `session.json`）。
    **列表是空的时候：** 录音存到 `~/Downloads/recording-coach/`（别人第一次用，录音落在“下载”里，好找）。文件夹里还没有 `lines.json` 时，页面写明把稿子放到哪。

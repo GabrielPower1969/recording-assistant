@@ -719,6 +719,8 @@ class Handler(BaseHTTPRequestHandler):
                 return self._file(s.takes / m.group(1), "video/x-matroska" if m.group(1).endswith("mkv") else None)
         if m := re.match(r"^/ref/([A-Za-z0-9_-]+\.mp3)$", u.path):
             return self._file(s.root / "ref" / m.group(1), "audio/mpeg")
+        if m := re.match(r"^/tts/([A-Za-z0-9_-]+\.(?:mp3|json))$", u.path):  # listen-first clips from scripts/tts.py
+            return self._file(s.root / "tts" / m.group(1), "application/json" if m.group(1).endswith("json") else "audio/mpeg")
         self._json({"error": "not found"}, 404)
 
     def do_PUT(self):

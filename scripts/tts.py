@@ -47,7 +47,8 @@ def main():
     try:
         import mlx_audio  # noqa: F401
     except ImportError:
-        if Path(PY).exists() and os.path.realpath(sys.executable) != os.path.realpath(PY):
+        if Path(PY).exists() and not os.environ.get("_TTS_REEXEC"):
+            os.environ["_TTS_REEXEC"] = "1"
             os.execv(PY, [PY, *sys.argv])
         sys.exit(f"mlx_audio not found. Set QWEN_TTS_PYTHON to a python that has it (tried {PY}).")
     import numpy as np, soundfile as sf
@@ -70,7 +71,8 @@ def main():
         if L.get("clap") or not re.match(r"^[A-Za-z0-9_-]+$", L["id"]):
             continue
         key = page_text(L["t"])
-        if not a.force and manifest.get(L["id"]) == key and (out_dir / f"{L['id']}.mp3").exists():
+        mkey = key + ("|" + json.dumps(L["say"], sort_keys=True) if L.get("say") else "")
+        if not a.force and manifest.get(L["id"]) in (key, mkey) and manifest.get(L['id'] + '#say') == L.get('say') and (out_dir / f"{L['id']}.mp3").exists():
             print("skip", L["id"]); continue
         todo.append((L, key))
     if not todo:
@@ -79,7 +81,10 @@ def main():
         m = load_model(MODEL)
         for L, key in todo:
             lang = "zh" if L.get("lang") == "zh" else "en"
-            res = list(m.generate(text=plain(L["t"]), voice=a.voice, instruct=a.instruct or INSTRUCT[lang],
+            spoken = plain(L["t"])
+            for w, r in (L.get("say") or {}).items():  # how a word is read, e.g. {"CITANZ": "Cita"}
+                spoken = spoken.replace(w, r)
+            res = list(m.generate(text=spoken, voice=a.voice, instruct=a.instruct or INSTRUCT[lang],
                                   lang_code=LANGS[lang], verbose=False))
             with tempfile.TemporaryDirectory() as d:
                 wav = Path(d) / "a.wav"
@@ -87,6 +92,7 @@ def main():
                 subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(wav),
                                 "-af", "loudnorm=I=-16:TP=-1.5", "-b:a", "128k", str(out_dir / f"{L['id']}.mp3")], check=True)
             manifest[L["id"]] = key
+            if L.get("say"): manifest[L["id"] + "#say"] = L["say"]
             mf.write_text(json.dumps(manifest, ensure_ascii=False, indent=1), "utf-8")
             print("ok", L["id"])
 
